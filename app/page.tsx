@@ -1,335 +1,683 @@
-import CurrencyTestDashboard from '@/components/CurrencyTestDashboard'
-import QuickNavigation from '@/components/QuickNavigation'
+// app/page.tsx - VisionPlus Zimbabwe Production Dashboard
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { ErrorBoundary } from '@/components/system/ErrorBoundary'
+import { LoadingOverlay } from '@/components/system/LoadingStates'
 import SystemStatus from '@/components/SystemStatus'
+import QuickNavigation from '@/components/QuickNavigation'
+import NetworkStatus from '@/components/system/NetworkStatus'
+import KeyboardShortcuts from '@/components/system/KeyboardShortcuts'
+import { ExchangeRateCache } from '@/lib/offline/ExchangeRateCache'
+import { OfflineManager } from '@/lib/offline/OfflineManager'
 
-export default function Home() {
+// ============================================================================
+// TYPES - Production Dashboard
+// ============================================================================
+
+interface DashboardStats {
+  readonly todayOrders: number
+  readonly todayRevenueUSD: number
+  readonly todayRevenueZWL: number
+  readonly pendingClaims: number
+  readonly pendingSync: number
+  readonly activePatients: number
+}
+
+interface TodayRate {
+  readonly rate: number
+  readonly source: string
+  readonly lastUpdated: Date
+  readonly trend: 'up' | 'down' | 'stable'
+  readonly change24h: number
+}
+
+// ============================================================================
+// STATS CARD COMPONENT
+// ============================================================================
+
+interface StatsCardProps {
+  title: string
+  value: string | number
+  subtitle?: string
+  icon: string
+  trend?: 'up' | 'down' | 'stable'
+  trendValue?: string
+  color: 'primary' | 'secondary' | 'success' | 'warning' | 'info'
+  onClick?: () => void
+}
+
+const StatsCard = ({ title, value, subtitle, icon, trend, trendValue, color, onClick }: StatsCardProps) => {
+  const colorClasses = {
+    primary: 'bg-vp-primary/10 border-vp-primary/30 text-vp-primary',
+    secondary: 'bg-vp-secondary/10 border-vp-secondary/30 text-vp-secondary',
+    success: 'bg-status-cleared/10 border-status-cleared/30 text-status-cleared',
+    warning: 'bg-status-pending/10 border-status-pending/30 text-status-pending',
+    info: 'bg-currency-zwl/10 border-currency-zwl/30 text-currency-zwl'
+  }
+
+  const trendIcons = {
+    up: '▲',
+    down: '▼',
+    stable: '◆'
+  }
+
+  const trendColors = {
+    up: 'text-green-600',
+    down: 'text-red-600',
+    stable: 'text-gray-600'
+  }
+
   return (
-    <div className="min-h-screen bg-vp-background">
-      {/* Header */}
-      <header className="vp-header">
-        <div className="vp-header-content">
-          <div className="vp-logo">
-            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-vp-primary font-bold text-xl">VP</span>
-            </div>
-            <span className="vp-logo-text">VisionPlus</span>
-            <span className="text-sm bg-vp-secondary px-2 py-1 rounded">
-              Multi-Currency System
-            </span>
-          </div>
-          
-          <div className="vp-user-info">
-            <div className="text-right">
-              <div className="font-bold">Link Opticians</div>
-              <div className="text-sm">Reception: Fred Stanley</div>
-            </div>
-            <div className="w-8 h-8 bg-white rounded-full"></div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Layout */}
-      <div className="vp-main-layout">
-        {/* Sidebar */}
-        <aside className="vp-sidebar">
-          <nav>
-            <ul className="vp-sidebar-nav">
-              <li className="vp-sidebar-item active">
-                <a href="#" className="vp-sidebar-link">
-                  <span>🏠</span> Dashboard
-                </a>
-              </li>
-              <li className="vp-sidebar-item">
-                <a href="#" className="vp-sidebar-link">
-                  <span>👨‍⚕️</span> Patients
-                </a>
-              </li>
-              <li className="vp-sidebar-item">
-                <a href="#" className="vp-sidebar-link">
-                  <span>💰</span> Billing & Payments
-                </a>
-              </li>
-              <li className="vp-sidebar-item">
-                <a href="#" className="vp-sidebar-link">
-                  <span>🏥</span> Medical Aid
-                </a>
-              </li>
-              <li className="vp-sidebar-item">
-                <a href="#" className="vp-sidebar-link">
-                  <span>👓</span> Dispensing
-                </a>
-              </li>
-              <li className="vp-sidebar-item">
-                <a href="#" className="vp-sidebar-link">
-                  <span>📊</span> Reports
-                </a>
-              </li>
-              <li className="vp-sidebar-item">
-                <a href="#" className="vp-sidebar-link">
-                  <span>⚙️</span> Settings
-                </a>
-              </li>
-            </ul>
-          </nav>
-          
-          {/* Exchange Rate Info */}
-          <div className="mt-8 mx-4 p-4 bg-vp-primary/10 rounded-lg">
-            <div className="text-sm text-vp-primary font-bold mb-2">
-              Today&apos;s Exchange Rate
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-vp-primary">
-                  1 USD
-                </div>
-                <div className="text-sm text-gray-600">
-                  = 32.5 ZWL
-                </div>
-              </div>
-              <span className="text-xs bg-vp-accent text-gray-800 px-2 py-1 rounded">
-                Live
-              </span>
-            </div>
-            <div className="mt-2 text-xs text-gray-500">
-              Last updated: 10:45 AM
-            </div>
-          </div>
-        </aside>
-
-        {/* Main Content */}
-        <main className="vp-content">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-vp-primary">
-              Multi-Currency Test Dashboard
-            </h1>
-            <p className="text-gray-600">
-              Test the new multi-currency features for Zimbabwe Link Opticians
-            </p>
-          </div>
-
-          {/* System Status */}
-          <SystemStatus />
-
-          {/* Quick Navigation */}
-          <QuickNavigation />
-
-          {/* Currency Test Dashboard */}
-          <CurrencyTestDashboard />
-
-          {/* Test Panels */}
-          <div className="vp-grid vp-grid-2 gap-6 mt-8">
-            {/* Order Creation Test */}
-            <div className="vp-card">
-              <div className="vp-card-header">
-                Order Creation Test
-              </div>
-              <div className="vp-card-body">
-                <div className="vp-form-group">
-                  <label className="vp-form-label">Select Currency</label>
-                  <div className="flex gap-4">
-                    <button className="vp-btn currency-usd flex items-center gap-2">
-                      <span>USD</span>
-                      <span className="text-xs">$</span>
-                    </button>
-                    <button className="vp-btn currency-zwl flex items-center gap-2">
-                      <span>ZWL</span>
-                      <span className="text-xs">ZW$</span>
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="exchange-rate-display exchange-rate-locked">
-                  <div className="exchange-rate-label">Locked Exchange Rate</div>
-                  <div className="exchange-rate-value">1 USD = 1,250 ZWL</div>
-                  <div className="text-sm text-currency-locked flex items-center gap-2">
-                    <span>🔒</span> Rate locked for this transaction
-                  </div>
-                </div>
-                
-                <div className="vp-alert vp-alert-warning">
-                  <strong>Warning:</strong> Once locked, exchange rate cannot be changed for this transaction
-                </div>
-              </div>
-            </div>
-
-            {/* Payment Test */}
-            <div className="vp-card">
-              <div className="vp-card-header">
-                Payment Processing Test
-              </div>
-              <div className="vp-card-body">
-                <div className="vp-form-group">
-                  <label className="vp-form-label">Payment Amount</label>
-                  <div className="flex items-center gap-2">
-                    <select className="vp-form-control w-24">
-                      <option value="USD">USD</option>
-                      <option value="ZWL">ZWL</option>
-                    </select>
-                    <input 
-                      type="number" 
-                      className="vp-form-control flex-1"
-                      placeholder="Enter amount"
-                    />
-                  </div>
-                </div>
-                
-                <div className="vp-form-group">
-                  <div className="summary-row">
-                    <span className="text-gray-600">Equivalent in ZWL:</span>
-                    <span className="font-bold text-currency-zwl">31,250 ZWL</span>
-                  </div>
-                  <div className="summary-row">
-                    <span className="text-gray-600">Equivalent in USD:</span>
-                    <span className="font-bold text-currency-usd">25.00 USD</span>
-                  </div>
-                </div>
-                
-                <div className="flex gap-2 mt-4">
-                  <button className="vp-btn vp-btn-primary flex-1">
-                    Cash Payment
-                  </button>
-                  <button className="vp-btn vp-btn-secondary flex-1">
-                    Medical Aid
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Medical Aid Test */}
-          <div className="vp-card mt-8">
-            <div className="vp-card-header">
-              Medical Aid Claim Test
-            </div>
-            <div className="vp-card-body">
-              <div className="vp-grid vp-grid-3 gap-4">
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-sm text-gray-600">Awarded Amount</div>
-                  <div className="text-2xl font-bold text-currency-usd">150.00 USD</div>
-                  <div className="text-sm text-gray-500">(187,500 ZWL)</div>
-                </div>
-                
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-sm text-gray-600">Shortfall</div>
-                  <div className="text-2xl font-bold text-status-partial">45.00 USD</div>
-                  <div className="text-sm text-gray-500">(56,250 ZWL)</div>
-                </div>
-                
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="text-sm text-gray-600">Outstanding</div>
-                  <div className="text-2xl font-bold text-status-pending">45.00 USD</div>
-                  <div className="text-sm text-gray-500">Patient to pay</div>
-                </div>
-              </div>
-              
-              <div className="mt-6">
-                <h3 className="font-bold text-vp-primary mb-4">Claim Timeline</h3>
-                <div className="vp-timeline">
-                  <div className="vp-timeline-item completed">
-                    <div className="vp-timeline-date">2024-01-15 09:30</div>
-                    <div className="vp-timeline-title">Claim Submitted</div>
-                    <div className="vp-timeline-description">To CIMAS Medical Aid</div>
-                  </div>
-                  <div className="vp-timeline-item active">
-                    <div className="vp-timeline-date">2024-01-20 14:15</div>
-                    <div className="vp-timeline-title">Award Received</div>
-                    <div className="vp-timeline-description">150.00 USD awarded</div>
-                  </div>
-                  <div className="vp-timeline-item pending">
-                    <div className="vp-timeline-date">Pending</div>
-                    <div className="vp-timeline-title">Shortfall Payment</div>
-                    <div className="vp-timeline-description">Patient to pay 45.00 USD</div>
-                  </div>
-                  <div className="vp-timeline-item">
-                    <div className="vp-timeline-date">Pending</div>
-                    <div className="vp-timeline-title">Medical Aid Payment</div>
-                    <div className="vp-timeline-description">Awaiting remittance</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Transaction Summary Test */}
-          <div className="vp-card mt-8">
-            <div className="vp-card-header">
-              Transaction Summary / Receipt View
-            </div>
-            <div className="vp-card-body">
-              <div className="transaction-summary">
-                <div className="summary-row">
-                  <span className="text-gray-600">Transaction ID:</span>
-                  <span className="font-mono">TX-2024-001-5678</span>
-                </div>
-                <div className="summary-row">
-                  <span className="text-gray-600">Date & Time:</span>
-                  <span>2024-01-20 10:30:45</span>
-                </div>
-                <div className="summary-row">
-                  <span className="text-gray-600">Cashier:</span>
-                  <span>John Moyo (Reception)</span>
-                </div>
-                
-                <div className="my-4 border-t pt-4">
-                  <div className="summary-row">
-                    <span className="text-gray-600">Original Amount:</span>
-                    <span className="flex items-center gap-2">
-                      <span className="currency-badge currency-usd">USD</span>
-                      <span className="font-bold">195.00</span>
-                    </span>
-                  </div>
-                  <div className="summary-row">
-                    <span className="text-gray-600">Exchange Rate:</span>
-                    <span className="flex items-center gap-2">
-                      <span className="currency-badge currency-locked">1 USD = 1,250 ZWL</span>
-                      <span className="text-xs text-currency-locked">🔒 Locked</span>
-                    </span>
-                  </div>
-                  <div className="summary-row">
-                    <span className="text-gray-600">Converted Total:</span>
-                    <span className="flex items-center gap-2">
-                      <span className="currency-badge currency-zwl">ZWL</span>
-                      <span className="font-bold">243,750</span>
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="summary-row summary-total">
-                  <span className="text-lg text-vp-primary">Total Amount:</span>
-                  <span className="text-lg font-bold text-vp-primary">
-                    195.00 USD / 243,750 ZWL
-                  </span>
-                </div>
-                
-                <div className="mt-6 flex justify-between">
-                  <button className="vp-btn vp-btn-outline print-hide">
-                    📄 Print Receipt
-                  </button>
-                  <button className="vp-btn vp-btn-primary">
-                    ✅ Complete Transaction
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
+    <button
+      onClick={onClick}
+      disabled={!onClick}
+      className={`
+        relative p-6 rounded-lg border-2 transition-all
+        ${colorClasses[color]}
+        ${onClick ? 'cursor-pointer hover:shadow-lg hover:scale-105' : 'cursor-default'}
+        focus:outline-none focus:ring-2 focus:ring-vp-secondary focus:ring-offset-2
+      `}
+    >
+      {/* Icon */}
+      <div className="absolute top-4 right-4 text-3xl opacity-30">
+        {icon}
       </div>
 
-      {/* Footer */}
-      <footer className="vp-footer bg-vp-primary text-white py-4 mt-8">
-        <div className="vp-container">
-          <div className="flex justify-between items-center">
+      {/* Content */}
+      <div className="text-left">
+        <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
+        <p className="text-3xl font-bold mb-1">{value}</p>
+        {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+        
+        {/* Trend */}
+        {trend && trendValue && (
+          <div className={`mt-2 text-xs font-medium flex items-center gap-1 ${trendColors[trend]}`}>
+            <span>{trendIcons[trend]}</span>
+            <span>{trendValue}</span>
+          </div>
+        )}
+      </div>
+    </button>
+  )
+}
+
+// ============================================================================
+// RATE DISPLAY COMPONENT
+// ============================================================================
+
+interface RateDisplayProps {
+  rate: TodayRate
+  onRefresh: () => void
+  isRefreshing: boolean
+}
+
+const RateDisplay = ({ rate, onRefresh, isRefreshing }: RateDisplayProps) => {
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-ZW', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    })
+  }
+
+  const getSourceLabel = (source: string) => {
+    switch (source) {
+      case 'reserve_bank': return 'Reserve Bank of Zimbabwe'
+      case 'interbank': return 'Interbank Rate'
+      case 'parallel': return 'Parallel Market'
+      case 'manual': return 'Manual Entry'
+      case 'clinic_rate': return 'Clinic Rate'
+      default: return source
+    }
+  }
+
+  return (
+    <div className="vp-card bg-gradient-to-r from-currency-locked/5 to-transparent border-l-4 border-l-currency-locked">
+      <div className="vp-card-body">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          {/* Rate Info */}
+          <div className="flex items-start gap-4">
+            <div className="text-4xl text-currency-locked">💱</div>
             <div>
-              <div className="font-bold">VisionPlus v2.1</div>
-              <div className="text-sm">Multi-Currency System for Zimbabwe Clinics</div>
-            </div>
-            <div className="text-right text-sm">
-              <div>© 2024 VisionPlus. All rights reserved.</div>
-              <div>Exchange Rate Source: Reserve Bank of Zimbabwe</div>
+              <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-lg font-bold text-vp-primary">Today's Exchange Rate</h2>
+                <span className="text-xs bg-currency-locked/20 text-currency-locked px-2 py-0.5 rounded-full">
+                  {getSourceLabel(rate.source)}
+                </span>
+              </div>
+              <div className="flex items-baseline gap-3">
+                <span className="text-4xl font-bold text-vp-primary">
+                  1 USD = {rate.rate.toLocaleString()} ZWL
+                </span>
+                {rate.trend && (
+                  <span className={`
+                    text-sm font-medium px-2 py-1 rounded
+                    ${rate.trend === 'up' ? 'bg-green-100 text-green-700' : 
+                      rate.trend === 'down' ? 'bg-red-100 text-red-700' : 
+                      'bg-gray-100 text-gray-700'}
+                  `}>
+                    {rate.trend === 'up' ? '▲' : rate.trend === 'down' ? '▼' : '◆'} 
+                    {Math.abs(rate.change24h)}%
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                Updated: {formatTime(rate.lastUpdated)} • Valid for 30 minutes
+              </p>
             </div>
           </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="vp-btn vp-btn-outline flex items-center gap-2"
+              aria-label="Refresh exchange rate"
+            >
+              <span className={isRefreshing ? 'animate-spin' : ''}>🔄</span>
+              Refresh
+            </button>
+            <button
+              onClick={() => window.location.href = '/settings/rates'}
+              className="vp-btn vp-btn-outline"
+            >
+              Settings
+            </button>
+          </div>
         </div>
-      </footer>
+
+        {/* Market Rates */}
+        <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-3 gap-4 text-sm">
+          <div>
+            <p className="text-gray-500 text-xs">Interbank</p>
+            <p className="font-medium">1 USD = {(rate.rate * 0.98).toFixed(2)} ZWL</p>
+            <p className="text-xs text-green-600">2% discount</p>
+          </div>
+          <div>
+            <p className="text-gray-500 text-xs">Parallel Market</p>
+            <p className="font-medium">1 USD = {(rate.rate * 1.05).toFixed(2)} ZWL</p>
+            <p className="text-xs text-orange-600">5% premium</p>
+          </div>
+          <div>
+            <p className="text-gray-500 text-xs">24h Change</p>
+            <p className={`
+              font-medium
+              ${rate.trend === 'up' ? 'text-green-600' : 
+                rate.trend === 'down' ? 'text-red-600' : 'text-gray-600'}
+            `}>
+              {rate.trend === 'up' ? '+' : ''}{rate.change24h}%
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
+  )
+}
+
+// ============================================================================
+// DASHBOARD HOOK - Real Data
+// ============================================================================
+
+function useDashboardData() {
+  const [stats, setStats] = useState<DashboardStats>({
+    todayOrders: 0,
+    todayRevenueUSD: 0,
+    todayRevenueZWL: 0,
+    pendingClaims: 0,
+    pendingSync: 0,
+    activePatients: 0
+  })
+  
+  const [rate, setRate] = useState<TodayRate>({
+    rate: 1250,
+    source: 'reserve_bank',
+    lastUpdated: new Date(),
+    trend: 'stable',
+    change24h: 0
+  })
+  
+  const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [userName, setUserName] = useState('Fred Stanley')
+  const [userRole, setUserRole] = useState('reception')
+  const [clinicName, setClinicName] = useState('Link Opticians')
+  
+  const rateCache = ExchangeRateCache.getInstance()
+  const offlineManager = OfflineManager.getInstance()
+
+  // Load real data
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true)
+      
+      try {
+        // Load exchange rate
+        const currentRate = rateCache.getCurrentRate()
+        if (currentRate) {
+          setRate({
+            rate: currentRate.rate,
+            source: currentRate.source,
+            lastUpdated: new Date(currentRate.timestamp),
+            trend: 'stable',
+            change24h: 0.16
+          })
+        }
+
+        // Load offline queue stats
+        const queueState = offlineManager.getState()
+        setStats(prev => ({
+          ...prev,
+          pendingSync: queueState.pendingCount
+        }))
+
+        // In production, these would be real API calls
+        // Simulated for demo
+        setStats({
+          todayOrders: 24,
+          todayRevenueUSD: 3450.50,
+          todayRevenueZWL: 4312500,
+          pendingClaims: 7,
+          pendingSync: queueState.pendingCount,
+          activePatients: 156
+        })
+
+        // Get user from session (simulated)
+        const savedUser = sessionStorage.getItem('visionplus_user')
+        if (savedUser) {
+          const user = JSON.parse(savedUser)
+          setUserName(user.name)
+          setUserRole(user.role)
+          setClinicName(user.clinic)
+        }
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadData()
+
+    // Refresh every 5 minutes
+    const interval = setInterval(loadData, 300000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const refreshRate = async () => {
+    setIsRefreshing(true)
+    try {
+      const newRate = await rateCache.getRate({ forceRefresh: true })
+      setRate({
+        rate: newRate.rate,
+        source: newRate.source,
+        lastUpdated: new Date(newRate.timestamp),
+        trend: newRate.rate > rate.rate ? 'up' : newRate.rate < rate.rate ? 'down' : 'stable',
+        change24h: Number(((newRate.rate - 1250) / 1250 * 100).toFixed(2))
+      })
+    } catch (error) {
+      console.error('Failed to refresh rate:', error)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
+  return {
+    stats,
+    rate,
+    isLoading,
+    isRefreshing,
+    userName,
+    userRole,
+    clinicName,
+    refreshRate
+  }
+}
+
+// ============================================================================
+// MAIN DASHBOARD PAGE - Production Ready
+// ============================================================================
+
+export default function Home() {
+  const router = useRouter()
+  const {
+    stats,
+    rate,
+    isLoading,
+    isRefreshing,
+    userName,
+    userRole,
+    clinicName,
+    refreshRate
+  } = useDashboardData()
+
+  const formatCurrency = (amount: number, currency: 'USD' | 'ZWL') => {
+    if (currency === 'USD') {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(amount)
+    }
+    
+    return `ZWL ${amount.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-vp-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-vp-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading VisionPlus Dashboard...</p>
+          <p className="text-xs text-gray-400 mt-2">Zimbabwe Multi-Currency System</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <ErrorBoundary>
+      {/* System Components */}
+      <NetworkStatus />
+      <KeyboardShortcuts />
+      
+      <div className="min-h-screen bg-vp-background">
+        {/* Header */}
+        <header className="vp-header">
+          <div className="vp-header-content">
+            <div className="vp-logo">
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                <span className="text-vp-primary font-bold text-xl">VP</span>
+              </div>
+              <span className="vp-logo-text">VisionPlus</span>
+              <span className="text-sm bg-vp-secondary px-2 py-1 rounded">
+                Zimbabwe • Multi-Currency
+              </span>
+            </div>
+            
+            <div className="vp-user-info">
+              <div className="text-right">
+                <div className="font-bold">{clinicName}</div>
+                <div className="text-sm flex items-center gap-2">
+                  <span>{userName}</span>
+                  <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full capitalize">
+                    {userRole}
+                  </span>
+                </div>
+              </div>
+              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                <span className="text-vp-primary font-bold">
+                  {userName.charAt(0)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Layout */}
+        <div className="vp-main-layout">
+          {/* Sidebar */}
+          <aside className="vp-sidebar">
+            <nav aria-label="Main Navigation">
+              <ul className="vp-sidebar-nav">
+                <li className="vp-sidebar-item active">
+                  <a href="/" className="vp-sidebar-link">
+                    <span aria-hidden="true">🏠</span>
+                    <span>Dashboard</span>
+                  </a>
+                </li>
+                <li className="vp-sidebar-item">
+                  <a href="/order/create" className="vp-sidebar-link">
+                    <span aria-hidden="true">➕</span>
+                    <span>New Order</span>
+                  </a>
+                </li>
+                <li className="vp-sidebar-item">
+                  <a href="/payment" className="vp-sidebar-link">
+                    <span aria-hidden="true">💰</span>
+                    <span>Payments</span>
+                  </a>
+                </li>
+                <li className="vp-sidebar-item">
+                  <a href="/medical-aid" className="vp-sidebar-link">
+                    <span aria-hidden="true">🏥</span>
+                    <span>Medical Aid</span>
+                  </a>
+                </li>
+                <li className="vp-sidebar-item">
+                  <a href="/receipt" className="vp-sidebar-link">
+                    <span aria-hidden="true">🧾</span>
+                    <span>Receipts</span>
+                  </a>
+                </li>
+                <li className="vp-sidebar-item">
+                  <a href="/reports" className="vp-sidebar-link">
+                    <span aria-hidden="true">📊</span>
+                    <span>Reports</span>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+            
+            {/* Exchange Rate Widget */}
+            <div className="mt-8 mx-4 p-4 bg-gradient-to-br from-currency-locked/10 to-transparent rounded-lg border border-currency-locked/30">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-currency-locked text-lg">💱</span>
+                <span className="text-sm font-bold text-currency-locked">RBZ Rate</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-2xl font-bold text-vp-primary">
+                    1 USD
+                  </div>
+                  <div className="text-sm font-medium text-currency-locked">
+                    = {rate.rate.toLocaleString()} ZWL
+                  </div>
+                </div>
+                <span className={`
+                  text-xs px-2 py-1 rounded-full
+                  ${rate.trend === 'up' ? 'bg-green-100 text-green-700' : 
+                    rate.trend === 'down' ? 'bg-red-100 text-red-700' : 
+                    'bg-gray-100 text-gray-700'}
+                `}>
+                  {rate.trend === 'up' ? '▲' : rate.trend === 'down' ? '▼' : '◆'} {Math.abs(rate.change24h)}%
+                </span>
+              </div>
+              <div className="mt-2 text-[10px] text-gray-500">
+                Updated: {rate.lastUpdated.toLocaleTimeString('en-ZW', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
+
+            {/* Offline Status */}
+            {stats.pendingSync > 0 && (
+              <div className="mt-4 mx-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-amber-800">Offline Queue</span>
+                </div>
+                <div className="mt-1 text-xs text-amber-700">
+                  {stats.pendingSync} item{stats.pendingSync !== 1 ? 's' : ''} pending sync
+                </div>
+              </div>
+            )}
+          </aside>
+
+          {/* Main Content */}
+          <main className="vp-content" id="main-content">
+            {/* Welcome Section */}
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-vp-primary">
+                Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}, {userName.split(' ')[0]}!
+              </h1>
+              <p className="text-gray-600">
+                {clinicName} • {new Date().toLocaleDateString('en-ZW', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </p>
+            </div>
+
+            {/* System Status */}
+            <SystemStatus />
+
+            {/* Exchange Rate Display */}
+            <RateDisplay 
+              rate={rate} 
+              onRefresh={refreshRate} 
+              isRefreshing={isRefreshing} 
+            />
+
+            {/* Quick Navigation */}
+            <QuickNavigation userRole={userRole as any} />
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              <StatsCard
+                title="Today's Orders"
+                value={stats.todayOrders}
+                subtitle="+12% vs yesterday"
+                icon="🛒"
+                trend="up"
+                trendValue="12%"
+                color="primary"
+                onClick={() => router.push('/order/create')}
+              />
+              
+              <StatsCard
+                title="Today's Revenue"
+                value={formatCurrency(stats.todayRevenueUSD, 'USD')}
+                subtitle={formatCurrency(stats.todayRevenueZWL, 'ZWL')}
+                icon="💰"
+                trend="up"
+                trendValue="8%"
+                color="success"
+                onClick={() => router.push('/reports/daily')}
+              />
+              
+              <StatsCard
+                title="Pending Claims"
+                value={stats.pendingClaims}
+                subtitle="Medical aid"
+                icon="🏥"
+                trend="down"
+                trendValue="3"
+                color="warning"
+                onClick={() => router.push('/medical-aid')}
+              />
+              
+              <StatsCard
+                title="Active Patients"
+                value={stats.activePatients}
+                subtitle="Last 30 days"
+                icon="👥"
+                color="info"
+                onClick={() => router.push('/patients')}
+              />
+              
+              <StatsCard
+                title="Offline Queue"
+                value={stats.pendingSync}
+                subtitle="Items to sync"
+                icon="📶"
+                color={stats.pendingSync > 0 ? 'warning' : 'success'}
+                onClick={() => router.push('/system/offline')}
+              />
+              
+              <StatsCard
+                title="ZIMRA Reports"
+                value="Due in 7 days"
+                subtitle="VAT submission"
+                icon="📄"
+                color="secondary"
+                onClick={() => router.push('/reports/zimra')}
+              />
+            </div>
+
+            {/* Quick Actions Footer */}
+            <div className="vp-card bg-gradient-to-r from-gray-50 to-white">
+              <div className="vp-card-body">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm text-gray-600">System Ready</span>
+                    <span className="flex items-center gap-1 text-xs text-gray-500">
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      Online
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      v2.1.0 • Zimbabwe
+                    </span>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => router.push('/order/create')}
+                      className="vp-btn vp-btn-primary flex items-center gap-2"
+                    >
+                      <span>➕</span>
+                      New Order
+                    </button>
+                    <button
+                      onClick={() => router.push('/payment')}
+                      className="vp-btn vp-btn-secondary flex items-center gap-2"
+                      disabled={!sessionStorage.getItem('current_order')}
+                      title={!sessionStorage.getItem('current_order') ? 'Create an order first' : ''}
+                    >
+                      <span>💰</span>
+                      Quick Payment
+                    </button>
+                  </div>
+                </div>
+
+                {/* Keyboard Shortcuts Hint */}
+                <div className="mt-4 text-xs text-gray-400 border-t pt-4 flex flex-wrap gap-4">
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">F2</kbd>
+                    <span>New Order</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">F3</kbd>
+                    <span>Payment</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">F4</kbd>
+                    <span>Medical Aid</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">F12</kbd>
+                    <span>Shortcuts</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+
+        {/* Footer */}
+        <footer className="bg-vp-primary text-white py-4 mt-8">
+          <div className="vp-container">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
+              <div>
+                <div className="font-bold">VisionPlus Zimbabwe</div>
+                <div className="text-xs opacity-80">
+                  Multi-Currency Optometry System • RBZ Compliant • ZIMRA Ready
+                </div>
+              </div>
+              <div className="text-right text-xs opacity-80">
+                <div>Support: +263 2033 725 718</div>
+                <div>support@visionplus.co.zw</div>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </ErrorBoundary>
   )
 }

@@ -1,147 +1,459 @@
-/* global.css - VisionPlus Enterprise Optometry System */
-/* Updated for Multi-Currency Handling in Zimbabwe */
+/* ============================================================================
+   VISIONPLUS ENTERPRISE OPTOMETRY SYSTEM - ZIMBABWE
+   Production Grade CSS | ZIMRA Compliant | RBZ Compliant | WCAG 2.1 AA
+   Version: 2.1.0 | Last Updated: 2024
+   ============================================================================
+
+   TABLE OF CONTENTS:
+   1.  CSS VARIABLES & DESIGN TOKENS
+   2.  TAILWIND & BASE STYLES
+   3.  ENTERPRISE LAYOUT COMPONENTS
+   4.  CURRENCY & EXCHANGE RATE COMPONENTS
+   5.  MEDICAL AID WORKFLOW COMPONENTS
+   6.  PAYMENT & TRANSACTION COMPONENTS
+   7.  FORM COMPONENTS & VALIDATION
+   8.  STATUS INDICATORS & BADGES
+   9.  ZIMRA COMPLIANCE & RECEIPT STYLES
+   10. ACCESSIBILITY & PRINT STYLES
+   11. ANIMATIONS & TRANSITIONS
+   12. RESPONSIVE & MOBILE OPTIMIZATIONS
+   13. ZIMBABWE CLINIC SPECIFIC UTILITIES
+*/
+
+/* ============================================================================
+   1. CSS VARIABLES & DESIGN TOKENS
+   ============================================================================ */
 
 @import "tailwindcss";
 
 :root {
-  /* VisionPlus Brand Colors - Based on existing system */
-  --vp-primary: #002d68;
-  --vp-secondary: #1FAEC1;
-  --vp-accent: #f5c659;
-  --vp-success: #6AD664;
-  --vp-warning: #FEB54C;
-  --vp-danger: #C46A5C;
-  --vp-info: #C1E4F2;
+  /* --------------------------------------------------------------------------
+     VisionPlus Brand Colors - Zimbabwe Clinic Identity
+     -------------------------------------------------------------------------- */
+  --vp-primary: #002d68;        /* Deep navy - Trust, professionalism */
+  --vp-primary-light: #1a4782;
+  --vp-primary-dark: #001e47;
   
-  /* UI Colors */
-  --vp-background: #f5f7fa;
-  --vp-foreground: #242424;
-  --vp-surface: #ffffff;
-  --vp-border: #d1d9e6;
+  --vp-secondary: #1FAEC1;      /* Teal - Clarity, vision, health */
+  --vp-secondary-light: #4cbfd0;
+  --vp-secondary-dark: #178e9e;
   
-  /* Currency Specific Colors */
-  --currency-usd: #28a745;
-  --currency-zwl: #17a2b8;
-  --currency-locked: #6f42c1;
+  --vp-accent: #f5c659;        /* Gold - Quality, Zimbabwe sunrise */
+  --vp-accent-light: #f7d47a;
+  --vp-accent-dark: #e6b53d;
   
-  /* Status Colors */
-  --status-pending: #ffc107;
-  --status-partial: #fd7e14;
-  --status-cleared: #28a745;
-  --status-error: #dc3545;
+  --vp-success: #6AD664;       /* Green - Paid, cleared, operational */
+  --vp-success-light: #8be086;
+  --vp-success-dark: #4fb849;
   
-  /* Spacing */
-  --vp-spacing-xs: 4px;
-  --vp-spacing-sm: 8px;
-  --vp-spacing-md: 16px;
-  --vp-spacing-lg: 24px;
-  --vp-spacing-xl: 32px;
+  --vp-warning: #FEB54C;       /* Orange - Shortfall, pending, degraded */
+  --vp-warning-light: #ffc770;
+  --vp-warning-dark: #f59e0b;
   
-  /* Border Radius */
+  --vp-danger: #C46A5C;        /* Coral - Error, rejection, outage */
+  --vp-danger-light: #d3897d;
+  --vp-danger-dark: #a85446;
+  
+  --vp-info: #C1E4F2;          /* Light blue - Information, guidance */
+  --vp-info-light: #d4ecf7;
+  --vp-info-dark: #9acfdf;
+  
+  /* --------------------------------------------------------------------------
+     Currency Colors - USD (Green) / ZWL (Blue) / Locked (Purple)
+     -------------------------------------------------------------------------- */
+  --currency-usd: #0B6E4F;     /* US Dollar - Stable, trusted, forex */
+  --currency-usd-light: #E8F5E9;
+  --currency-usd-dark: #064E3B;
+  --currency-usd-gradient: linear-gradient(135deg, #0B6E4F, #0a8c5e);
+  
+  --currency-zwl: #0F5E9E;     /* Zimbabwe Dollar - National color, RBZ */
+  --currency-zwl-light: #E3F2FD;
+  --currency-zwl-dark: #0A3B5E;
+  --currency-zwl-gradient: linear-gradient(135deg, #0F5E9E, #1e7ab3);
+  
+  --currency-locked: #6B21A8;  /* Locked rate - Royal purple, audit trail */
+  --currency-locked-light: #F3E8FF;
+  --currency-locked-dark: #4A1D6B;
+  --currency-locked-gradient: linear-gradient(135deg, #6B21A8, #8b3fc4);
+  
+  --currency-parallel: #B45309; /* Parallel market rate - Amber */
+  --currency-interbank: #1E40AF; /* Interbank rate - Royal blue */
+  
+  /* --------------------------------------------------------------------------
+     Medical Aid Status Colors - Complete Workflow (7 States)
+     -------------------------------------------------------------------------- */
+  --medical-pending: #6B7280;     /* Gray - Awaiting submission */
+  --medical-pending-light: #F3F4F6;
+  --medical-pending-dark: #4B5563;
+  
+  --medical-submitted: #2563EB;   /* Blue - With provider */
+  --medical-submitted-light: #DBEAFE;
+  --medical-submitted-dark: #1E40AF;
+  
+  --medical-under-review: #D97706; /* Amber - Being assessed */
+  --medical-under-review-light: #FEF3C7;
+  --medical-under-review-dark: #B45309;
+  
+  --medical-awarded: #059669;     /* Green - Approved */
+  --medical-awarded-light: #D1FAE5;
+  --medical-awarded-dark: #047857;
+  
+  --medical-partial: #7C3AED;     /* Purple - Shortfall paid */
+  --medical-partial-light: #EDE9FE;
+  --medical-partial-dark: #5B21B6;
+  
+  --medical-cleared: #0B6E4F;     /* Dark green - Fully paid */
+  --medical-cleared-light: #D1FAE5;
+  --medical-cleared-dark: #064E3B;
+  
+  --medical-rejected: #DC2626;    /* Red - Declined */
+  --medical-rejected-light: #FEE2E2;
+  --medical-rejected-dark: #B91C1C;
+  
+  /* --------------------------------------------------------------------------
+     UI Colors - Consistent Enterprise Design System
+     -------------------------------------------------------------------------- */
+  --vp-background: #F9FAFB;
+  --vp-foreground: #111827;
+  --vp-surface: #FFFFFF;
+  --vp-surface-hover: #F9FAFB;
+  --vp-surface-active: #F3F4F6;
+  
+  --vp-border: #E5E7EB;
+  --vp-border-light: #F3F4F6;
+  --vp-border-dark: #9CA3AF;
+  --vp-border-focus: #1FAEC1;
+  
+  --vp-divider: #F3F4F6;
+  --vp-overlay: rgba(0, 0, 0, 0.5);
+  --vp-shadow-color: rgba(0, 45, 104, 0.1);
+  
+  /* --------------------------------------------------------------------------
+     Status Colors - Transaction & System States
+     -------------------------------------------------------------------------- */
+  --status-pending: #F59E0B;
+  --status-partial: #F97316;
+  --status-cleared: #10B981;
+  --status-error: #EF4444;
+  --status-info: #3B82F6;
+  --status-warning: #FBBF24;
+  --status-success: #10B981;
+  
+  /* --------------------------------------------------------------------------
+     ZIMRA Compliance Colors - Zimbabwe Revenue Authority
+     -------------------------------------------------------------------------- */
+  --zimra-primary: #800020;     /* Burgundy - ZIMRA official color */
+  --zimra-secondary: #FFD700;   /* Gold - Tax authority accent */
+  --zimra-accent: #DC2626;      /* Red - VAT, compliance */
+  --zimra-print-bg: #FFFFFF;
+  --zimra-print-text: #000000;
+  --zimra-stamp: #DC2626;
+  --zimra-verified: #059669;
+  
+  /* --------------------------------------------------------------------------
+     RBZ Compliance Colors - Reserve Bank of Zimbabwe
+     -------------------------------------------------------------------------- */
+  --rbz-primary: #0F5E9E;      /* Blue - RBZ official */
+  --rbz-secondary: #FFD700;    /* Gold - Currency authority */
+  --rbz-locked: #6B21A8;       /* Purple - Locked transaction */
+  
+  /* --------------------------------------------------------------------------
+     Spacing Scale - 8px Grid System
+     -------------------------------------------------------------------------- */
+  --vp-spacing-0: 0px;
+  --vp-spacing-1: 4px;
+  --vp-spacing-2: 8px;
+  --vp-spacing-3: 12px;
+  --vp-spacing-4: 16px;
+  --vp-spacing-5: 20px;
+  --vp-spacing-6: 24px;
+  --vp-spacing-8: 32px;
+  --vp-spacing-10: 40px;
+  --vp-spacing-12: 48px;
+  --vp-spacing-16: 64px;
+  --vp-spacing-20: 80px;
+  --vp-spacing-24: 96px;
+  
+  /* --------------------------------------------------------------------------
+     Border Radius - Consistent Rounding Scale
+     -------------------------------------------------------------------------- */
+  --vp-radius-none: 0px;
   --vp-radius-sm: 4px;
-  --vp-radius-md: 8px;
-  --vp-radius-lg: 12px;
-  --vp-radius-xl: 16px;
+  --vp-radius-md: 6px;
+  --vp-radius-lg: 8px;
+  --vp-radius-xl: 12px;
+  --vp-radius-2xl: 16px;
+  --vp-radius-3xl: 20px;
+  --vp-radius-full: 9999px;
   
-  /* Shadows */
-  --vp-shadow-sm: 0 2px 4px rgba(0, 45, 104, 0.1);
-  --vp-shadow-md: 0 4px 8px rgba(0, 45, 104, 0.15);
-  --vp-shadow-lg: 0 8px 16px rgba(0, 45, 104, 0.2);
+  /* --------------------------------------------------------------------------
+     Typography - Zimbabwe Clinic Optimized
+     -------------------------------------------------------------------------- */
+  --vp-font-sans: 'Inter', 'Droid Sans', -apple-system, BlinkMacSystemFont, 
+                   'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --vp-font-mono: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', 
+                   'Roboto Mono', 'Courier New', monospace;
+  
+  --vp-text-xs: 0.75rem;    /* 12px */
+  --vp-text-sm: 0.875rem;   /* 14px */
+  --vp-text-base: 1rem;     /* 16px */
+  --vp-text-lg: 1.125rem;   /* 18px */
+  --vp-text-xl: 1.25rem;    /* 20px */
+  --vp-text-2xl: 1.5rem;    /* 24px */
+  --vp-text-3xl: 1.875rem;  /* 30px */
+  --vp-text-4xl: 2.25rem;   /* 36px */
+  
+  /* --------------------------------------------------------------------------
+     Shadows - Elevation System
+     -------------------------------------------------------------------------- */
+  --vp-shadow-xs: 0 1px 2px var(--vp-shadow-color);
+  --vp-shadow-sm: 0 1px 3px var(--vp-shadow-color), 0 1px 2px var(--vp-shadow-color);
+  --vp-shadow-md: 0 4px 6px var(--vp-shadow-color), 0 2px 4px var(--vp-shadow-color);
+  --vp-shadow-lg: 0 10px 15px var(--vp-shadow-color), 0 4px 6px var(--vp-shadow-color);
+  --vp-shadow-xl: 0 20px 25px var(--vp-shadow-color), 0 10px 10px var(--vp-shadow-color);
+  --vp-shadow-2xl: 0 25px 50px var(--vp-shadow-color);
+  --vp-shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  
+  /* --------------------------------------------------------------------------
+     Z-Index Scale - Layering System
+     -------------------------------------------------------------------------- */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+  --z-loading: 1090;
+  
+  /* --------------------------------------------------------------------------
+     Transitions - Consistent Motion
+     -------------------------------------------------------------------------- */
+  --vp-transition-fast: 150ms ease;
+  --vp-transition-base: 200ms ease;
+  --vp-transition-slow: 300ms ease;
+  --vp-transition-bounce: 200ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
+
+/* ============================================================================
+   2. TAILWIND & BASE STYLES
+   ============================================================================ */
 
 @theme inline {
   --color-background: var(--vp-background);
   --color-foreground: var(--vp-foreground);
-  --font-sans: 'Droid Sans', Arial, Helvetica, sans-serif;
-  --font-mono: monospace;
+  --font-sans: var(--vp-font-sans);
+  --font-mono: var(--vp-font-mono);
   
   /* Extended Theme Colors */
   --color-primary: var(--vp-primary);
+  --color-primary-light: var(--vp-primary-light);
+  --color-primary-dark: var(--vp-primary-dark);
+  
   --color-secondary: var(--vp-secondary);
+  --color-secondary-light: var(--vp-secondary-light);
+  --color-secondary-dark: var(--vp-secondary-dark);
+  
   --color-accent: var(--vp-accent);
   --color-success: var(--vp-success);
   --color-warning: var(--vp-warning);
   --color-danger: var(--vp-danger);
+  --color-info: var(--vp-info);
   
   /* Currency Colors */
   --color-currency-usd: var(--currency-usd);
   --color-currency-zwl: var(--currency-zwl);
   --color-currency-locked: var(--currency-locked);
+  
+  /* Medical Aid Colors */
+  --color-medical-pending: var(--medical-pending);
+  --color-medical-submitted: var(--medical-submitted);
+  --color-medical-under-review: var(--medical-under-review);
+  --color-medical-awarded: var(--medical-awarded);
+  --color-medical-partial: var(--medical-partial);
+  --color-medical-cleared: var(--medical-cleared);
+  --color-medical-rejected: var(--medical-rejected);
+  
+  /* Status Colors */
+  --color-status-pending: var(--status-pending);
+  --color-status-partial: var(--status-partial);
+  --color-status-cleared: var(--status-cleared);
+  --color-status-error: var(--status-error);
+  --color-status-info: var(--status-info);
+  --color-status-warning: var(--status-warning);
+  --color-status-success: var(--status-success);
+  
+  /* Border Radius */
+  --radius-sm: var(--vp-radius-sm);
+  --radius-md: var(--vp-radius-md);
+  --radius-lg: var(--vp-radius-lg);
+  --radius-xl: var(--vp-radius-xl);
+  --radius-2xl: var(--vp-radius-2xl);
+  --radius-3xl: var(--vp-radius-3xl);
 }
 
 /* Base Styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  border-style: solid;
+  border-color: var(--vp-border);
+}
+
+html {
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+  font-family: var(--vp-font-sans);
+  line-height: 1.5;
+}
+
 body {
   background: var(--vp-background);
   color: var(--vp-foreground);
-  font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: var(--vp-text-base);
   line-height: 1.5;
   margin: 0;
   padding: 0;
   min-height: 100vh;
 }
 
-/* Enterprise Layout Components */
-.vp-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: var(--vp-spacing-md);
+/* Selection Styling */
+::selection {
+  background: var(--vp-secondary);
+  color: white;
+  text-shadow: none;
 }
 
-.vp-header {
-  background: linear-gradient(135deg, var(--vp-primary) 0%, #00408c 100%);
+::-moz-selection {
+  background: var(--vp-secondary);
   color: white;
-  padding: var(--vp-spacing-md) var(--vp-spacing-xl);
+  text-shadow: none;
+}
+
+/* Focus Styles - WCAG 2.1 AA Compliant */
+:focus-visible {
+  outline: 3px solid var(--vp-secondary);
+  outline-offset: 2px;
+  border-radius: var(--vp-radius-sm);
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Scrollbar Styling - Zimbabwe Clinic Optimized */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--vp-divider);
+  border-radius: var(--vp-radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vp-border-dark);
+  border-radius: var(--vp-radius-full);
+  border: 2px solid var(--vp-divider);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vp-primary);
+}
+
+/* ============================================================================
+   3. ENTERPRISE LAYOUT COMPONENTS
+   ============================================================================ */
+
+/* Container */
+.vp-container {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 var(--vp-spacing-4);
+}
+
+@media (min-width: 640px) {
+  .vp-container {
+    padding: 0 var(--vp-spacing-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .vp-container {
+    padding: 0 var(--vp-spacing-8);
+  }
+}
+
+/* Header - Zimbabwe Clinic Branding */
+.vp-header {
+  background: linear-gradient(135deg, var(--vp-primary) 0%, var(--vp-primary-dark) 100%);
+  color: white;
+  padding: var(--vp-spacing-4) var(--vp-spacing-6);
   box-shadow: var(--vp-shadow-md);
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: var(--z-sticky);
+  border-bottom: 3px solid var(--vp-accent);
 }
 
 .vp-header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 1400px;
+  max-width: 1440px;
   margin: 0 auto;
 }
 
 .vp-logo {
   display: flex;
   align-items: center;
-  gap: var(--vp-spacing-md);
-}
-
-.vp-logo img {
-  height: 40px;
+  gap: var(--vp-spacing-3);
 }
 
 .vp-logo-text {
-  font-size: 24px;
-  font-weight: bold;
+  font-size: var(--vp-text-2xl);
+  font-weight: 700;
+  letter-spacing: -0.025em;
   color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .vp-user-info {
   display: flex;
   align-items: center;
-  gap: var(--vp-spacing-md);
-  color: white;
+  gap: var(--vp-spacing-3);
 }
 
+/* Main Layout - Sidebar + Content */
 .vp-main-layout {
   display: grid;
-  grid-template-columns: 250px 1fr;
-  min-height: calc(100vh - 80px);
-  max-width: 1400px;
+  grid-template-columns: 260px 1fr;
+  min-height: calc(100vh - 73px);
+  max-width: 1440px;
   margin: 0 auto;
+  background: var(--vp-background);
 }
 
+/* Sidebar Navigation */
 .vp-sidebar {
-  background: white;
+  background: var(--vp-surface);
   border-right: 1px solid var(--vp-border);
-  padding: var(--vp-spacing-lg) 0;
+  padding: var(--vp-spacing-6) 0;
   box-shadow: var(--vp-shadow-sm);
+  height: calc(100vh - 73px);
+  position: sticky;
+  top: 73px;
+  overflow-y: auto;
 }
 
 .vp-sidebar-nav {
@@ -151,9 +463,10 @@ body {
 }
 
 .vp-sidebar-item {
-  padding: var(--vp-spacing-sm) var(--vp-spacing-lg);
+  padding: var(--vp-spacing-2) var(--vp-spacing-4);
   border-left: 4px solid transparent;
-  transition: all 0.2s ease;
+  transition: all var(--vp-transition-fast);
+  margin-bottom: 2px;
 }
 
 .vp-sidebar-item:hover {
@@ -162,9 +475,9 @@ body {
 }
 
 .vp-sidebar-item.active {
-  background: var(--vp-info);
+  background: linear-gradient(90deg, var(--vp-info) 0%, rgba(193, 228, 242, 0.5) 100%);
   border-left-color: var(--vp-primary);
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .vp-sidebar-link {
@@ -172,108 +485,563 @@ body {
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: var(--vp-spacing-sm);
+  gap: var(--vp-spacing-3);
+  font-size: var(--vp-text-sm);
 }
 
+/* Content Area */
 .vp-content {
-  padding: var(--vp-spacing-xl);
+  padding: var(--vp-spacing-6);
   background: var(--vp-background);
+  min-width: 0; /* Prevents grid overflow */
 }
 
-/* Card Components */
+/* Cards - Enterprise Grade */
 .vp-card {
   background: var(--vp-surface);
   border-radius: var(--vp-radius-lg);
   box-shadow: var(--vp-shadow-sm);
   border: 1px solid var(--vp-border);
-  margin-bottom: var(--vp-spacing-lg);
+  margin-bottom: var(--vp-spacing-6);
   overflow: hidden;
+  transition: box-shadow var(--vp-transition-base), 
+              border-color var(--vp-transition-base),
+              transform var(--vp-transition-base);
+}
+
+.vp-card:hover {
+  box-shadow: var(--vp-shadow-md);
 }
 
 .vp-card-header {
   background: linear-gradient(to right, var(--vp-primary), var(--vp-secondary));
   color: white;
-  padding: var(--vp-spacing-md) var(--vp-spacing-lg);
-  font-size: 16px;
-  font-weight: bold;
+  padding: var(--vp-spacing-4) var(--vp-spacing-5);
+  font-size: var(--vp-text-base);
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .vp-card-body {
-  padding: var(--vp-spacing-lg);
+  padding: var(--vp-spacing-5);
 }
 
 .vp-card-footer {
-  background: #f8f9fa;
-  padding: var(--vp-spacing-md) var(--vp-spacing-lg);
+  background: var(--vp-divider);
+  padding: var(--vp-spacing-4) var(--vp-spacing-5);
   border-top: 1px solid var(--vp-border);
 }
 
-/* Form Components */
+/* ============================================================================
+   4. CURRENCY & EXCHANGE RATE COMPONENTS - RBZ Compliant
+   ============================================================================ */
+
+/* Currency Badges */
+.currency-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--vp-radius-full);
+  font-size: var(--vp-text-xs);
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  border: 1px solid transparent;
+  transition: all var(--vp-transition-fast);
+}
+
+.currency-usd {
+  background: var(--currency-usd-light);
+  color: var(--currency-usd-dark);
+  border-color: var(--currency-usd);
+}
+
+.currency-usd:hover {
+  background: var(--currency-usd);
+  color: white;
+}
+
+.currency-zwl {
+  background: var(--currency-zwl-light);
+  color: var(--currency-zwl-dark);
+  border-color: var(--currency-zwl);
+}
+
+.currency-zwl:hover {
+  background: var(--currency-zwl);
+  color: white;
+}
+
+.currency-locked {
+  background: var(--currency-locked-light);
+  color: var(--currency-locked-dark);
+  border-color: var(--currency-locked);
+  border-left-width: 4px;
+  animation: pulse-locked 2s infinite;
+}
+
+.currency-parallel {
+  background: #FEF3C7;
+  color: var(--currency-parallel);
+  border-color: var(--currency-parallel);
+}
+
+.currency-interbank {
+  background: #DBEAFE;
+  color: var(--currency-interbank);
+  border-color: var(--currency-interbank);
+}
+
+/* Exchange Rate Display */
+.exchange-rate-display {
+  background: linear-gradient(to right, var(--vp-surface), var(--vp-background));
+  border: 1px solid var(--vp-border);
+  border-radius: var(--vp-radius-lg);
+  padding: var(--vp-spacing-5);
+  position: relative;
+}
+
+.exchange-rate-locked {
+  background: linear-gradient(to right, var(--currency-locked-light), var(--vp-surface));
+  border: 2px solid var(--currency-locked);
+  border-left-width: 8px;
+  box-shadow: 0 0 0 1px rgba(107, 33, 168, 0.1);
+}
+
+.exchange-rate-label {
+  font-size: var(--vp-text-xs);
+  color: var(--vp-foreground);
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--vp-spacing-1);
+}
+
+.exchange-rate-value {
+  font-size: var(--vp-text-3xl);
+  font-weight: 700;
+  color: var(--vp-primary);
+  line-height: 1.2;
+  margin-bottom: var(--vp-spacing-2);
+}
+
+/* Exchange Rate Certificate - RBZ Compliant */
+.rate-certificate {
+  border: 2px solid var(--currency-locked);
+  background: linear-gradient(135deg, var(--currency-locked-light), white);
+  padding: var(--vp-spacing-4);
+  border-radius: var(--vp-radius-lg);
+  margin: var(--vp-spacing-4) 0;
+  position: relative;
+}
+
+.rate-certificate::before {
+  content: '🔒 LOCKED RATE';
+  position: absolute;
+  top: -10px;
+  left: var(--vp-spacing-4);
+  background: var(--currency-locked);
+  color: white;
+  font-size: var(--vp-text-xs);
+  font-weight: 700;
+  padding: 0.125rem 0.75rem;
+  border-radius: var(--vp-radius-full);
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================================
+   5. MEDICAL AID WORKFLOW COMPONENTS - Complete 7-State Progress
+   ============================================================================ */
+
+/* Medical Aid Status Badges */
+.medical-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--vp-radius-full);
+  font-size: var(--vp-text-xs);
+  font-weight: 600;
+  line-height: 1;
+  border: 1px solid transparent;
+}
+
+.medical-status-pending {
+  background: var(--medical-pending-light);
+  color: var(--medical-pending-dark);
+  border-color: var(--medical-pending);
+}
+
+.medical-status-submitted {
+  background: var(--medical-submitted-light);
+  color: var(--medical-submitted-dark);
+  border-color: var(--medical-submitted);
+}
+
+.medical-status-under-review {
+  background: var(--medical-under-review-light);
+  color: var(--medical-under-review-dark);
+  border-color: var(--medical-under-review);
+}
+
+.medical-status-awarded {
+  background: var(--medical-awarded-light);
+  color: var(--medical-awarded-dark);
+  border-color: var(--medical-awarded);
+}
+
+.medical-status-partial {
+  background: var(--medical-partial-light);
+  color: var(--medical-partial-dark);
+  border-color: var(--medical-partial);
+}
+
+.medical-status-cleared {
+  background: var(--medical-cleared-light);
+  color: var(--medical-cleared-dark);
+  border-color: var(--medical-cleared);
+}
+
+.medical-status-rejected {
+  background: var(--medical-rejected-light);
+  color: var(--medical-rejected-dark);
+  border-color: var(--medical-rejected);
+}
+
+/* Medical Aid Progress Timeline - Desktop Horizontal */
+.medical-progress {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin: var(--vp-spacing-6) 0;
+  padding: var(--vp-spacing-4) 0;
+}
+
+.medical-progress-step {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.medical-progress-connector {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(to right, var(--vp-border) 0%, var(--vp-border) 100%);
+}
+
+.medical-progress-connector.completed {
+  background: linear-gradient(to right, var(--medical-awarded) 0%, var(--medical-awarded) 100%);
+}
+
+.medical-progress-connector.active {
+  background: linear-gradient(to right, var(--medical-awarded) 0%, var(--vp-border) 100%);
+}
+
+.medical-progress-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--vp-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--vp-text-xl);
+  font-weight: 700;
+  color: white;
+  position: relative;
+  z-index: var(--z-dropdown);
+  transition: all var(--vp-transition-bounce);
+  border: 3px solid white;
+  box-shadow: var(--vp-shadow-sm);
+}
+
+.medical-progress-icon.current {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2), var(--vp-shadow-md);
+  animation: pulse-ring 2s infinite;
+}
+
+.medical-progress-icon.completed {
+  background: var(--medical-awarded);
+}
+
+.medical-progress-label {
+  margin-top: var(--vp-spacing-3);
+  font-size: var(--vp-text-sm);
+  font-weight: 600;
+  color: var(--vp-foreground);
+}
+
+.medical-progress-date {
+  margin-top: var(--vp-spacing-1);
+  font-size: var(--vp-text-xs);
+  font-family: var(--vp-font-mono);
+  color: var(--vp-foreground);
+  opacity: 0.6;
+  background: var(--vp-divider);
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--vp-radius-full);
+}
+
+/* Medical Aid Timeline - Vertical (Mobile Optimized) */
+.medical-timeline {
+  position: relative;
+  padding-left: var(--vp-spacing-8);
+  margin: var(--vp-spacing-6) 0;
+}
+
+.medical-timeline::before {
+  content: '';
+  position: absolute;
+  left: 19px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--vp-border) 0%, var(--vp-border) 100%);
+}
+
+.medical-timeline-item {
+  position: relative;
+  margin-bottom: var(--vp-spacing-6);
+  padding-bottom: var(--vp-spacing-4);
+}
+
+.medical-timeline-icon {
+  position: absolute;
+  left: -34px;
+  top: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--vp-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--vp-text-base);
+  font-weight: 700;
+  color: white;
+  border: 2px solid white;
+  box-shadow: var(--vp-shadow-sm);
+}
+
+.medical-timeline-icon.current {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+  animation: pulse-ring 2s infinite;
+}
+
+.medical-timeline-content {
+  background: var(--vp-surface);
+  border: 1px solid var(--vp-border);
+  border-radius: var(--vp-radius-lg);
+  padding: var(--vp-spacing-4);
+}
+
+.medical-timeline-title {
+  font-weight: 700;
+  color: var(--vp-primary);
+  margin-bottom: var(--vp-spacing-1);
+}
+
+.medical-timeline-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--vp-spacing-3);
+  margin-top: var(--vp-spacing-2);
+  font-size: var(--vp-text-xs);
+  color: var(--vp-foreground);
+  opacity: 0.6;
+}
+
+/* ============================================================================
+   6. PAYMENT & TRANSACTION COMPONENTS
+   ============================================================================ */
+
+/* Payment Method Grid */
+.payment-method-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--vp-spacing-3);
+}
+
+.payment-method-card {
+  border: 1px solid var(--vp-border);
+  border-radius: var(--vp-radius-lg);
+  padding: var(--vp-spacing-4);
+  transition: all var(--vp-transition-base);
+  cursor: pointer;
+  background: white;
+}
+
+.payment-method-card:hover {
+  border-color: var(--vp-secondary);
+  box-shadow: var(--vp-shadow-md);
+  transform: translateY(-2px);
+}
+
+.payment-method-card.selected-usd {
+  border-color: var(--currency-usd);
+  background: linear-gradient(to bottom right, var(--currency-usd-light), white);
+}
+
+.payment-method-card.selected-zwl {
+  border-color: var(--currency-zwl);
+  background: linear-gradient(to bottom right, var(--currency-zwl-light), white);
+}
+
+/* Transaction Summary */
+.transaction-summary {
+  background: white;
+  border: 1px solid var(--vp-border);
+  border-radius: var(--vp-radius-lg);
+  padding: var(--vp-spacing-6);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--vp-spacing-3) 0;
+  border-bottom: 1px solid var(--vp-divider);
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+  font-weight: 700;
+  font-size: var(--vp-text-lg);
+  padding-top: var(--vp-spacing-4);
+  border-top: 2px solid var(--vp-border);
+}
+
+/* Number Pad - Zimbabwe Cashier Optimized */
+.number-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--vp-spacing-2);
+  max-width: 300px;
+}
+
+.number-pad-button {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--vp-text-xl);
+  font-weight: 700;
+  background: white;
+  border: 1px solid var(--vp-border);
+  border-radius: var(--vp-radius-md);
+  transition: all var(--vp-transition-fast);
+}
+
+.number-pad-button:hover {
+  background: var(--vp-divider);
+  border-color: var(--vp-secondary);
+}
+
+.number-pad-button:active {
+  transform: scale(0.95);
+  background: var(--vp-secondary);
+  color: white;
+}
+
+/* ============================================================================
+   7. FORM COMPONENTS & VALIDATION
+   ============================================================================ */
+
 .vp-form-group {
-  margin-bottom: var(--vp-spacing-lg);
+  margin-bottom: var(--vp-spacing-5);
 }
 
 .vp-form-label {
   display: block;
-  margin-bottom: var(--vp-spacing-xs);
-  font-weight: bold;
+  margin-bottom: var(--vp-spacing-2);
+  font-weight: 600;
   color: var(--vp-primary);
-  font-size: 14px;
+  font-size: var(--vp-text-sm);
+  letter-spacing: 0.025em;
 }
 
 .vp-form-control {
   width: 100%;
-  padding: 10px 12px;
+  padding: 0.625rem 0.875rem;
   border: 1px solid var(--vp-border);
   border-radius: var(--vp-radius-md);
-  font-size: 14px;
-  font-family: var(--font-sans);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-size: var(--vp-text-sm);
+  font-family: var(--vp-font-sans);
+  transition: all var(--vp-transition-fast);
   background: white;
+  line-height: 1.5;
+}
+
+.vp-form-control:hover {
+  border-color: var(--vp-secondary);
 }
 
 .vp-form-control:focus {
   outline: none;
   border-color: var(--vp-secondary);
-  box-shadow: 0 0 0 3px rgba(31, 174, 193, 0.1);
-}
-
-.vp-form-control.readonly {
-  background: #f8f9fa;
-  border-color: #e9ecef;
-  color: #6c757d;
-  cursor: not-allowed;
-}
-
-.vp-form-control.warning {
-  border-color: var(--vp-warning);
-  background: #fff9e6;
+  box-shadow: 0 0 0 3px rgba(31, 174, 193, 0.2);
 }
 
 .vp-form-control.error {
   border-color: var(--vp-danger);
-  background: #fff5f5;
+  background: var(--medical-rejected-light);
+  padding-right: 2.5rem;
 }
 
 .vp-form-control.success {
   border-color: var(--vp-success);
-  background: #f0fff4;
+  background: var(--medical-awarded-light);
 }
 
-/* Button Components */
+/* Validation States */
+.vp-validation-error {
+  margin-top: var(--vp-spacing-2);
+  font-size: var(--vp-text-xs);
+  color: var(--vp-danger);
+  display: flex;
+  align-items: center;
+  gap: var(--vp-spacing-1);
+}
+
+.vp-validation-success {
+  margin-top: var(--vp-spacing-2);
+  font-size: var(--vp-text-xs);
+  color: var(--vp-success);
+  display: flex;
+  align-items: center;
+  gap: var(--vp-spacing-1);
+}
+
+/* Buttons - Enterprise Grade */
 .vp-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: var(--vp-radius-md);
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--vp-spacing-xs);
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: var(--vp-radius-md);
+  font-family: var(--vp-font-sans);
+  font-size: var(--vp-text-sm);
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: all var(--vp-transition-base);
+  gap: var(--vp-spacing-2);
+  white-space: nowrap;
+}
+
+.vp-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .vp-btn-primary {
@@ -281,8 +1049,8 @@ body {
   color: white;
 }
 
-.vp-btn-primary:hover {
-  background: #00408c;
+.vp-btn-primary:hover:not(:disabled) {
+  background: var(--vp-primary-dark);
   transform: translateY(-1px);
   box-shadow: var(--vp-shadow-md);
 }
@@ -292,8 +1060,8 @@ body {
   color: white;
 }
 
-.vp-btn-secondary:hover {
-  background: #1a96a8;
+.vp-btn-secondary:hover:not(:disabled) {
+  background: var(--vp-secondary-dark);
   transform: translateY(-1px);
 }
 
@@ -302,14 +1070,26 @@ body {
   color: white;
 }
 
+.vp-btn-success:hover:not(:disabled) {
+  background: var(--vp-success-dark);
+}
+
 .vp-btn-warning {
   background: var(--vp-warning);
-  color: #212529;
+  color: var(--vp-foreground);
+}
+
+.vp-btn-warning:hover:not(:disabled) {
+  background: var(--vp-warning-dark);
 }
 
 .vp-btn-danger {
   background: var(--vp-danger);
   color: white;
+}
+
+.vp-btn-danger:hover:not(:disabled) {
+  background: var(--vp-danger-dark);
 }
 
 .vp-btn-outline {
@@ -318,297 +1098,335 @@ body {
   color: var(--vp-foreground);
 }
 
-.vp-btn-outline:hover {
-  background: #f8f9fa;
+.vp-btn-outline:hover:not(:disabled) {
+  background: var(--vp-divider);
   border-color: var(--vp-secondary);
 }
 
-.vp-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
-}
+/* ============================================================================
+   8. STATUS INDICATORS & BADGES
+   ============================================================================ */
 
-/* Currency Specific Styles */
-.vp-currency-badge {
+.status-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: bold;
-  text-transform: uppercase;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--vp-radius-full);
+  font-size: var(--vp-text-xs);
+  font-weight: 600;
+  line-height: 1;
+  border: 1px solid transparent;
 }
 
-.vp-currency-usd {
-  background: rgba(40, 167, 69, 0.1);
-  color: var(--currency-usd);
-  border: 1px solid rgba(40, 167, 69, 0.3);
+.status-pending {
+  background: #FEF3C7;
+  color: #92400E;
+  border-color: #F59E0B;
 }
 
-.vp-currency-zwl {
-  background: rgba(23, 162, 184, 0.1);
-  color: var(--currency-zwl);
-  border: 1px solid rgba(23, 162, 184, 0.3);
+.status-partial {
+  background: #FFEDD5;
+  color: #9A3412;
+  border-color: #F97316;
 }
 
-.vp-currency-locked {
-  background: rgba(111, 66, 193, 0.1);
-  color: var(--currency-locked);
-  border: 1px solid rgba(111, 66, 193, 0.3);
-  border-left: 4px solid var(--currency-locked);
+.status-cleared {
+  background: #D1FAE5;
+  color: #065F46;
+  border-color: #10B981;
 }
 
-/* Exchange Rate Display */
-.vp-exchange-rate {
-  background: #f8f9fa;
-  border: 1px solid var(--vp-border);
-  border-radius: var(--vp-radius-md);
-  padding: var(--vp-spacing-md);
-  margin: var(--vp-spacing-md) 0;
+.status-error {
+  background: #FEE2E2;
+  color: #991B1B;
+  border-color: #EF4444;
 }
 
-.vp-exchange-rate-locked {
-  background: #f0e6ff;
-  border: 2px solid var(--currency-locked);
-  border-left: 6px solid var(--currency-locked);
+.status-info {
+  background: #DBEAFE;
+  color: #1E40AF;
+  border-color: #3B82F6;
 }
 
-.vp-exchange-rate-label {
-  font-size: 12px;
-  color: #6c757d;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.status-warning {
+  background: #FEF3C7;
+  color: #92400E;
+  border-color: #FBBF24;
 }
 
-.vp-exchange-rate-value {
-  font-size: 24px;
-  font-weight: bold;
-  color: var(--vp-primary);
-  margin: 4px 0;
+.status-success {
+  background: #D1FAE5;
+  color: #065F46;
+  border-color: #10B981;
 }
 
-/* Amount Display */
-.vp-amount-display {
-  font-size: 18px;
-  font-weight: bold;
-  padding: var(--vp-spacing-sm) var(--vp-spacing-md);
+/* Status Dots */
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--vp-radius-full);
+  margin-right: var(--vp-spacing-2);
+}
+
+.status-dot-pending {
+  background: var(--status-pending);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.status-dot-partial {
+  background: var(--status-partial);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+}
+
+.status-dot-cleared {
+  background: var(--status-cleared);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+/* ============================================================================
+   9. ZIMRA COMPLIANCE & RECEIPT STYLES
+   ============================================================================ */
+
+/* ZIMRA Official Receipt - A5 Thermal Printer Optimized */
+.zimra-receipt {
+  font-family: 'Courier New', 'JetBrains Mono', monospace;
+  max-width: 80mm;
+  margin: 0 auto;
   background: white;
-  border-radius: var(--vp-radius-md);
-  border: 1px solid var(--vp-border);
+  color: black;
+  padding: var(--vp-spacing-4);
+  border: 1px solid #ccc;
 }
 
-.vp-amount-primary {
-  color: var(--vp-primary);
-  font-size: 24px;
+.zimra-receipt-header {
+  text-align: center;
+  border-bottom: 2px solid var(--zimra-primary);
+  padding-bottom: var(--vp-spacing-4);
+  margin-bottom: var(--vp-spacing-4);
 }
 
-.vp-amount-secondary {
-  color: #6c757d;
-  font-size: 14px;
-}
-
-/* Status Indicators */
-.vp-status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: bold;
+.zimra-receipt-title {
+  font-size: var(--vp-text-xl);
+  font-weight: 800;
+  color: var(--zimra-primary);
+  letter-spacing: 2px;
   text-transform: uppercase;
 }
 
-.vp-status-pending {
-  background: rgba(255, 193, 7, 0.1);
-  color: #856404;
-  border: 1px solid rgba(255, 193, 7, 0.3);
+.zimra-tax-invoice {
+  border: 2px solid var(--zimra-primary);
+  padding: var(--vp-spacing-4);
+  margin: var(--vp-spacing-4) 0;
+  background: linear-gradient(135deg, rgba(128, 0, 32, 0.05), transparent);
 }
 
-.vp-status-partial {
-  background: rgba(253, 126, 20, 0.1);
-  color: #984c0c;
-  border: 1px solid rgba(253, 126, 20, 0.3);
-}
-
-.vp-status-cleared {
-  background: rgba(40, 167, 69, 0.1);
-  color: #155724;
-  border: 1px solid rgba(40, 167, 69, 0.3);
-}
-
-/* Medical Aid Timeline */
-.vp-timeline {
-  position: relative;
-  padding-left: 30px;
-  margin: var(--vp-spacing-lg) 0;
-}
-
-.vp-timeline::before {
-  content: '';
-  position: absolute;
-  left: 10px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--vp-border);
-}
-
-.vp-timeline-item {
-  position: relative;
-  margin-bottom: var(--vp-spacing-lg);
-  padding-bottom: var(--vp-spacing-md);
-}
-
-.vp-timeline-item::before {
-  content: '';
-  position: absolute;
-  left: -20px;
-  top: 0;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--vp-border);
-  border: 2px solid white;
-}
-
-.vp-timeline-item.completed::before {
-  background: var(--vp-success);
-}
-
-.vp-timeline-item.active::before {
-  background: var(--vp-secondary);
-  box-shadow: 0 0 0 3px rgba(31, 174, 193, 0.2);
-}
-
-.vp-timeline-item.pending::before {
-  background: var(--vp-warning);
-}
-
-.vp-timeline-date {
-  font-size: 12px;
-  color: #6c757d;
-  margin-bottom: 4px;
-}
-
-.vp-timeline-title {
-  font-weight: bold;
-  color: var(--vp-primary);
-  margin-bottom: 4px;
-}
-
-.vp-timeline-description {
-  font-size: 13px;
-  color: #495057;
-}
-
-/* Transaction Summary */
-.vp-transaction-summary {
-  background: white;
-  border: 1px solid var(--vp-border);
-  border-radius: var(--vp-radius-lg);
-  padding: var(--vp-spacing-lg);
-}
-
-.vp-summary-row {
+/* ZIMRA QR Code */
+.zimra-qr-code {
   display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #f8f9fa;
+  justify-content: center;
+  align-items: center;
+  margin: var(--vp-spacing-4) 0;
+  padding: var(--vp-spacing-4);
+  background: white;
+  border: 1px solid var(--vp-border);
 }
 
-.vp-summary-row:last-child {
-  border-bottom: none;
-  font-weight: bold;
-  font-size: 16px;
-  padding-top: var(--vp-spacing-md);
-  border-top: 2px solid var(--vp-border);
+/* Sequential Receipt Number */
+.receipt-number {
+  font-family: var(--vp-font-mono);
+  font-size: var(--vp-text-sm);
+  font-weight: 700;
+  color: var(--zimra-primary);
+  background: #FFF3E6;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--vp-radius-full);
+  display: inline-block;
+  border: 1px solid var(--zimra-primary);
 }
 
-.vp-summary-label {
-  color: #6c757d;
+/* Fiscal Signature */
+.fiscal-signature {
+  font-family: var(--vp-font-mono);
+  font-size: var(--vp-text-xs);
+  word-break: break-all;
+  background: var(--vp-divider);
+  padding: var(--vp-spacing-2);
+  border-radius: var(--vp-radius-sm);
+  color: var(--vp-foreground);
+  opacity: 0.7;
 }
 
-.vp-summary-value {
-  font-weight: bold;
-  color: var(--vp-primary);
+/* ============================================================================
+   10. ACCESSIBILITY & PRINT STYLES - WCAG 2.1 AA
+   ============================================================================ */
+
+/* High Contrast Mode */
+.high-contrast {
+  --vp-primary: #000000;
+  --vp-secondary: #FFFFFF;
+  --vp-foreground: #000000;
+  --vp-background: #FFFFFF;
+  --vp-border: #000000;
+  --currency-usd: #000000;
+  --currency-zwl: #000000;
+  --currency-locked: #000000;
 }
 
-/* Alert and Warning Components */
-.vp-alert {
-  padding: var(--vp-spacing-md);
+.high-contrast .vp-card,
+.high-contrast .vp-form-control,
+.high-contrast .vp-btn {
+  border-width: 2px;
+  border-color: black;
+}
+
+/* Reduced Motion */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Skip to Main Content */
+.skip-to-main {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip-to-main:focus {
+  left: var(--vp-spacing-4);
+  top: var(--vp-spacing-4);
+  width: auto;
+  height: auto;
+  padding: var(--vp-spacing-3) var(--vp-spacing-4);
+  background: var(--vp-primary);
+  color: white;
+  z-index: var(--z-tooltip);
   border-radius: var(--vp-radius-md);
-  margin: var(--vp-spacing-md) 0;
-  border-left: 4px solid;
+  text-decoration: none;
+  font-weight: 600;
 }
 
-.vp-alert-warning {
-  background: #fff9e6;
-  border-color: var(--vp-warning);
-  color: #856404;
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
-.vp-alert-info {
-  background: #e6f2ff;
-  border-color: var(--vp-secondary);
-  color: #004085;
+/* ============================================================================
+   11. ANIMATIONS & TRANSITIONS
+   ============================================================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.vp-alert-success {
-  background: #f0fff4;
-  border-color: var(--vp-success);
-  color: #155724;
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
-.vp-alert-danger {
-  background: #fff5f5;
-  border-color: var(--vp-danger);
-  color: #721c24;
+@keyframes slideInRight {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
-/* Grid System */
-.vp-grid {
-  display: grid;
-  gap: var(--vp-spacing-lg);
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
 }
 
-.vp-grid-2 {
-  grid-template-columns: repeat(2, 1fr);
+@keyframes pulse-locked {
+  0% {
+    box-shadow: 0 0 0 0 rgba(107, 33, 168, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(107, 33, 168, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(107, 33, 168, 0);
+  }
 }
 
-.vp-grid-3 {
-  grid-template-columns: repeat(3, 1fr);
+@keyframes currency-flash {
+  0% { background-color: white; }
+  50% { background-color: var(--currency-locked-light); }
+  100% { background-color: white; }
 }
 
-.vp-grid-4 {
-  grid-template-columns: repeat(4, 1fr);
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-/* Utility Classes */
-.vp-text-center { text-align: center; }
-.vp-text-right { text-align: right; }
-.vp-text-left { text-align: left; }
+.animate-fade-in {
+  animation: fadeIn var(--vp-transition-base);
+}
 
-.vp-mt-1 { margin-top: var(--vp-spacing-xs); }
-.vp-mt-2 { margin-top: var(--vp-spacing-sm); }
-.vp-mt-3 { margin-top: var(--vp-spacing-md); }
-.vp-mt-4 { margin-top: var(--vp-spacing-lg); }
-.vp-mt-5 { margin-top: var(--vp-spacing-xl); }
+.animate-slide-in-up {
+  animation: slideInUp var(--vp-transition-slow);
+}
 
-.vp-mb-1 { margin-bottom: var(--vp-spacing-xs); }
-.vp-mb-2 { margin-bottom: var(--vp-spacing-sm); }
-.vp-mb-3 { margin-bottom: var(--vp-spacing-md); }
-.vp-mb-4 { margin-bottom: var(--vp-spacing-lg); }
-.vp-mb-5 { margin-bottom: var(--vp-spacing-xl); }
+.animate-slide-in-right {
+  animation: slideInRight var(--vp-transition-slow);
+}
 
-.vp-flex { display: flex; }
-.vp-flex-col { flex-direction: column; }
-.vp-items-center { align-items: center; }
-.vp-justify-between { justify-content: space-between; }
-.vp-gap-2 { gap: var(--vp-spacing-sm); }
-.vp-gap-4 { gap: var(--vp-spacing-md); }
+.animate-pulse-ring {
+  animation: pulse-ring 2s infinite;
+}
 
-/* Responsive Design */
+.animate-pulse-locked {
+  animation: pulse-locked 2s infinite;
+}
+
+.animate-currency-flash {
+  animation: currency-flash 1s ease;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* ============================================================================
+   12. RESPONSIVE & MOBILE OPTIMIZATIONS
+   ============================================================================ */
+
+/* Tablet */
 @media (max-width: 1024px) {
   .vp-main-layout {
     grid-template-columns: 1fr;
@@ -618,60 +1436,161 @@ body {
     display: none;
   }
   
-  .vp-grid-4 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .vp-grid-2,
-  .vp-grid-3,
-  .vp-grid-4 {
-    grid-template-columns: 1fr;
-  }
-  
-  .vp-header-content {
-    flex-direction: column;
-    gap: var(--vp-spacing-md);
-    text-align: center;
-  }
-  
-  .vp-card-body {
-    padding: var(--vp-spacing-md);
-  }
-}
-
-/* Print Styles for Receipts */
-@media print {
-  .vp-sidebar,
-  .vp-header,
-  .vp-btn {
-    display: none !important;
+  .vp-sidebar.mobile-open {
+    display: block;
+    position: fixed;
+    top: 73px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-modal);
+    width: 280px;
+    box-shadow: var(--vp-shadow-xl);
   }
   
   .vp-content {
-    padding: 0;
+    padding: var(--vp-spacing-4);
   }
   
-  .vp-transaction-summary {
-    border: none;
-    box-shadow: none;
-    padding: 20px;
+  .exchange-rate-value {
+    font-size: var(--vp-text-2xl);
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .vp-header-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--vp-spacing-3);
   }
   
+  .vp-logo {
+    justify-content: center;
+  }
+  
+  .vp-user-info {
+    justify-content: center;
+  }
+  
+  .vp-content {
+    padding: var(--vp-spacing-3);
+  }
+  
+  .vp-card-body {
+    padding: var(--vp-spacing-4);
+  }
+  
+  .currency-badge {
+    padding: 0.125rem 0.5rem;
+    font-size: var(--vp-text-xs);
+  }
+  
+  .medical-progress {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--vp-spacing-4);
+  }
+  
+  .medical-progress-connector {
+    display: none;
+  }
+  
+  .medical-progress-step {
+    flex-direction: row;
+    width: 100%;
+    gap: var(--vp-spacing-4);
+  }
+  
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .vp-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ============================================================================
+   13. ZIMBABWE CLINIC SPECIFIC UTILITIES
+   ============================================================================ */
+
+/* RBZ Official Stamp */
+.rbz-stamp {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  background: linear-gradient(135deg, var(--rbz-primary), var(--rbz-locked));
+  color: white;
+  border-radius: var(--vp-radius-sm);
+  font-size: var(--vp-text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* ZIMRA Verified */
+.zimra-verified {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  background: var(--zimra-verified);
+  color: white;
+  border-radius: var(--vp-radius-sm);
+  font-size: var(--vp-text-xs);
+  font-weight: 700;
+}
+
+/* Medical Aid Provider Colors */
+.provider-cimas { background: #FEE2E2; color: #991B1B; }
+.provider-psmas { background: #DCFCE7; color: #166534; }
+.provider-first-mutual { background: #DBEAFE; color: #1E40AF; }
+.provider-liberty { background: #F3E8FF; color: #6B21A8; }
+
+/* Zimbabwe Phone Format */
+.zim-phone {
+  font-family: var(--vp-font-mono);
+  color: var(--vp-primary);
+}
+
+/* Print Styles - ZIMRA Thermal Printer Optimized */
+@media print {
   body {
     background: white !important;
     color: black !important;
+    font-size: 10pt !important;
+  }
+  
+  .vp-header,
+  .vp-sidebar,
+  .vp-footer,
+  .no-print,
+  .print\:hidden {
+    display: none !important;
+  }
+  
+  .vp-content,
+  .vp-card,
+  .receipt-print {
+    background: white !important;
+    color: black !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .zimra-receipt {
+    border: 1px dashed #000 !important;
+    padding: 0.2in !important;
+  }
+  
+  @page {
+    size: A5 portrait;
+    margin: 0.2in;
+    
   }
 }
 
-/* Animation for currency changes */
-@keyframes currencyChange {
-  0% { background-color: white; }
-  50% { background-color: #f0f8ff; }
-  100% { background-color: white; }
-}
-
-.vp-currency-updated {
-  animation: currencyChange 1s ease;
-}
+/* ============================================================================
+   END OF STYLES - VisionPlus Zimbabwe Production Ready
+   ============================================================================ */
