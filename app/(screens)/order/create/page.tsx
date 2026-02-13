@@ -659,6 +659,10 @@ const ExchangeRateDisplay = ({
   )
 }
 
+// ============================================================================
+// PRODUCT SELECTOR COMPONENT - MOBILE FRIENDLY
+// ============================================================================
+
 interface ProductSelectorProps {
   onAddItem: (product: Product, quantity: number) => void
   exchangeRate: number
@@ -670,6 +674,7 @@ const ProductSelector = ({ onAddItem, exchangeRate, disabled = false }: ProductS
   const [selectedProductId, setSelectedProductId] = useState<string>('')
   const [quantity, setQuantity] = useState<number>(1)
   const [searchTerm, setSearchTerm] = useState<string>('')
+  const [showProductDropdown, setShowProductDropdown] = useState(false)
 
   const categories = [
     { id: 'all', name: 'All Products', icon: '📦' },
@@ -698,7 +703,13 @@ const ProductSelector = ({ onAddItem, exchangeRate, disabled = false }: ProductS
       onAddItem(selectedProduct, quantity)
       setSelectedProductId('')
       setQuantity(1)
+      setShowProductDropdown(false)
     }
+  }
+
+  const selectProduct = (productId: string) => {
+    setSelectedProductId(productId)
+    setShowProductDropdown(false)
   }
 
   return (
@@ -708,13 +719,14 @@ const ProductSelector = ({ onAddItem, exchangeRate, disabled = false }: ProductS
       </div>
       
       <div className="vp-card-body">
-        <div className="flex overflow-x-auto gap-2 mb-4 pb-2">
+        {/* Category Tabs - Scrollable on mobile */}
+        <div className="flex overflow-x-auto gap-2 mb-4 pb-2 scrollbar-hide">
           {categories.map(category => (
             <button
               key={category.id}
               type="button"
               onClick={() => setSelectedCategory(category.id)}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+              className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors touch-manipulation ${
                 selectedCategory === category.id
                   ? 'bg-vp-primary text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -727,8 +739,10 @@ const ProductSelector = ({ onAddItem, exchangeRate, disabled = false }: ProductS
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-          <div className="lg:col-span-2">
+        {/* Search and Selection - Mobile Optimized */}
+        <div className="space-y-4">
+          {/* Search Bar */}
+          <div>
             <label className="vp-form-label">Search Products</label>
             <input
               type="text"
@@ -740,67 +754,92 @@ const ProductSelector = ({ onAddItem, exchangeRate, disabled = false }: ProductS
             />
           </div>
           
+          {/* Product Selection - Mobile Friendly Dropdown */}
           <div>
             <label className="vp-form-label">Select Product</label>
-            <select
-              value={selectedProductId}
-              onChange={(e) => setSelectedProductId(e.target.value)}
-              className="vp-form-control"
+            
+            {/* Custom dropdown button - works on mobile */}
+            <button
+              type="button"
+              onClick={() => setShowProductDropdown(!showProductDropdown)}
+              className="vp-form-control text-left flex justify-between items-center"
               disabled={disabled || filteredProducts.length === 0}
-              size={5}
             >
-              <option value="">Choose a product...</option>
-              {filteredProducts.map(product => (
-                <option key={product.id} value={product.id}>
-                  {product.name} - {formatCurrency(product.basePriceUSD, 'USD')}
-                  {product.stockLevel !== undefined && ` (Stock: ${product.stockLevel})`}
-                </option>
-              ))}
-            </select>
+              <span className={selectedProduct ? 'text-gray-900' : 'text-gray-400'}>
+                {selectedProduct ? selectedProduct.name : 'Choose a product...'}
+              </span>
+              <span className="text-gray-500">{showProductDropdown ? '▲' : '▼'}</span>
+            </button>
+            
+            {/* Dropdown options */}
+            {showProductDropdown && filteredProducts.length > 0 && (
+              <div className="mt-1 border border-gray-200 rounded-lg max-h-60 overflow-y-auto bg-white shadow-lg">
+                {filteredProducts.map(product => (
+                  <button
+                    key={product.id}
+                    type="button"
+                    onClick={() => selectProduct(product.id)}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 touch-manipulation"
+                  >
+                    <div className="font-medium">{product.name}</div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-currency-usd">{formatCurrency(product.basePriceUSD, 'USD')}</span>
+                      {product.stockLevel !== undefined && (
+                        <span className="text-gray-500">Stock: {product.stockLevel}</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-400">{product.sku}</div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
+        {/* Quantity and Add - Only shown when product selected */}
         {selectedProduct && (
-          <div className="flex flex-col sm:flex-row items-end gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="flex-1">
-              <label className="vp-form-label">Quantity</label>
-              <div className="flex">
-                <button
-                  type="button"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-3 py-2 border rounded-l-lg bg-white hover:bg-gray-50"
-                  disabled={disabled}
-                >
-                  −
-                </button>
-                <input
-                  type="number"
-                  value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="vp-form-control text-center rounded-none border-x-0"
-                  min="1"
-                  max={selectedProduct.stockLevel || 99}
-                  disabled={disabled}
-                />
-                <button
-                  type="button"
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="px-3 py-2 border rounded-r-lg bg-white hover:bg-gray-50"
-                  disabled={disabled || (selectedProduct.stockLevel !== undefined && quantity >= selectedProduct.stockLevel)}
-                >
-                  +
-                </button>
-              </div>
-            </div>
-            
-            <div className="flex-1">
-              <label className="vp-form-label">Price</label>
-              <div className="space-y-1">
-                <div className="text-currency-usd font-medium">
-                  {formatCurrency(selectedProduct.basePriceUSD * quantity, 'USD')}
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex flex-col sm:flex-row items-end gap-4">
+              <div className="flex-1 w-full">
+                <label className="vp-form-label">Quantity</label>
+                <div className="flex">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="px-4 py-3 border rounded-l-lg bg-white hover:bg-gray-50 touch-manipulation"
+                    disabled={disabled}
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="vp-form-control text-center rounded-none border-x-0"
+                    min="1"
+                    max={selectedProduct.stockLevel || 99}
+                    disabled={disabled}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="px-4 py-3 border rounded-r-lg bg-white hover:bg-gray-50 touch-manipulation"
+                    disabled={disabled || (selectedProduct.stockLevel !== undefined && quantity >= selectedProduct.stockLevel)}
+                  >
+                    +
+                  </button>
                 </div>
-                <div className="text-sm text-currency-zwl">
-                  {formatCurrency(selectedProduct.basePriceUSD * exchangeRate * quantity, 'ZWL')}
+              </div>
+              
+              <div className="flex-1 w-full">
+                <label className="vp-form-label">Price</label>
+                <div className="space-y-1 p-3 bg-white rounded-lg border">
+                  <div className="text-currency-usd font-medium">
+                    {formatCurrency(selectedProduct.basePriceUSD * quantity, 'USD')}
+                  </div>
+                  <div className="text-sm text-currency-zwl">
+                    {formatCurrency(selectedProduct.basePriceUSD * exchangeRate * quantity, 'ZWL')}
+                  </div>
                 </div>
               </div>
             </div>
@@ -808,7 +847,7 @@ const ProductSelector = ({ onAddItem, exchangeRate, disabled = false }: ProductS
             <button
               type="button"
               onClick={handleAdd}
-              className="vp-btn vp-btn-secondary px-6 h-[42px] flex items-center gap-2"
+              className="vp-btn vp-btn-secondary w-full mt-4 py-3 flex items-center justify-center gap-2 touch-manipulation"
               disabled={disabled || !selectedProductId}
             >
               <span>➕</span>
