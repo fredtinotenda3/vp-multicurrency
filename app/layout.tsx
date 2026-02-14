@@ -1,5 +1,7 @@
+// app/layout.tsx
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { NavigationProvider } from '@/contexts/NavigationContext'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -24,7 +26,9 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        {children}
+        <NavigationProvider>
+          {children}
+        </NavigationProvider>
       </body>
     </html>
   )

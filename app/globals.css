@@ -1591,6 +1591,92 @@ body {
   }
 }
 
+/* app/globals.css - Add these styles for mobile navigation */
+
+/* Mobile Navigation Styles */
+@media (max-width: 1024px) {
+  /* Ensure content doesn't get hidden under fixed header */
+  .lg\:static {
+    position: fixed !important;
+  }
+  
+  /* Smooth transitions for sidebar */
+  .sidebar-transition {
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  /* Prevent body scroll when mobile menu is open */
+  body.menu-open {
+    overflow: hidden;
+  }
+}
+
+/* Desktop sidebar always visible */
+@media (min-width: 1025px) {
+  .lg\:static {
+    position: static !important;
+  }
+}
+
+/* Mobile menu button hover effects */
+.mobile-menu-button {
+  transition: all 0.2s ease;
+}
+
+.mobile-menu-button:hover {
+  background-color: #f3f4f6;
+}
+
+.mobile-menu-button:active {
+  transform: scale(0.95);
+}
+
+/* Overlay animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fixed.inset-0.bg-black\/50 {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Sidebar slide animation */
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.lg\:static {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Active navigation item */
+.vp-sidebar-item.active {
+  background: linear-gradient(90deg, var(--vp-info) 0%, rgba(193, 228, 242, 0.5) 100%);
+  border-left-color: var(--vp-primary);
+  font-weight: 600;
+}
+
+.vp-sidebar-item.active .vp-sidebar-link {
+  color: var(--vp-primary);
+}
+
+/* Navigation icons */
+.vp-sidebar-link span:first-child {
+  font-size: 1.25rem;
+  width: 1.75rem;
+  display: inline-block;
+}
+
 /* ============================================================================
    END OF STYLES - VisionPlus Zimbabwe Production Ready
    ============================================================================ */

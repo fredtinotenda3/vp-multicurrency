@@ -138,12 +138,12 @@ export const CURRENCY_LIMITS = {
 } as const
 
 // ============================================================================
-// EXCHANGE RATE VALIDATION (ZWL per USD)
+// EXCHANGE RATE VALIDATION (ZWL per USD) - Updated to 1-1000 range
 // ============================================================================
 
 export const EXCHANGE_RATE_LIMITS = {
-  min: 100,    // 1 USD = 100 ZWL minimum
-  max: 10000,  // 1 USD = 10000 ZWL maximum
+  min: 1,    // 1 USD = 1 ZWL minimum
+  max: 1000, // 1 USD = 1000 ZWL maximum
   maxDecimalPlaces: 2,
   pattern: /^\d+(\.\d{1,2})?$/
 } as const
@@ -570,14 +570,14 @@ export default function FormValidator({
         }
       }
 
-      // Exchange rate validation
+      // Exchange rate validation - Updated message
       if (rule.exchangeRate) {
         isValid = Validators.exchangeRate(Number(fieldValue))
         if (!isValid) {
           errors.push({
             field,
             rule: 'exchangeRate',
-            message: rule.message || 'Invalid exchange rate (100-10,000 ZWL/USD)',
+            message: rule.message || 'Invalid exchange rate (1-1,000 ZWL/USD)',
             severity: rule.severity || 'error',
             timestamp: Date.now()
           })
@@ -806,6 +806,20 @@ export function FieldValidator({
           }
         }
 
+        // Exchange rate validation
+        if (rule.exchangeRate) {
+          ruleValid = Validators.exchangeRate(Number(value))
+          if (!ruleValid) {
+            fieldErrors.push({
+              field,
+              rule: 'exchangeRate',
+              message: rule.message || 'Invalid exchange rate (1-1,000 ZWL/USD)',
+              severity: rule.severity || 'error',
+              timestamp: Date.now()
+            })
+          }
+        }
+
         // Zimbabwe phone
         if (rule.zimPhone) {
           ruleValid = Validators.zimPhone(String(value))
@@ -960,7 +974,7 @@ export function ExchangeRateValidator({
     },
     {
       exchangeRate: true,
-      message: 'Invalid exchange rate (100-10,000 ZWL/USD)',
+      message: 'Invalid exchange rate (1-1,000 ZWL/USD)',
       severity: 'error'
     },
     {

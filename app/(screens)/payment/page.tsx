@@ -5,6 +5,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { ErrorBoundary } from '@/components/system/ErrorBoundary'
 import { LoadingOverlay } from '@/components/system/LoadingStates'
+import Sidebar from '@/components/layout/Sidebar'
+import MobileHeader from '@/components/layout/MobileHeader'
 import PaymentMethodGrid from '@/components/payment/PaymentMethodGrid'
 import { useMedicalAidCache } from '@/lib/offline/MedicalAidCache'
 
@@ -25,10 +27,10 @@ const PAYMENT_METHODS = [
   { id: 'cash_usd', name: 'Cash USD', currency: 'USD', type: 'cash', icon: '💵', color: 'bg-green-100', textColor: 'text-green-800', processingTime: 'immediate' },
   { id: 'cash_zwl', name: 'Cash ZWL', currency: 'ZWL', type: 'cash', icon: '💵', color: 'bg-blue-100', textColor: 'text-blue-800', processingTime: 'immediate' },
   { id: 'cimas', name: 'Cimas', currency: 'ZWL', type: 'medical_aid', icon: '🏥', color: 'bg-red-100', textColor: 'text-red-800', processingTime: '30_days' },
-  { id: 'first_mutual', name: 'First Mutual', currency: 'ZWL', type: 'medical_aid', icon: '🏥', color: 'bg-red-100', textColor: 'text-red-800', processingTime: '45_days' },
-  { id: 'psmas', name: 'PSMAS', currency: 'ZWL', type: 'medical_aid', icon: '🏥', color: 'bg-red-100', textColor: 'text-red-800', processingTime: '60_days' },
-  { id: 'liberty', name: 'Liberty Health', currency: 'ZWL', type: 'medical_aid', icon: '🏥', color: 'bg-red-100', textColor: 'text-red-800', processingTime: '30_days' },
-  { id: 'old_mutual', name: 'Old Mutual', currency: 'ZWL', type: 'medical_aid', icon: '🏥', color: 'bg-red-100', textColor: 'text-red-800', processingTime: '30_days' },
+  { id: 'first_mutual', name: 'First Mutual', currency: 'ZWL', type: 'medical_aid', icon: '🏥', color: 'bg-blue-100', textColor: 'text-blue-800', processingTime: '45_days' },
+  { id: 'psmas', name: 'PSMAS', currency: 'ZWL', type: 'medical_aid', icon: '🏥', color: 'bg-green-100', textColor: 'text-green-800', processingTime: '60_days' },
+  { id: 'liberty', name: 'Liberty Health', currency: 'ZWL', type: 'medical_aid', icon: '🏥', color: 'bg-purple-100', textColor: 'text-purple-800', processingTime: '30_days' },
+  { id: 'old_mutual', name: 'Old Mutual', currency: 'ZWL', type: 'medical_aid', icon: '🏥', color: 'bg-blue-100', textColor: 'text-blue-800', processingTime: '30_days' },
   { id: 'credit_card', name: 'Credit / Debit Card', currency: 'USD', type: 'card', icon: '💳', color: 'bg-purple-100', textColor: 'text-purple-800', processingTime: 'immediate' },
   { id: 'ecocash', name: 'Ecocash', currency: 'ZWL', type: 'mobile_money', icon: '📱', color: 'bg-teal-100', textColor: 'text-teal-800', processingTime: 'immediate' },
   { id: 'rtgs', name: 'RTGS', currency: 'ZWL', type: 'bank', icon: '🏦', color: 'bg-yellow-100', textColor: 'text-yellow-800', processingTime: '1_2_days' },
@@ -690,7 +692,7 @@ const MedicalAidAwardForm = ({
 }
 
 // ============================================================================
-// ✅ FIXED: PAYMENT FORM COMPONENT - No HTML5 validation errors
+// PAYMENT FORM COMPONENT
 // ============================================================================
 
 interface PaymentFormProps {
@@ -723,7 +725,7 @@ const PaymentForm = ({
   const selectedMethod = PAYMENT_METHODS.find(m => m.id === selectedMethodId)
   const paymentCurrency = selectedMethod?.currency || transactionCurrency
   
-  // ✅ FIX: Safe max amount calculation
+  // Safe max amount calculation
   const safeMaxAmount = useMemo(() => {
     if (!order) return 0
     
@@ -738,7 +740,7 @@ const PaymentForm = ({
     }
   }, [paymentCurrency, maxAmountUSD, maxAmountZWL, order])
 
-  // ✅ FIX: Validation with safe checks
+  // Validation with safe checks
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
 
@@ -787,7 +789,7 @@ const PaymentForm = ({
     setErrors({})
   }
 
-  // ✅ FIX: Show loading state while order loads
+  // Show loading state while order loads
   if (!order) {
     return (
       <div className="vp-card">
@@ -799,7 +801,7 @@ const PaymentForm = ({
     )
   }
 
-  // ✅ FIX: Only show "No Balance Due" when order is TRULY paid
+  // Only show "No Balance Due" when order is TRULY paid
   const hasBalanceDue = order.totalUSD > 0 && safeMaxAmount > 0
 
   if (!hasBalanceDue) {
@@ -872,7 +874,6 @@ const PaymentForm = ({
                     errors.amount ? 'border-status-error' : ''
                   } ${paymentCurrency === 'USD' ? 'border-currency-usd' : 'border-currency-zwl'}`}
                   placeholder="0.00"
-                  // ✅ CRITICAL FIX: Only set min/max if safeMaxAmount > 0
                   min={safeMaxAmount > 0 ? "0.01" : undefined}
                   max={safeMaxAmount > 0 ? safeMaxAmount : undefined}
                   step="0.01"
@@ -927,7 +928,7 @@ const PaymentForm = ({
                         ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}
                       `}
                     >
-                      {paymentCurrency === 'USD' ? `$${value}` : `ZW$${value}`}
+                      {paymentCurrency === 'USD' ? `$${value}` : `ZW$${Math.round(value * exchangeRate)}`}
                     </button>
                   )
                 })}
@@ -1114,12 +1115,6 @@ const PaymentHistory = ({
 // TRANSACTION SUMMARY COMPONENT
 // ============================================================================
 
-// ============================================================================
-// TRANSACTION SUMMARY COMPONENT - FIXED
-// - Separates Medical Aid AWARDS from Medical Aid PAYMENTS
-// - Shows correct categorization of PSMAS/Ecocash/etc. payments
-// ============================================================================
-
 interface TransactionSummaryProps {
   order: Order
   payments: Payment[]
@@ -1148,11 +1143,11 @@ const TransactionSummary = ({
   isProcessing = false
 }: TransactionSummaryProps) => {
   
-  // ✅ FIX 1: Separate Medical Aid AWARD (to be paid later)
+  // Separate Medical Aid AWARD (to be paid later)
   const awardAmountUSD = award?.awardedUSD || 0
   const awardAmountZWL = award?.awardedZWL || 0
   
-  // ✅ FIX 2: Separate Medical Aid PAYMENTS (paid now via PSMAS, Cimas, Ecocash, etc.)
+  // Separate Medical Aid PAYMENTS (paid now)
   const medicalAidPaymentsUSD = payments
     .filter(p => p.methodType === 'medical_aid')
     .reduce((sum, p) => sum + (p.equivalentUSD || 0), 0)
@@ -1161,7 +1156,7 @@ const TransactionSummary = ({
     .filter(p => p.methodType === 'medical_aid')
     .reduce((sum, p) => sum + (p.equivalentZWL || 0), 0)
   
-  // ✅ FIX 3: Cash, Card, Mobile Money, Bank, Voucher (non-medical aid)
+  // Cash, Card, Mobile Money, Bank, Voucher (non-medical aid)
   const cashPaymentsUSD = payments
     .filter(p => p.methodType !== 'medical_aid')
     .reduce((sum, p) => sum + (p.equivalentUSD || 0), 0)
@@ -1170,11 +1165,11 @@ const TransactionSummary = ({
     .filter(p => p.methodType !== 'medical_aid')
     .reduce((sum, p) => sum + (p.equivalentZWL || 0), 0)
   
-  // ✅ Total paid = Award + Medical Aid Payments + Cash Payments
+  // Total paid = Award + Medical Aid Payments + Cash Payments
   const totalPaidUSD = awardAmountUSD + medicalAidPaymentsUSD + cashPaymentsUSD
   const totalPaidZWL = awardAmountZWL + medicalAidPaymentsZWL + cashPaymentsZWL
   
-  // ✅ Balance calculations
+  // Balance calculations
   const balanceUSD = order.totalUSD - totalPaidUSD
   const balanceZWL = order.totalZWL - totalPaidZWL
   
@@ -1209,17 +1204,10 @@ const TransactionSummary = ({
       </div>
       
       <div className="vp-card-body">
-        {/* ======================================================================
-            SUMMARY GRID - FIXED: 4 columns showing correct categorizations
-            1. Order Total
-            2. Medical Aid AWARD (pending settlement)
-            3. Medical Aid PAYMENTS (paid now via medical aid)
-            4. Cash & Card Payments (non-medical aid)
-            5. Balance Due
-           ====================================================================== */}
+        {/* Summary Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           
-          {/* 1️⃣ ORDER TOTAL - Unchanged */}
+          {/* ORDER TOTAL */}
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <p className="text-xs text-gray-600 uppercase tracking-wider mb-1">
               Order Total
@@ -1232,7 +1220,7 @@ const TransactionSummary = ({
             </p>
           </div>
           
-          {/* 2️⃣ MEDICAL AID AWARD - Amount to be paid LATER by provider */}
+          {/* MEDICAL AID AWARD */}
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
             <p className="text-xs text-gray-600 uppercase tracking-wider mb-1">
               Medical Aid Award
@@ -1255,7 +1243,7 @@ const TransactionSummary = ({
             )}
           </div>
           
-          {/* 3️⃣ MEDICAL AID PAYMENTS - Paid NOW via PSMAS, Cimas, Ecocash, etc. */}
+          {/* MEDICAL AID PAYMENTS */}
           <div className="bg-red-50 p-4 rounded-lg border border-red-200">
             <p className="text-xs text-gray-600 uppercase tracking-wider mb-1">
               Medical Aid Payments
@@ -1278,7 +1266,7 @@ const TransactionSummary = ({
             )}
           </div>
           
-          {/* 4️⃣ CASH & CARD PAYMENTS - Non-medical aid (Cash, Card, Mobile Money, etc.) */}
+          {/* CASH & CARD PAYMENTS */}
           <div className="bg-green-50 p-4 rounded-lg border border-green-200">
             <p className="text-xs text-gray-600 uppercase tracking-wider mb-1">
               Cash & Card Payments
@@ -1294,7 +1282,7 @@ const TransactionSummary = ({
             </p>
           </div>
           
-          {/* 5️⃣ BALANCE DUE - Spans 2 columns on mobile, 1 on desktop */}
+          {/* BALANCE DUE */}
           <div className={`lg:col-span-1 md:col-span-2 col-span-1 p-4 rounded-lg border ${
             isPaidInFull ? 'bg-emerald-50 border-emerald-200' :
             isOverpaid ? 'bg-yellow-50 border-yellow-200' :
@@ -1322,7 +1310,7 @@ const TransactionSummary = ({
           </div>
         </div>
 
-        {/* Exchange Rate Lock Info - Unchanged */}
+        {/* Exchange Rate Lock Info */}
         {isRateLocked && lockedAt && (
           <div className="mb-6 p-4 bg-currency-locked/10 rounded-lg border border-currency-locked/30">
             <div className="flex items-center gap-2 mb-2">
@@ -1332,7 +1320,7 @@ const TransactionSummary = ({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <span className="text-gray-600 text-xs">Rate:</span>
-                <div className="font-medium">1 USD = {exchangeRate.toLocaleString()} ZWL</div>
+                <div className="font-medium">1 USD = {exchangeRate.toFixed(2)} ZWL</div>
               </div>
               <div>
                 <span className="text-gray-600 text-xs">Locked at:</span>
@@ -1350,7 +1338,7 @@ const TransactionSummary = ({
           </div>
         )}
 
-        {/* Action Buttons - Unchanged */}
+        {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row justify-between gap-4">
           <button
             type="button"
@@ -1393,7 +1381,7 @@ const TransactionSummary = ({
           </div>
         </div>
 
-        {/* Medical Aid Settlement Notice - Updated to reflect both awards AND payments */}
+        {/* Medical Aid Settlement Notice */}
         {(award || medicalAidPaymentsUSD > 0) && (
           <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200 text-sm">
             <div className="flex items-start gap-2">
@@ -1421,8 +1409,9 @@ const TransactionSummary = ({
     </div>
   )
 }
+
 // ============================================================================
-// MAIN PAYMENT SCREEN COMPONENT - FIXED
+// MAIN PAYMENT SCREEN COMPONENT
 // ============================================================================
 
 export default function PaymentScreen() {
@@ -1432,24 +1421,19 @@ export default function PaymentScreen() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [transactionCurrency, setTransactionCurrency] = useState<Currency>('ZWL')
-  const [exchangeRate, setExchangeRate] = useState(1250)
+  const [exchangeRate, setExchangeRate] = useState(32.5) // Updated from 1250 to 32.5
   const [isRateLocked, setIsRateLocked] = useState(false)
   const [lockedAt, setLockedAt] = useState<Date | null>(null)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [showMedicalAidForm, setShowMedicalAidForm] = useState(false)
 
-   // ===== CUSTOM HOOKS - GROUPED TOGETHER =====
-  
+  // ===== CUSTOM HOOKS =====
   const { award, createAward, recordShortfallPayment, markAsSettled, rejectAward, clearAward } = useMedicalAidPayment()
   const { payments, addPayment, removePayment, clearPayments, calculateTotals } = usePaymentProcessing()
-
-    // >>> ADD THE CACHE HOOK HERE <<<
   const medicalAidCache = useMedicalAidCache()
 
-
-
-  // ✅ FIX: Load order from sessionStorage with proper type casting
+  // Load order from sessionStorage with proper type casting
   useEffect(() => {
     try {
       const savedOrder = sessionStorage.getItem('current_order')
@@ -1473,7 +1457,7 @@ export default function PaymentScreen() {
           taxZWL: parsed.taxZWL || 46875,
           totalUSD: parsed.totalUSD || 287.5,
           totalZWL: parsed.totalZWL || 359375,
-          exchangeRate: parsed.exchangeRate || 1250,
+          exchangeRate: parsed.exchangeRate || 32.5,
           rateLockedAt: parsed.rateLockedAt ? new Date(parsed.rateLockedAt) : new Date(),
           rateSource: parsed.rateSource || 'reserve_bank',
           items: parsed.items || []
@@ -1485,24 +1469,24 @@ export default function PaymentScreen() {
         setLockedAt(orderData.rateLockedAt)
         setTransactionCurrency(parsed.transactionCurrency || 'ZWL')
       } else {
-        // Demo mode - create sample order
+        // Demo mode - create sample order with updated rates
         const demoOrder: Order = {
           id: 'ORD-2024-001',
           patientName: 'Joyce Mwale',
           patientId: 'PT-2027',
           patientPhone: '+263 77 123 4567',
           subtotalUSD: 250,
-          subtotalZWL: 312500,
+          subtotalZWL: 8125, // 250 * 32.5
           taxUSD: 37.5,
-          taxZWL: 46875,
+          taxZWL: 1218.75, // 37.5 * 32.5
           totalUSD: 287.5,
-          totalZWL: 359375,
-          exchangeRate: 1250,
+          totalZWL: 9343.75, // 287.5 * 32.5
+          exchangeRate: 32.5,
           rateLockedAt: new Date(),
           rateSource: 'reserve_bank',
           items: [
-            { name: 'Ray-Ban Aviator', quantity: 1, priceUSD: 120, priceZWL: 150000 },
-            { name: 'Progressive Lenses', quantity: 1, priceUSD: 130, priceZWL: 162500 }
+            { name: 'Ray-Ban Aviator', quantity: 1, priceUSD: 120, priceZWL: 3900 }, // 120 * 32.5
+            { name: 'Progressive Lenses', quantity: 1, priceUSD: 130, priceZWL: 4225 } // 130 * 32.5
           ]
         }
         setOrder(demoOrder)
@@ -1517,7 +1501,7 @@ export default function PaymentScreen() {
     }
   }, [])
 
-  // ✅ FIX: Calculate totals with proper balance
+  // Calculate totals with proper balance
   const totals = useMemo(() => {
     if (!order) return null
     
@@ -1552,94 +1536,86 @@ export default function PaymentScreen() {
     }
   }, [order, payments, award, exchangeRate, calculateTotals])
 
-  // Handlers
-
-// ============================================================================
-// ✅ FIXED: Handle Add Payment - NOW RECORDS MEDICAL AID PAYMENTS TO CLAIMS
-// ============================================================================
-// ============================================================================
-// ✅ FIXED: Handle Add Payment - MEDICAL AID PAYMENTS = AWARD
-// ============================================================================
-const handleAddPayment = useCallback(async (amount: number, reference?: string) => {
-  if (!order || !selectedPaymentMethod) return
-  
-  setIsProcessing(true)
-  const method = PAYMENT_METHODS.find(m => m.id === selectedPaymentMethod)
-  if (!method) return
-  
-  // Add to payment history (always do this)
-  const payment = addPayment(
-    method.id, method.name, method.type, method.currency,
-    amount, exchangeRate, reference, 'Fred Stanley', 'TERM-001'
-  )
-  
-  // Calculate USD equivalent
-  const amountUSD = method.currency === 'USD' 
-    ? amount 
-    : amount / exchangeRate
-  
-  const amountZWL = method.currency === 'ZWL' 
-    ? amount 
-    : amount * exchangeRate
-  
-  // ✅ CRITICAL FIX: Medical aid payment = AWARD (paid now)
-  if (method.type === 'medical_aid') {
-    try {
-      console.log('🏥 Recording medical aid AWARD:', {
-        provider: method.name,
-        amountUSD,
-        amountZWL
-      })
-      
-      // Find or create claim
-      let claim = null
-      const claimsByOrder = await medicalAidCache.cache.getClaimsByOrder(order.id)
-      if (claimsByOrder.length > 0) {
-        claim = claimsByOrder[0]
-      }
-      
-      if (!claim) {
-        // Create new claim
-        claim = await medicalAidCache.cache.createClaimFromOrder(
-          {
-            id: order.id,
-            totalUSD: order.totalUSD,
-            totalZWL: order.totalZWL,
-            rateLockedAt: order.rateLockedAt,
-            rateSource: order.rateSource,
-            createdBy: 'Fred Stanley'
-          },
-          {
-            patientId: order.patientId,
-            patientName: order.patientName,
-            medicalAidProvider: method.id,
-            memberNumber: order.memberNumber || `MEM-${Date.now().toString().slice(-6)}`,
-            memberName: order.memberName || order.patientName
-          },
-          exchangeRate
-        )
-      }
-      
-      // ✅ RECORD AS AWARD (not shortfall payment)
-      if (claim) {
-        await medicalAidCache.recordAward(
-          claim.id,
+  // Handle Add Payment
+  const handleAddPayment = useCallback(async (amount: number, reference?: string) => {
+    if (!order || !selectedPaymentMethod) return
+    
+    setIsProcessing(true)
+    const method = PAYMENT_METHODS.find(m => m.id === selectedPaymentMethod)
+    if (!method) return
+    
+    // Add to payment history
+    const payment = addPayment(
+      method.id, method.name, method.type, method.currency,
+      amount, exchangeRate, reference, 'Fred Stanley', 'TERM-001'
+    )
+    
+    // Calculate USD equivalent
+    const amountUSD = method.currency === 'USD' 
+      ? amount 
+      : amount / exchangeRate
+    
+    const amountZWL = method.currency === 'ZWL' 
+      ? amount 
+      : amount * exchangeRate
+    
+    // Medical aid payment = AWARD (paid now)
+    if (method.type === 'medical_aid') {
+      try {
+        console.log('🏥 Recording medical aid AWARD:', {
+          provider: method.name,
           amountUSD,
-          exchangeRate,
-          'Fred Stanley'
-        )
-        console.log('✅ Medical aid AWARD recorded:', amountUSD)
+          amountZWL
+        })
+        
+        // Find or create claim
+        let claim = null
+        const claimsByOrder = await medicalAidCache.cache.getClaimsByOrder(order.id)
+        if (claimsByOrder.length > 0) {
+          claim = claimsByOrder[0]
+        }
+        
+        if (!claim) {
+          // Create new claim
+          claim = await medicalAidCache.cache.createClaimFromOrder(
+            {
+              id: order.id,
+              totalUSD: order.totalUSD,
+              totalZWL: order.totalZWL,
+              rateLockedAt: order.rateLockedAt,
+              rateSource: order.rateSource,
+              createdBy: 'Fred Stanley'
+            },
+            {
+              patientId: order.patientId,
+              patientName: order.patientName,
+              medicalAidProvider: method.id,
+              memberNumber: order.memberNumber || `MEM-${Date.now().toString().slice(-6)}`,
+              memberName: order.memberName || order.patientName
+            },
+            exchangeRate
+          )
+        }
+        
+        // RECORD AS AWARD
+        if (claim) {
+          await medicalAidCache.recordAward(
+            claim.id,
+            amountUSD,
+            exchangeRate,
+            'Fred Stanley'
+          )
+          console.log('✅ Medical aid AWARD recorded:', amountUSD)
+        }
+        
+      } catch (error) {
+        console.error('❌ Failed to record medical aid award:', error)
       }
-      
-    } catch (error) {
-      console.error('❌ Failed to record medical aid award:', error)
     }
-  }
-  
-  setSelectedPaymentMethod('')
-  setIsProcessing(false)
-}, [order, selectedPaymentMethod, exchangeRate, addPayment, medicalAidCache])
-
+    
+    setSelectedPaymentMethod('')
+    setIsProcessing(false)
+  }, [order, selectedPaymentMethod, exchangeRate, addPayment, medicalAidCache])
 
   const handleMedicalAwardSubmit = useCallback((
     providerId: string, memberNumber: string, memberName: string | undefined, awardedUSD: number
@@ -1744,149 +1720,132 @@ const handleAddPayment = useCallback(async (amount: number, reference?: string) 
       <LoadingOverlay isLoading={isProcessing} message="Processing..." />
       
       <div className="min-h-screen bg-vp-background">
-        <header className="vp-header">
-          <div className="vp-header-content">
-            <div className="vp-logo">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-vp-primary font-bold text-xl">VP</span>
-              </div>
-              <span className="vp-logo-text">VisionPlus</span>
-              <span className="text-sm bg-vp-secondary px-2 py-1 rounded">Payment Processing</span>
-            </div>
-            <div className="vp-user-info">
-              <div className="text-right">
-                <div className="font-bold">Link Opticians</div>
-                <div className="text-sm">Reception: Fred Stanley</div>
-              </div>
-              <div className="w-8 h-8 bg-white rounded-full" />
-            </div>
-          </div>
-        </header>
+        {/* Mobile Header */}
+        <MobileHeader />
 
-        <div className="vp-main-layout">
-          <aside className="vp-sidebar">
-            <nav aria-label="Main Navigation">
-              <ul className="vp-sidebar-nav">
-                <li className="vp-sidebar-item"><a href="/" className="vp-sidebar-link"><span>🏠</span><span>Dashboard</span></a></li>
-                <li className="vp-sidebar-item"><a href="/order/create" className="vp-sidebar-link"><span>➕</span><span>New Order</span></a></li>
-                <li className="vp-sidebar-item active"><a href="#" className="vp-sidebar-link"><span>💰</span><span>Payments</span></a></li>
-                <li className="vp-sidebar-item"><a href="/medical-aid" className="vp-sidebar-link"><span>🏥</span><span>Medical Aid</span></a></li>
-                <li className="vp-sidebar-item"><a href="/receipt" className="vp-sidebar-link"><span>🧾</span><span>Receipts</span></a></li>
-                <li className="vp-sidebar-item"><a href="#" className="vp-sidebar-link"><span>📊</span><span>Reports</span></a></li>
-              </ul>
-            </nav>
-          </aside>
+        <div className="flex">
+          {/* Sidebar */}
+          <Sidebar />
 
-          <main className="vp-content" id="main-content">
-            <div className="vp-card mb-6">
-              <div className="vp-card-body">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-lg font-bold text-vp-primary">Order #{order.id}</h2>
-                      <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">{order.patientName}</span>
+          {/* Main Content */}
+          <main className="flex-1 min-w-0" id="main-content">
+            <div className="p-4 lg:p-6">
+              <div className="vp-card mb-6">
+                <div className="vp-card-body">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-lg font-bold text-vp-primary">Order #{order.id}</h2>
+                        <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">{order.patientName}</span>
+                      </div>
+                      <div className="mt-1 text-sm text-gray-600">
+                        <span>Patient ID: {order.patientId}</span>
+                        {order.patientPhone && <span className="ml-3">📞 {order.patientPhone}</span>}
+                      </div>
                     </div>
-                    <div className="mt-1 text-sm text-gray-600">
-                      <span>Patient ID: {order.patientId}</span>
-                      {order.patientPhone && <span className="ml-3">📞 {order.patientPhone}</span>}
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-vp-primary">{formatCurrency(order.totalUSD, 'USD')}</div>
+                      <div className="text-sm text-gray-500">{formatCurrency(order.totalZWL, 'ZWL')}</div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-vp-primary">{formatCurrency(order.totalUSD, 'USD')}</div>
-                    <div className="text-sm text-gray-500">{formatCurrency(order.totalZWL, 'ZWL')}</div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-vp-primary flex items-center gap-2"><span>🏥</span>Medical Aid</h2>
-                {!award && !showMedicalAidForm && (
-                  <button type="button" onClick={() => setShowMedicalAidForm(true)} className="vp-btn vp-btn-outline flex items-center gap-2">
-                    <span>➕</span> Add Medical Aid Award
-                  </button>
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-bold text-vp-primary flex items-center gap-2">
+                    <span>🏥</span>Medical Aid
+                  </h2>
+                  {!award && !showMedicalAidForm && (
+                    <button 
+                      type="button" 
+                      onClick={() => setShowMedicalAidForm(true)} 
+                      className="vp-btn vp-btn-outline flex items-center gap-2"
+                    >
+                      <span>➕</span> Add Medical Aid Award
+                    </button>
+                  )}
+                </div>
+                
+                {showMedicalAidForm && (
+                  <div className="vp-card mb-4">
+                    <div className="vp-card-header">New Medical Aid Award</div>
+                    <div className="vp-card-body">
+                      <MedicalAidAwardForm
+                        orderTotalUSD={order.totalUSD}
+                        exchangeRate={exchangeRate}
+                        onSubmit={handleMedicalAwardSubmit}
+                        onCancel={() => setShowMedicalAidForm(false)}
+                        isProcessing={isProcessing}
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                {award && (
+                  <MedicalAidAwardCard
+                    award={award}
+                    orderTotalUSD={order.totalUSD}
+                    orderTotalZWL={order.totalZWL}
+                    exchangeRate={exchangeRate}
+                    onRecordShortfall={handleRecordShortfall}
+                    onMarkSettled={handleMarkSettled}
+                    onReject={handleRejectAward}
+                    disabled={isProcessing}
+                  />
                 )}
               </div>
-              
-              {showMedicalAidForm && (
-                <div className="vp-card mb-4">
-                  <div className="vp-card-header">New Medical Aid Award</div>
-                  <div className="vp-card-body">
-                    <MedicalAidAwardForm
-                      orderTotalUSD={order.totalUSD}
-                      exchangeRate={exchangeRate}
-                      onSubmit={handleMedicalAwardSubmit}
-                      onCancel={() => setShowMedicalAidForm(false)}
-                      isProcessing={isProcessing}
-                    />
-                  </div>
-                </div>
-              )}
-              
-              {award && (
-                <MedicalAidAwardCard
-                  award={award}
-                  orderTotalUSD={order.totalUSD}
-                  orderTotalZWL={order.totalZWL}
-                  exchangeRate={exchangeRate}
-                  onRecordShortfall={handleRecordShortfall}
-                  onMarkSettled={handleMarkSettled}
-                  onReject={handleRejectAward}
-                  disabled={isProcessing}
-                />
-              )}
-            </div>
 
-            <div className="mb-6">
-              <PaymentMethodGrid
-                selectedMethod={selectedPaymentMethod}
-                onMethodSelect={setSelectedPaymentMethod}
-                transactionCurrency={transactionCurrency}
-                onCurrencyChange={setTransactionCurrency}
-                disabled={isProcessing}
-              />
-            </div>
-
-            {/* ✅ FIXED: Payment Form with order prop and proper maxAmounts */}
-            {selectedPaymentMethod && totals && (
               <div className="mb-6">
-                <PaymentForm
-                  selectedMethodId={selectedPaymentMethod}
+                <PaymentMethodGrid
+                  selectedMethod={selectedPaymentMethod}
                   onMethodSelect={setSelectedPaymentMethod}
                   transactionCurrency={transactionCurrency}
-                  exchangeRate={exchangeRate}
-                  order={order}
-                  maxAmountUSD={totals.balanceUSD}
-                  maxAmountZWL={totals.balanceZWL}
-                  onPaymentSubmit={handleAddPayment}
-                  isProcessing={isProcessing}
+                  onCurrencyChange={setTransactionCurrency}
+                  disabled={isProcessing}
                 />
               </div>
-            )}
 
-            <PaymentHistory
-              payments={payments}
-              exchangeRate={exchangeRate}
-              onRemovePayment={removePayment}
-              disabled={isProcessing}
-            />
+              {/* Payment Form with order prop and proper maxAmounts */}
+              {selectedPaymentMethod && totals && (
+                <div className="mb-6">
+                  <PaymentForm
+                    selectedMethodId={selectedPaymentMethod}
+                    onMethodSelect={setSelectedPaymentMethod}
+                    transactionCurrency={transactionCurrency}
+                    exchangeRate={exchangeRate}
+                    order={order}
+                    maxAmountUSD={totals.balanceUSD}
+                    maxAmountZWL={totals.balanceZWL}
+                    onPaymentSubmit={handleAddPayment}
+                    isProcessing={isProcessing}
+                  />
+                </div>
+              )}
 
-            {totals && (
-              <TransactionSummary
-                order={order}
+              <PaymentHistory
                 payments={payments}
-                award={award}
                 exchangeRate={exchangeRate}
-                transactionCurrency={transactionCurrency}
-                isRateLocked={isRateLocked}
-                lockedAt={lockedAt}
-                onComplete={handleCompleteTransaction}
-                onCancel={handleCancel}
-                onSaveDraft={handleSaveDraft}
-                isProcessing={isProcessing}
+                onRemovePayment={removePayment}
+                disabled={isProcessing}
               />
-            )}
+
+              {totals && (
+                <TransactionSummary
+                  order={order}
+                  payments={payments}
+                  award={award}
+                  exchangeRate={exchangeRate}
+                  transactionCurrency={transactionCurrency}
+                  isRateLocked={isRateLocked}
+                  lockedAt={lockedAt}
+                  onComplete={handleCompleteTransaction}
+                  onCancel={handleCancel}
+                  onSaveDraft={handleSaveDraft}
+                  isProcessing={isProcessing}
+                />
+              )}
+            </div>
           </main>
         </div>
       </div>

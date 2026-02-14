@@ -378,14 +378,14 @@ export class ExchangeRateCache {
     // Simulate API call with realistic Zimbabwe market rates
     await new Promise(resolve => setTimeout(resolve, 300))
 
-    // Base RBZ rate (simulated)
-    const baseRate = 1250
+    // Base RBZ rate (simulated) - Updated to 32.5 ZWL per USD
+    const baseRate = 32.5
     const now = Date.now()
 
     switch (source) {
       case 'reserve_bank':
         return {
-          rate: baseRate + (Math.random() * 20 - 10), // ±10 variation
+          rate: baseRate + (Math.random() * 0.5 - 0.25), // ±0.25 variation
           currency,
           source: 'reserve_bank',
           timestamp: now,
@@ -402,7 +402,7 @@ export class ExchangeRateCache {
 
       case 'interbank':
         return {
-          rate: baseRate * 0.98 + (Math.random() * 10 - 5),
+          rate: baseRate * 0.98 + (Math.random() * 0.25 - 0.125), // ±0.125 variation
           currency,
           source: 'interbank',
           timestamp: now,
@@ -418,7 +418,7 @@ export class ExchangeRateCache {
 
       case 'parallel':
         return {
-          rate: baseRate * 1.05 + (Math.random() * 30 - 15),
+          rate: baseRate * 1.05 + (Math.random() * 0.5 - 0.25), // ±0.25 variation
           currency,
           source: 'parallel',
           timestamp: now,

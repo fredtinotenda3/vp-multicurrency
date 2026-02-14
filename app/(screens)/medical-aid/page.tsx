@@ -4,6 +4,8 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { ErrorBoundary } from '@/components/system/ErrorBoundary'
 import { LoadingOverlay } from '@/components/system/LoadingStates'
+import Sidebar from '@/components/layout/Sidebar'
+import MobileHeader from '@/components/layout/MobileHeader'
 import { CurrencyAmountValidator } from '@/components/validation/FormValidator'
 import { useMedicalAidCache, MedicalAidCache } from '@/lib/offline/MedicalAidCache'
 
@@ -738,21 +740,13 @@ const ClaimCard = ({ claim, isSelected, onSelect }: ClaimCardProps) => {
 // CUSTOM HOOKS - Business logic separation
 // ============================================================================
 
-// ============================================================================
-// CUSTOM HOOKS - Business logic separation - NOW WITH REAL PERSISTENCE
-// ============================================================================
-
-// ============================================================================
-// CUSTOM HOOKS - Business logic separation - NOW WITH REAL PERSISTENCE
-// ============================================================================
-
 function useMedicalAidClaims() {
   const { 
     claims: cachedClaims, 
     isLoading, 
     recordAward, 
     recordShortfallPayment, 
-    markClaimCleared: cacheMarkClaimCleared,  // ✅ RENAMED IMPORT
+    markClaimCleared: cacheMarkClaimCleared,
     refresh 
   } = useMedicalAidCache()
   
@@ -981,7 +975,6 @@ function useMedicalAidClaims() {
     return { success: false, error: 'Failed to record shortfall payment' }
   }, [claims, recordShortfallPayment])
 
-  // ✅ FIXED: Renamed local function to avoid conflict with imported one
   const clearClaim = useCallback(async (
     claimId: string,
     userId: string,
@@ -996,7 +989,7 @@ function useMedicalAidClaims() {
       return { success: false, error: 'Claim already cleared' }
     }
 
-    const result = await cacheMarkClaimCleared(claimId, userName)  // ✅ Using renamed import
+    const result = await cacheMarkClaimCleared(claimId, userName)
     
     if (result) {
       return { success: true }
@@ -1011,7 +1004,7 @@ function useMedicalAidClaims() {
     error,
     updateClaimAward,
     markShortfallPaid,
-    markClaimCleared: clearClaim,  // ✅ Return with original name for compatibility
+    markClaimCleared: clearClaim,
     validateAwardAmount,
     refresh
   }
@@ -1225,515 +1218,456 @@ export default function MedicalAidScreen() {
       <LoadingOverlay isLoading={isLoading || isProcessing} message="Processing..." />
       
       <div className="min-h-screen bg-vp-background">
-        {/* Header */}
-        <header className="vp-header">
-          <div className="vp-header-content">
-            <div className="vp-logo">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-vp-primary font-bold text-xl">VP</span>
-              </div>
-              <span className="vp-logo-text">VisionPlus</span>
-              <span className="text-sm bg-vp-secondary px-2 py-1 rounded">
-                Medical Aid Management
-              </span>
-            </div>
-            
-            <div className="vp-user-info">
-              <div className="text-right">
-                <div className="font-bold">Link Opticians</div>
-                <div className="text-sm">Reception: Fred Stanley</div>
-              </div>
-              <div className="w-8 h-8 bg-white rounded-full" />
-            </div>
-          </div>
-        </header>
+        {/* Mobile Header */}
+        <MobileHeader />
 
-        <div className="vp-main-layout">
+        <div className="flex">
           {/* Sidebar */}
-          <aside className="vp-sidebar">
-            <nav aria-label="Main Navigation">
-              <ul className="vp-sidebar-nav">
-                <li className="vp-sidebar-item">
-                  <a href="/" className="vp-sidebar-link">
-                    <span aria-hidden="true">🏠</span>
-                    <span>Dashboard</span>
-                  </a>
-                </li>
-                <li className="vp-sidebar-item">
-                  <a href="/order/create" className="vp-sidebar-link">
-                    <span aria-hidden="true">➕</span>
-                    <span>New Order</span>
-                  </a>
-                </li>
-                <li className="vp-sidebar-item">
-                  <a href="/payment" className="vp-sidebar-link">
-                    <span aria-hidden="true">💰</span>
-                    <span>Payments</span>
-                  </a>
-                </li>
-                <li className="vp-sidebar-item active">
-                  <a href="#" className="vp-sidebar-link">
-                    <span aria-hidden="true">🏥</span>
-                    <span>Medical Aid</span>
-                  </a>
-                </li>
-                <li className="vp-sidebar-item">
-                  <a href="#" className="vp-sidebar-link">
-                    <span aria-hidden="true">👓</span>
-                    <span>Dispensing</span>
-                  </a>
-                </li>
-                <li className="vp-sidebar-item">
-                  <a href="#" className="vp-sidebar-link">
-                    <span aria-hidden="true">📊</span>
-                    <span>Reports</span>
-                  </a>
-                </li>
-              </ul>
-            </nav>
-          </aside>
+          <Sidebar />
 
           {/* Main Content */}
-          <main className="vp-content" id="main-content">
-            {/* Page Header */}
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-vp-primary">
-                Medical Aid Claims Management
-              </h1>
-              <p className="text-gray-600">
-                Track awards, shortfalls, and payments from medical aid providers
-              </p>
-            </div>
-
-            {/* Filters */}
-            <section className="vp-card mb-6" aria-label="Claim Filters">
-              <div className="vp-card-body">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <label htmlFor="status-filter" className="vp-form-label">
-                      Status
-                    </label>
-                    <select
-                      id="status-filter"
-                      value={filters.status}
-                      onChange={(e) => setFilters(prev => ({ 
-                        ...prev, 
-                        status: e.target.value as MedicalAidStatus | 'all'
-                      }))}
-                      className="vp-form-control"
-                      aria-label="Filter by claim status"
-                    >
-                      <option value="all">All Statuses</option>
-                      <option value="pending">Pending</option>
-                      <option value="submitted">Submitted</option>
-                      <option value="under_review">Under Review</option>
-                      <option value="awarded">Awarded</option>
-                      <option value="partially_paid">Partially Paid</option>
-                      <option value="cleared">Cleared</option>
-                      <option value="rejected">Rejected</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="provider-filter" className="vp-form-label">
-                      Provider
-                    </label>
-                    <select
-                      id="provider-filter"
-                      value={filters.provider}
-                      onChange={(e) => setFilters(prev => ({ ...prev, provider: e.target.value }))}
-                      className="vp-form-control"
-                      aria-label="Filter by medical aid provider"
-                    >
-                      <option value="all">All Providers</option>
-                      {MEDICAL_AID_PROVIDERS.map(provider => (
-                        <option key={provider.id} value={provider.id}>
-                          {provider.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="date-from" className="vp-form-label">
-                      From Date
-                    </label>
-                    <input
-                      id="date-from"
-                      type="date"
-                      value={filters.dateFrom}
-                      onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
-                      className="vp-form-control"
-                      aria-label="Filter claims from date"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="date-to" className="vp-form-label">
-                      To Date
-                    </label>
-                    <input
-                      id="date-to"
-                      type="date"
-                      value={filters.dateTo}
-                      onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
-                      className="vp-form-control"
-                      aria-label="Filter claims to date"
-                    />
-                  </div>
-                </div>
+          <main className="flex-1 min-w-0" id="main-content">
+            <div className="p-4 lg:p-6">
+              {/* Page Header */}
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-vp-primary">
+                  Medical Aid Claims Management
+                </h1>
+                <p className="text-gray-600">
+                  Track awards, shortfalls, and payments from medical aid providers
+                </p>
               </div>
-            </section>
 
-            {/* Claims Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Claims List */}
-              <section className="lg:col-span-1" aria-label="Claims List">
-                <div className="vp-card h-[calc(100vh-300px)] flex flex-col">
-                  <div className="vp-card-header flex justify-between items-center">
-                    <span>Active Claims</span>
-                    <span className="text-sm bg-white/20 px-2 py-1 rounded">
-                      {filteredClaims.length}
-                    </span>
-                  </div>
-                  
-                  <div className="flex-1 overflow-y-auto">
-                    {filteredClaims.length > 0 ? (
-                      <div className="divide-y divide-gray-200">
-                        {filteredClaims.map(claim => (
-                          <ClaimCard
-                            key={claim.id}
-                            claim={claim}
-                            isSelected={selectedClaim?.id === claim.id}
-                            onSelect={setSelectedClaim}
-                          />
+              {/* Filters */}
+              <section className="vp-card mb-6" aria-label="Claim Filters">
+                <div className="vp-card-body">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <label htmlFor="status-filter" className="vp-form-label">
+                        Status
+                      </label>
+                      <select
+                        id="status-filter"
+                        value={filters.status}
+                        onChange={(e) => setFilters(prev => ({ 
+                          ...prev, 
+                          status: e.target.value as MedicalAidStatus | 'all'
+                        }))}
+                        className="vp-form-control"
+                        aria-label="Filter by claim status"
+                      >
+                        <option value="all">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="submitted">Submitted</option>
+                        <option value="under_review">Under Review</option>
+                        <option value="awarded">Awarded</option>
+                        <option value="partially_paid">Partially Paid</option>
+                        <option value="cleared">Cleared</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="provider-filter" className="vp-form-label">
+                        Provider
+                      </label>
+                      <select
+                        id="provider-filter"
+                        value={filters.provider}
+                        onChange={(e) => setFilters(prev => ({ ...prev, provider: e.target.value }))}
+                        className="vp-form-control"
+                        aria-label="Filter by medical aid provider"
+                      >
+                        <option value="all">All Providers</option>
+                        {MEDICAL_AID_PROVIDERS.map(provider => (
+                          <option key={provider.id} value={provider.id}>
+                            {provider.name}
+                          </option>
                         ))}
-                      </div>
-                    ) : (
-                      <div className="h-full flex flex-col items-center justify-center p-8 text-center text-gray-500">
-                        <div className="text-5xl mb-4" aria-hidden="true">
-                          🏥
-                        </div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-1">
-                          No claims found
-                        </h3>
-                        <p className="text-sm">
-                          Try adjusting your filters or create a new claim
-                        </p>
-                      </div>
-                    )}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="date-from" className="vp-form-label">
+                        From Date
+                      </label>
+                      <input
+                        id="date-from"
+                        type="date"
+                        value={filters.dateFrom}
+                        onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+                        className="vp-form-control"
+                        aria-label="Filter claims from date"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="date-to" className="vp-form-label">
+                        To Date
+                      </label>
+                      <input
+                        id="date-to"
+                        type="date"
+                        value={filters.dateTo}
+                        onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
+                        className="vp-form-control"
+                        aria-label="Filter claims to date"
+                      />
+                    </div>
                   </div>
                 </div>
               </section>
 
-              {/* Claim Details */}
-              {selectedClaim ? (
-                <section className="lg:col-span-2 space-y-6" aria-label="Claim Details">
-                  {/* Claim Summary Card */}
-                  <div className="vp-card">
-                    <div className="vp-card-header flex flex-wrap items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <span>Claim: {selectedClaim.claimNumber}</span>
-                        <StatusBadge status={selectedClaim.status} />
-                      </div>
-                      <div className="text-sm text-gray-200">
-                        Last updated: {formatDate(selectedClaim.lastModifiedAt)}
-                      </div>
+              {/* Claims Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Claims List */}
+                <section className="lg:col-span-1" aria-label="Claims List">
+                  <div className="vp-card h-[calc(100vh-300px)] flex flex-col">
+                    <div className="vp-card-header flex justify-between items-center">
+                      <span>Active Claims</span>
+                      <span className="text-sm bg-white/20 px-2 py-1 rounded">
+                        {filteredClaims.length}
+                      </span>
                     </div>
                     
-                    {/* STATUS PROGRESS INDICATOR - PENDING → PARTIALLY PAID → CLEARED */}
-                    <div className="vp-card-body border-b border-gray-200 bg-gray-50/50">
-                      <StatusProgress 
-                        currentStatus={selectedClaim.status}
-                        showLabels={true}
-                        showDates={true}
-                        dates={{
-                          submitted: selectedClaim.createdAt,
-                          awarded: selectedClaim.award.awardedAt,
-                          shortfallPaid: selectedClaim.shortfall.paidAt,
-                          cleared: selectedClaim.status === 'cleared' ? selectedClaim.lastModifiedAt : undefined
-                        }}
-                      />
-                    </div>
-                    
-                    <div className="vp-card-body">
-                      {/* Amount Summary Cards */}
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                          <p className="text-xs text-gray-600 uppercase tracking-wider mb-1">
-                            Order Total
-                          </p>
-                          <p className="text-xl font-bold text-vp-primary">
-                            {formatCurrency(selectedClaim.orderTotal.USD, 'USD')}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {formatCurrency(selectedClaim.orderTotal.ZWL, 'ZWL')}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            Rate: 1 USD = {selectedClaim.orderTotal.exchangeRate} ZWL
-                          </p>
-                        </div>
-                        
-                        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                          <p className="text-xs text-gray-600 uppercase tracking-wider mb-1">
-                            Awarded
-                          </p>
-                          <p className="text-xl font-bold text-currency-usd">
-                            {formatCurrency(selectedClaim.award.USD, 'USD')}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {formatCurrency(selectedClaim.award.ZWL, 'ZWL')}
-                          </p>
-                          {selectedClaim.award.awardedAt && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              {formatDate(selectedClaim.award.awardedAt, false)}
-                            </p>
-                          )}
-                        </div>
-                        
-                        <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                          <p className="text-xs text-gray-600 uppercase tracking-wider mb-1">
-                            Shortfall
-                          </p>
-                          <p className="text-xl font-bold text-orange-600">
-                            {formatCurrency(selectedClaim.shortfall.USD, 'USD')}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {formatCurrency(selectedClaim.shortfall.ZWL, 'ZWL')}
-                          </p>
-                          {selectedClaim.shortfall.paidAt ? (
-                            <p className="text-xs text-green-600 mt-1">
-                              Paid {formatDate(selectedClaim.shortfall.paidAt, false)}
-                            </p>
-                          ) : (
-                            <p className="text-xs text-orange-600 mt-1">
-                              Awaiting payment
-                            </p>
-                          )}
-                        </div>
-                        
-                        <div className={`p-4 rounded-lg border ${
-                          selectedClaim.status === 'cleared'
-                            ? 'bg-emerald-50 border-emerald-200'
-                            : 'bg-gray-50 border-gray-200'
-                        }`}>
-                          <p className="text-xs text-gray-600 uppercase tracking-wider mb-1">
-                            Status
-                          </p>
-                          <p className="text-xl font-bold">
-                            {selectedClaim.status === 'cleared' ? 'Cleared' : 
-                             selectedClaim.status === 'partially_paid' ? 'Partial' : 
-                             selectedClaim.status === 'awarded' ? 'Awarded' : 
-                             selectedClaim.status === 'submitted' ? 'Submitted' : 'Pending'}
-                          </p>
-                          {selectedClaim.status === 'cleared' && (
-                            <p className="text-xs text-emerald-600 mt-1">
-                              Fully paid
-                            </p>
-                          )}
-                          {selectedClaim.status === 'partially_paid' && (
-                            <p className="text-xs text-orange-600 mt-1">
-                              Shortfall paid
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Patient & Provider Info */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div>
-                          <label className="vp-form-label text-xs">
-                            Patient Information
-                          </label>
-                          <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                            <p className="font-medium">{selectedClaim.patientName}</p>
-                            <p className="text-sm text-gray-600">
-                              ID: {selectedClaim.patientId}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <label className="vp-form-label text-xs">
-                            Medical Aid Information
-                          </label>
-                          <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                            <p className="font-medium">{selectedClaim.providerName}</p>
-                            <p className="text-sm text-gray-600">
-                              Member: {selectedClaim.memberNumber}
-                            </p>
-                            <p className="text-xs text-gray-500 font-mono mt-1">
-                              Claim Ref: {selectedClaim.claimNumber}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Award Adjustment - Only if not paid/cleared */}
-                      {selectedClaim.status !== 'cleared' && selectedClaim.status !== 'partially_paid' && (
-                        <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                          <div className="flex items-center justify-between mb-3">
-                            <label htmlFor="award-amount" className="vp-form-label">
-                              Adjust Award Amount (USD)
-                            </label>
-                            <span className="text-xs text-gray-500">
-                              Rate: 1 USD = {selectedClaim.orderTotal.exchangeRate} ZWL
-                            </span>
-                          </div>
-                          
-                          <div className="flex flex-col sm:flex-row gap-3">
-                            <div className="flex-1">
-                              <div className="relative">
-                                <input
-                                  id="award-amount"
-                                  type="number"
-                                  value={awardInput}
-                                  onChange={(e) => handleAwardChange(e.target.value)}
-                                  className={`vp-form-control pl-10 ${
-                                    awardError ? 'border-status-error focus:border-status-error' : ''
-                                  }`}
-                                  placeholder="0.00"
-                                  min="0"
-                                  max={selectedClaim.orderTotal.USD}
-                                  step="0.01"
-                                  disabled={isProcessing}
-                                  aria-invalid={!!awardError}
-                                  aria-describedby={awardError ? 'award-error' : undefined}
-                                />
-                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-currency-usd">
-                                  $
-                                </div>
-                              </div>
-                              
-                              {awardError && (
-                                <p id="award-error" className="mt-1 text-sm text-status-error">
-                                  {awardError}
-                                </p>
-                              )}
-                            </div>
-                            
-                            <div className="flex gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setAwardInput(selectedClaim.orderTotal.USD.toString())}
-                                className="vp-btn vp-btn-outline whitespace-nowrap"
-                                disabled={isProcessing}
-                              >
-                                Full Award
-                              </button>
-                              <button
-                                type="button"
-                                onClick={handleUpdateAward}
-                                className="vp-btn vp-btn-primary whitespace-nowrap"
-                                disabled={!awardInput || !!awardError || isProcessing}
-                              >
-                                Update Award
-                              </button>
-                            </div>
-                          </div>
-                          
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {[50, 75, 100, 150, 200].map(amount => (
-                              <button
-                                key={amount}
-                                type="button"
-                                onClick={() => handleAwardChange(amount.toString())}
-                                className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50"
-                                disabled={isProcessing}
-                              >
-                                ${amount}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Action Buttons - Based on Status */}
-                      <div className="flex flex-wrap gap-3">
-                        {selectedClaim.status === 'awarded' && !selectedClaim.shortfall.paidAt && (
-                          <button
-                            type="button"
-                            onClick={() => setShowShortfallPaymentModal(true)}
-                            className="vp-btn vp-btn-warning flex items-center gap-2"
-                            disabled={isProcessing}
-                          >
-                            <span aria-hidden="true">💰</span>
-                            Record Shortfall Payment
-                          </button>
-                        )}
-                        
-                        {selectedClaim.status === 'partially_paid' && (
-                          <button
-                            type="button"
-                            onClick={() => setShowClearedModal(true)}
-                            className="vp-btn vp-btn-success flex items-center gap-2"
-                            disabled={isProcessing}
-                          >
-                            <span aria-hidden="true">✅</span>
-                            Mark as Fully Paid
-                          </button>
-                        )}
-                        
-                        <button
-                          type="button"
-                          className="vp-btn vp-btn-outline flex items-center gap-2"
-                        >
-                          <span aria-hidden="true">📄</span>
-                          Generate Claim Form
-                        </button>
-                        
-                        <button
-                          type="button"
-                          className="vp-btn vp-btn-outline flex items-center gap-2"
-                        >
-                          <span aria-hidden="true">📧</span>
-                          Send Reminder
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Timeline */}
-                  <div className="vp-card">
-                    <div className="vp-card-header">
-                      Claim Timeline
-                    </div>
-                    
-                    <div className="vp-card-body">
-                      {claimTimeline.length > 0 ? (
-                        <ul className="flow-root">
-                          {claimTimeline.map((event, index) => (
-                            <TimelineEventItem
-                              key={event.id}
-                              event={event}
-                              isLast={index === claimTimeline.length - 1}
+                    <div className="flex-1 overflow-y-auto">
+                      {filteredClaims.length > 0 ? (
+                        <div className="divide-y divide-gray-200">
+                          {filteredClaims.map(claim => (
+                            <ClaimCard
+                              key={claim.id}
+                              claim={claim}
+                              isSelected={selectedClaim?.id === claim.id}
+                              onSelect={setSelectedClaim}
                             />
                           ))}
-                        </ul>
+                        </div>
                       ) : (
-                        <div className="text-center py-8 text-gray-500">
-                          <p className="text-sm">No timeline events recorded</p>
+                        <div className="h-full flex flex-col items-center justify-center p-8 text-center text-gray-500">
+                          <div className="text-5xl mb-4" aria-hidden="true">
+                            🏥
+                          </div>
+                          <h3 className="text-lg font-medium text-gray-900 mb-1">
+                            No claims found
+                          </h3>
+                          <p className="text-sm">
+                            Try adjusting your filters or create a new claim
+                          </p>
                         </div>
                       )}
                     </div>
                   </div>
                 </section>
-              ) : (
-                <section className="lg:col-span-2 flex items-center justify-center">
-                  <div className="text-center text-gray-500">
-                    <div className="text-6xl mb-4" aria-hidden="true">
-                      🏥
+
+                {/* Claim Details */}
+                {selectedClaim ? (
+                  <section className="lg:col-span-2 space-y-6" aria-label="Claim Details">
+                    {/* Claim Summary Card */}
+                    <div className="vp-card">
+                      <div className="vp-card-header flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <span>Claim: {selectedClaim.claimNumber}</span>
+                          <StatusBadge status={selectedClaim.status} />
+                        </div>
+                        <div className="text-sm text-gray-200">
+                          Last updated: {formatDate(selectedClaim.lastModifiedAt)}
+                        </div>
+                      </div>
+                      
+                      {/* STATUS PROGRESS INDICATOR - PENDING → PARTIALLY PAID → CLEARED */}
+                      <div className="vp-card-body border-b border-gray-200 bg-gray-50/50">
+                        <StatusProgress 
+                          currentStatus={selectedClaim.status}
+                          showLabels={true}
+                          showDates={true}
+                          dates={{
+                            submitted: selectedClaim.createdAt,
+                            awarded: selectedClaim.award.awardedAt,
+                            shortfallPaid: selectedClaim.shortfall.paidAt,
+                            cleared: selectedClaim.status === 'cleared' ? selectedClaim.lastModifiedAt : undefined
+                          }}
+                        />
+                      </div>
+                      
+                      <div className="vp-card-body">
+                        {/* Amount Summary Cards */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <p className="text-xs text-gray-600 uppercase tracking-wider mb-1">
+                              Order Total
+                            </p>
+                            <p className="text-xl font-bold text-vp-primary">
+                              {formatCurrency(selectedClaim.orderTotal.USD, 'USD')}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {formatCurrency(selectedClaim.orderTotal.ZWL, 'ZWL')}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Rate: 1 USD = {selectedClaim.orderTotal.exchangeRate} ZWL
+                            </p>
+                          </div>
+                          
+                          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                            <p className="text-xs text-gray-600 uppercase tracking-wider mb-1">
+                              Awarded
+                            </p>
+                            <p className="text-xl font-bold text-currency-usd">
+                              {formatCurrency(selectedClaim.award.USD, 'USD')}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {formatCurrency(selectedClaim.award.ZWL, 'ZWL')}
+                            </p>
+                            {selectedClaim.award.awardedAt && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                {formatDate(selectedClaim.award.awardedAt, false)}
+                              </p>
+                            )}
+                          </div>
+                          
+                          <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                            <p className="text-xs text-gray-600 uppercase tracking-wider mb-1">
+                              Shortfall
+                            </p>
+                            <p className="text-xl font-bold text-orange-600">
+                              {formatCurrency(selectedClaim.shortfall.USD, 'USD')}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {formatCurrency(selectedClaim.shortfall.ZWL, 'ZWL')}
+                            </p>
+                            {selectedClaim.shortfall.paidAt ? (
+                              <p className="text-xs text-green-600 mt-1">
+                                Paid {formatDate(selectedClaim.shortfall.paidAt, false)}
+                              </p>
+                            ) : (
+                              <p className="text-xs text-orange-600 mt-1">
+                                Awaiting payment
+                              </p>
+                            )}
+                          </div>
+                          
+                          <div className={`p-4 rounded-lg border ${
+                            selectedClaim.status === 'cleared'
+                              ? 'bg-emerald-50 border-emerald-200'
+                              : 'bg-gray-50 border-gray-200'
+                          }`}>
+                            <p className="text-xs text-gray-600 uppercase tracking-wider mb-1">
+                              Status
+                            </p>
+                            <p className="text-xl font-bold">
+                              {selectedClaim.status === 'cleared' ? 'Cleared' : 
+                               selectedClaim.status === 'partially_paid' ? 'Partial' : 
+                               selectedClaim.status === 'awarded' ? 'Awarded' : 
+                               selectedClaim.status === 'submitted' ? 'Submitted' : 'Pending'}
+                            </p>
+                            {selectedClaim.status === 'cleared' && (
+                              <p className="text-xs text-emerald-600 mt-1">
+                                Fully paid
+                              </p>
+                            )}
+                            {selectedClaim.status === 'partially_paid' && (
+                              <p className="text-xs text-orange-600 mt-1">
+                                Shortfall paid
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Patient & Provider Info */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                          <div>
+                            <label className="vp-form-label text-xs">
+                              Patient Information
+                            </label>
+                            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                              <p className="font-medium">{selectedClaim.patientName}</p>
+                              <p className="text-sm text-gray-600">
+                                ID: {selectedClaim.patientId}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <label className="vp-form-label text-xs">
+                              Medical Aid Information
+                            </label>
+                            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                              <p className="font-medium">{selectedClaim.providerName}</p>
+                              <p className="text-sm text-gray-600">
+                                Member: {selectedClaim.memberNumber}
+                              </p>
+                              <p className="text-xs text-gray-500 font-mono mt-1">
+                                Claim Ref: {selectedClaim.claimNumber}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Award Adjustment - Only if not paid/cleared */}
+                        {selectedClaim.status !== 'cleared' && selectedClaim.status !== 'partially_paid' && (
+                          <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                            <div className="flex items-center justify-between mb-3">
+                              <label htmlFor="award-amount" className="vp-form-label">
+                                Adjust Award Amount (USD)
+                              </label>
+                              <span className="text-xs text-gray-500">
+                                Rate: 1 USD = {selectedClaim.orderTotal.exchangeRate} ZWL
+                              </span>
+                            </div>
+                            
+                            <div className="flex flex-col sm:flex-row gap-3">
+                              <div className="flex-1">
+                                <div className="relative">
+                                  <input
+                                    id="award-amount"
+                                    type="number"
+                                    value={awardInput}
+                                    onChange={(e) => handleAwardChange(e.target.value)}
+                                    className={`vp-form-control pl-10 ${
+                                      awardError ? 'border-status-error focus:border-status-error' : ''
+                                    }`}
+                                    placeholder="0.00"
+                                    min="0"
+                                    max={selectedClaim.orderTotal.USD}
+                                    step="0.01"
+                                    disabled={isProcessing}
+                                    aria-invalid={!!awardError}
+                                    aria-describedby={awardError ? 'award-error' : undefined}
+                                  />
+                                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-currency-usd">
+                                    $
+                                  </div>
+                                </div>
+                                
+                                {awardError && (
+                                  <p id="award-error" className="mt-1 text-sm text-status-error">
+                                    {awardError}
+                                  </p>
+                                )}
+                              </div>
+                              
+                              <div className="flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setAwardInput(selectedClaim.orderTotal.USD.toString())}
+                                  className="vp-btn vp-btn-outline whitespace-nowrap"
+                                  disabled={isProcessing}
+                                >
+                                  Full Award
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleUpdateAward}
+                                  className="vp-btn vp-btn-primary whitespace-nowrap"
+                                  disabled={!awardInput || !!awardError || isProcessing}
+                                >
+                                  Update Award
+                                </button>
+                              </div>
+                            </div>
+                            
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {[50, 75, 100, 150, 200].map(amount => (
+                                <button
+                                  key={amount}
+                                  type="button"
+                                  onClick={() => handleAwardChange(amount.toString())}
+                                  className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50"
+                                  disabled={isProcessing}
+                                >
+                                  ${amount}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Action Buttons - Based on Status */}
+                        <div className="flex flex-wrap gap-3">
+                          {selectedClaim.status === 'awarded' && !selectedClaim.shortfall.paidAt && (
+                            <button
+                              type="button"
+                              onClick={() => setShowShortfallPaymentModal(true)}
+                              className="vp-btn vp-btn-warning flex items-center gap-2"
+                              disabled={isProcessing}
+                            >
+                              <span aria-hidden="true">💰</span>
+                              Record Shortfall Payment
+                            </button>
+                          )}
+                          
+                          {selectedClaim.status === 'partially_paid' && (
+                            <button
+                              type="button"
+                              onClick={() => setShowClearedModal(true)}
+                              className="vp-btn vp-btn-success flex items-center gap-2"
+                              disabled={isProcessing}
+                            >
+                              <span aria-hidden="true">✅</span>
+                              Mark as Fully Paid
+                            </button>
+                          )}
+                          
+                          <button
+                            type="button"
+                            className="vp-btn vp-btn-outline flex items-center gap-2"
+                          >
+                            <span aria-hidden="true">📄</span>
+                            Generate Claim Form
+                          </button>
+                          
+                          <button
+                            type="button"
+                            className="vp-btn vp-btn-outline flex items-center gap-2"
+                          >
+                            <span aria-hidden="true">📧</span>
+                            Send Reminder
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <h2 className="text-xl font-medium text-gray-700 mb-2">
-                      Select a claim to view details
-                    </h2>
-                    <p className="text-sm">
-                      Choose a claim from the list to view its details, adjust awards,
-                      and track payment status.
-                    </p>
-                  </div>
-                </section>
-              )}
+
+                    {/* Timeline */}
+                    <div className="vp-card">
+                      <div className="vp-card-header">
+                        Claim Timeline
+                      </div>
+                      
+                      <div className="vp-card-body">
+                        {claimTimeline.length > 0 ? (
+                          <ul className="flow-root">
+                            {claimTimeline.map((event, index) => (
+                              <TimelineEventItem
+                                key={event.id}
+                                event={event}
+                                isLast={index === claimTimeline.length - 1}
+                              />
+                            ))}
+                          </ul>
+                        ) : (
+                          <div className="text-center py-8 text-gray-500">
+                            <p className="text-sm">No timeline events recorded</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+                ) : (
+                  <section className="lg:col-span-2 flex items-center justify-center">
+                    <div className="text-center text-gray-500">
+                      <div className="text-6xl mb-4" aria-hidden="true">
+                        🏥
+                      </div>
+                      <h2 className="text-xl font-medium text-gray-700 mb-2">
+                        Select a claim to view details
+                      </h2>
+                      <p className="text-sm">
+                        Choose a claim from the list to view its details, adjust awards,
+                        and track payment status.
+                      </p>
+                    </div>
+                  </section>
+                )}
+              </div>
             </div>
           </main>
         </div>
@@ -1876,7 +1810,7 @@ export default function MedicalAidScreen() {
                 </div>
                 
                 <p className="text-sm text-gray-600">
-                  Mark this claim as fully paid? This will close the claim and update the status to &quot;Cleared&quot;.
+                  Mark this claim as fully paid? This will close the claim and update the status to "Cleared".
                 </p>
               </div>
               

@@ -85,7 +85,7 @@ const ZIMBABWE_CURRENCY_LIMITS = {
     min: 0.01,
     max: 10000000,
     defaultStep: 0.01,
-    quickAmounts: [50, 100, 200, 500, 1000],
+    quickAmounts: [32.5, 65, 97.5, 162.5, 325], // Based on 32.5 rate
     denominations: [1, 2, 5, 10, 20, 50, 100],
     maxDecimalPlaces: 2
   }
@@ -93,7 +93,7 @@ const ZIMBABWE_CURRENCY_LIMITS = {
 
 const QUICK_AMOUNT_PRESETS = {
   USD: [5, 10, 20, 50, 100],
-  ZWL: [50, 100, 200, 500, 1000]
+  ZWL: [32.5, 65, 97.5, 162.5, 325] // Based on 32.5 rate
 } as const
 
 // ============================================================================
@@ -822,20 +822,20 @@ export function ExchangeRateNumberPad({
       value={value}
       onChange={onChange}
       currency="ZWL" // Rates are always ZWL per USD
-      min={100}
-      max={10000}
-      step={1}
+      min={1}
+      max={1000}
+      step={0.01}
       maxDecimalPlaces={2}
       allowNegative={false}
       layout="standard"
       inputMode="rate"
       showQuickAmounts={true}
       showActionButtons={true}
-      quickAmounts={[1200, 1250, 1300, 1350, 1400]}
+      quickAmounts={[30, 32.5, 35, 37.5, 40]}
       customQuickAmounts={[
-        { label: 'RBZ', value: 1250 },
-        { label: 'Interbank', value: 1225 },
-        { label: 'Parallel', value: 1312.50 }
+        { label: 'RBZ', value: 32.5 },
+        { label: 'Interbank', value: 31.85 },
+        { label: 'Parallel', value: 34.12 }
       ]}
       className={className}
       disabled={disabled}

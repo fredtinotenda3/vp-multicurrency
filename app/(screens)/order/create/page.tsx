@@ -5,6 +5,8 @@ import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ErrorBoundary } from '@/components/system/ErrorBoundary'
 import { LoadingOverlay } from '@/components/system/LoadingStates'
+import Sidebar from '@/components/layout/Sidebar'
+import MobileHeader from '@/components/layout/MobileHeader'
 import { ZimbabwePhoneValidator, MedicalAidMemberValidator } from '@/components/validation/FormValidator'
 
 // ============================================================================
@@ -173,7 +175,7 @@ const MEDICAL_AID_PROVIDERS = [
 
 function useExchangeRate() {
   const [exchangeRate, setExchangeRate] = useState<ExchangeRate>({
-    rate: 1250,
+    rate: 32.5, // Changed from 1250 to 32.5
     source: 'reserve_bank',
     lastUpdated: new Date(),
     validUntil: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
@@ -191,7 +193,7 @@ function useExchangeRate() {
     const interval = setInterval(() => {
       setExchangeRate(prev => ({
         ...prev,
-        rate: prev.rate + (Math.random() > 0.5 ? 2 : -2),
+        rate: prev.rate + (Math.random() > 0.5 ? 0.1 : -0.1), // Smaller fluctuations
         lastUpdated: new Date(),
         validUntil: new Date(Date.now() + 30 * 60 * 1000)
       }))
@@ -513,7 +515,7 @@ const ExchangeRateDisplay = ({
             <div className="text-sm text-gray-600 mb-1">Current Rate</div>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-bold text-vp-primary">
-                1 USD = {rate.rate.toLocaleString()} ZWL
+                1 USD = {rate.rate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ZWL
               </span>
               {rate.isLive && !isLocked && (
                 <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
@@ -568,8 +570,8 @@ const ExchangeRateDisplay = ({
                       onChange={(e) => setManualRate(e.target.value)}
                       className="vp-form-control w-40 pl-12"
                       placeholder="Rate"
-                      min="100"
-                      max="10000"
+                      min="1"
+                      max="1000"
                       step="0.01"
                       autoFocus
                       disabled={disabled}
@@ -604,7 +606,7 @@ const ExchangeRateDisplay = ({
                 <span className="font-medium text-currency-locked">Rate Locked</span>
               </div>
               <div className="text-sm">
-                <span className="font-bold">1 USD = {rate.rate.toLocaleString()} ZWL</span>
+                <span className="font-bold">1 USD = {rate.rate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ZWL</span>
                 {lockedAt && (
                   <span className="text-gray-600 ml-2">
                     locked at {formatDate(lockedAt)}
@@ -630,25 +632,25 @@ const ExchangeRateDisplay = ({
               <div className="text-center p-2 bg-white rounded border">
                 <div className="text-xs text-gray-500">$10 USD</div>
                 <div className="font-medium text-currency-zwl">
-                  {(10 * rate.rate).toLocaleString()} ZWL
+                  {(10 * rate.rate).toFixed(2)} ZWL
                 </div>
               </div>
               <div className="text-center p-2 bg-white rounded border">
                 <div className="text-xs text-gray-500">$50 USD</div>
                 <div className="font-medium text-currency-zwl">
-                  {(50 * rate.rate).toLocaleString()} ZWL
+                  {(50 * rate.rate).toFixed(2)} ZWL
                 </div>
               </div>
               <div className="text-center p-2 bg-white rounded border">
-                <div className="text-xs text-gray-500">10,000 ZWL</div>
+                <div className="text-xs text-gray-500">1,000 ZWL</div>
                 <div className="font-medium text-currency-usd">
-                  ${(10000 / rate.rate).toFixed(2)} USD
+                  ${(1000 / rate.rate).toFixed(2)} USD
                 </div>
               </div>
               <div className="text-center p-2 bg-white rounded border">
-                <div className="text-xs text-gray-500">50,000 ZWL</div>
+                <div className="text-xs text-gray-500">5,000 ZWL</div>
                 <div className="font-medium text-currency-usd">
-                  ${(50000 / rate.rate).toFixed(2)} USD
+                  ${(5000 / rate.rate).toFixed(2)} USD
                 </div>
               </div>
             </div>
@@ -1358,7 +1360,7 @@ const OrderSummary = ({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <span className="text-gray-600 text-xs">Rate:</span>
-                <div className="font-medium">1 USD = {lockedRate.toLocaleString()} ZWL</div>
+                <div className="font-medium">1 USD = {lockedRate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ZWL</div>
               </div>
               <div>
                 <span className="text-gray-600 text-xs">Locked at:</span>
@@ -1655,201 +1657,145 @@ export default function OrderCreationScreen() {
       <LoadingOverlay isLoading={isProcessing} message="Creating Order..." />
       
       <div className="min-h-screen bg-vp-background">
-        <header className="vp-header">
-          <div className="vp-header-content">
-            <div className="vp-logo">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-vp-primary font-bold text-xl">VP</span>
+        {/* Mobile Header */}
+        <MobileHeader />
+
+        <div className="flex">
+          {/* Sidebar */}
+          <Sidebar />
+
+          {/* Main Content */}
+          <main className="flex-1 min-w-0" id="main-content">
+            <div className="p-4 lg:p-6">
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-vp-primary">
+                  Create New Order
+                </h1>
+                <p className="text-gray-600">
+                  Select products, set currency, and lock exchange rate
+                </p>
               </div>
-              <span className="vp-logo-text">VisionPlus</span>
-              <span className="text-sm bg-vp-secondary px-2 py-1 rounded">
-                Order Creation
-              </span>
-            </div>
-            
-            <div className="vp-user-info">
-              <div className="text-right">
-                <div className="font-bold">Link Opticians</div>
-                <div className="text-sm">Optometrist: Taylor Mutaiwa</div>
-              </div>
-              <div className="w-8 h-8 bg-white rounded-full" />
-            </div>
-          </div>
-        </header>
 
-        <div className="vp-main-layout">
-          <aside className="vp-sidebar">
-            <nav aria-label="Main Navigation">
-              <ul className="vp-sidebar-nav">
-                <li className="vp-sidebar-item">
-                  <a href="/" className="vp-sidebar-link">
-                    <span aria-hidden="true">🏠</span>
-                    <span>Dashboard</span>
-                  </a>
-                </li>
-                <li className="vp-sidebar-item active">
-                  <a href="#" className="vp-sidebar-link">
-                    <span aria-hidden="true">➕</span>
-                    <span>New Order</span>
-                  </a>
-                </li>
-                <li className="vp-sidebar-item">
-                  <a href="/payment" className="vp-sidebar-link">
-                    <span aria-hidden="true">💰</span>
-                    <span>Payments</span>
-                  </a>
-                </li>
-                <li className="vp-sidebar-item">
-                  <a href="/medical-aid" className="vp-sidebar-link">
-                    <span aria-hidden="true">🏥</span>
-                    <span>Medical Aid</span>
-                  </a>
-                </li>
-                <li className="vp-sidebar-item">
-                  <a href="/receipt" className="vp-sidebar-link">
-                    <span aria-hidden="true">🧾</span>
-                    <span>Receipts</span>
-                  </a>
-                </li>
-                <li className="vp-sidebar-item">
-                  <a href="/reports" className="vp-sidebar-link">
-                    <span aria-hidden="true">📊</span>
-                    <span>Reports</span>
-                  </a>
-                </li>
-              </ul>
-            </nav>
-          </aside>
-
-          <main className="vp-content" id="main-content">
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-vp-primary">
-                Create New Order
-              </h1>
-              <p className="text-gray-600">
-                Select products, set currency, and lock exchange rate
-              </p>
-            </div>
-
-            {validationErrors.length > 0 && (
-              <div className="vp-card mb-6 border-status-error" role="alert">
-                <div className="vp-card-header bg-status-error text-white">
-                  Cannot Proceed to Payment
-                </div>
-                <div className="vp-card-body">
-                  <ul className="list-disc list-inside space-y-1 text-status-error">
-                    {validationErrors.map((error, index) => (
-                      <li key={index}>{error}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-
-            <PatientInfoForm
-              patientInfo={patientInfo}
-              onChange={setPatientInfo}
-              disabled={isProcessing}
-              hasPrescriptionItems={hasPrescriptionItems}
-            />
-
-            <ExchangeRateDisplay
-              rate={currentRate}
-              isLocked={isRateLocked}
-              lockedAt={lockedAt}
-              onLockRate={lockRate}
-              onUnlockRate={handleUnlockRate}
-              transactionCurrency={transactionCurrency}
-              onCurrencyChange={setTransactionCurrency}
-              disabled={isProcessing}
-            />
-
-            <ProductSelector
-              onAddItem={handleAddItem}
-              exchangeRate={currentRate.rate}
-              disabled={isProcessing || isRateLocked}
-            />
-
-            <OrderItemsTable
-              items={orderItems}
-              exchangeRate={currentRate.rate}
-              onUpdateQuantity={updateQuantity}
-              onRemoveItem={removeItem}
-              disabled={isProcessing}
-            />
-
-            <OrderSummary
-              totals={totals}
-              exchangeRate={currentRate.rate}
-              transactionCurrency={transactionCurrency}
-              isRateLocked={isRateLocked}
-              lockedRate={lockedRate}
-              lockedAt={lockedAt}
-              itemCount={orderItems.length}
-              isPaymentEnabled={isPaymentEnabled}
-              disabledReason={getDisabledReason()}
-            />
-
-            <div className="mt-6 flex flex-col sm:flex-row justify-between gap-4">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="vp-btn vp-btn-outline px-6 order-2 sm:order-1"
-                disabled={isProcessing}
-              >
-                Cancel Order
-              </button>
-              
-              <div className="flex gap-3 order-1 sm:order-2">
-                <button
-                  type="button"
-                  onClick={clearOrder}
-                  className="vp-btn vp-btn-outline px-6"
-                  disabled={isProcessing || (orderItems.length === 0 && !patientInfo.name && !patientInfo.phone)}
-                >
-                  Clear All
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={handleProceedToPayment}
-                  className={`
-                    vp-btn px-8 flex items-center gap-2 transition-all duration-200
-                    ${isPaymentEnabled && !isProcessing
-                      ? 'vp-btn-primary hover:shadow-lg hover:scale-105' 
-                      : 'vp-btn-outline opacity-60 cursor-not-allowed bg-gray-100'
-                    }
-                  `}
-                  disabled={!isPaymentEnabled || isProcessing}
-                  aria-disabled={!isPaymentEnabled || isProcessing}
-                  title={!isPaymentEnabled ? getDisabledReason() : 'Proceed to payment'}
-                >
-                  <span aria-hidden="true">→</span>
-                  Proceed to Payment
-                </button>
-              </div>
-            </div>
-            
-            {!isPaymentEnabled && !validationErrors.length && (
-              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm">
-                <div className="flex items-start gap-3">
-                  <span className="text-blue-600 text-lg">ℹ️</span>
-                  <div className="text-blue-800">
-                    <p className="font-medium mb-1">Complete the following to proceed:</p>
-                    <ul className="list-disc list-inside text-xs space-y-1">
-                      {!isRateLocked && <li>Lock the exchange rate</li>}
-                      {orderItems.length === 0 && <li>Add at least one item to the order</li>}
-                      {!patientInfo.name?.trim() && <li>Enter patient name</li>}
-                      {!patientInfo.phone?.trim() && <li>Enter patient phone number</li>}
-                      {patientInfo.medicalAidProvider && !patientInfo.memberNumber?.trim() && 
-                        <li>Enter medical aid member number</li>}
-                      {hasPrescriptionItems && !patientInfo.dateOfBirth && 
-                        <li>Enter date of birth (required for prescription items)</li>}
+              {validationErrors.length > 0 && (
+                <div className="vp-card mb-6 border-status-error" role="alert">
+                  <div className="vp-card-header bg-status-error text-white">
+                    Cannot Proceed to Payment
+                  </div>
+                  <div className="vp-card-body">
+                    <ul className="list-disc list-inside space-y-1 text-status-error">
+                      {validationErrors.map((error, index) => (
+                        <li key={index}>{error}</li>
+                      ))}
                     </ul>
                   </div>
                 </div>
+              )}
+
+              <PatientInfoForm
+                patientInfo={patientInfo}
+                onChange={setPatientInfo}
+                disabled={isProcessing}
+                hasPrescriptionItems={hasPrescriptionItems}
+              />
+
+              <ExchangeRateDisplay
+                rate={currentRate}
+                isLocked={isRateLocked}
+                lockedAt={lockedAt}
+                onLockRate={lockRate}
+                onUnlockRate={handleUnlockRate}
+                transactionCurrency={transactionCurrency}
+                onCurrencyChange={setTransactionCurrency}
+                disabled={isProcessing}
+              />
+
+              <ProductSelector
+                onAddItem={handleAddItem}
+                exchangeRate={currentRate.rate}
+                disabled={isProcessing || isRateLocked}
+              />
+
+              <OrderItemsTable
+                items={orderItems}
+                exchangeRate={currentRate.rate}
+                onUpdateQuantity={updateQuantity}
+                onRemoveItem={removeItem}
+                disabled={isProcessing}
+              />
+
+              <OrderSummary
+                totals={totals}
+                exchangeRate={currentRate.rate}
+                transactionCurrency={transactionCurrency}
+                isRateLocked={isRateLocked}
+                lockedRate={lockedRate}
+                lockedAt={lockedAt}
+                itemCount={orderItems.length}
+                isPaymentEnabled={isPaymentEnabled}
+                disabledReason={getDisabledReason()}
+              />
+
+              <div className="mt-6 flex flex-col sm:flex-row justify-between gap-4">
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="vp-btn vp-btn-outline px-6 order-2 sm:order-1"
+                  disabled={isProcessing}
+                >
+                  Cancel Order
+                </button>
+                
+                <div className="flex gap-3 order-1 sm:order-2">
+                  <button
+                    type="button"
+                    onClick={clearOrder}
+                    className="vp-btn vp-btn-outline px-6"
+                    disabled={isProcessing || (orderItems.length === 0 && !patientInfo.name && !patientInfo.phone)}
+                  >
+                    Clear All
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={handleProceedToPayment}
+                    className={`
+                      vp-btn px-8 flex items-center gap-2 transition-all duration-200
+                      ${isPaymentEnabled && !isProcessing
+                        ? 'vp-btn-primary hover:shadow-lg hover:scale-105' 
+                        : 'vp-btn-outline opacity-60 cursor-not-allowed bg-gray-100'
+                      }
+                    `}
+                    disabled={!isPaymentEnabled || isProcessing}
+                    aria-disabled={!isPaymentEnabled || isProcessing}
+                    title={!isPaymentEnabled ? getDisabledReason() : 'Proceed to payment'}
+                  >
+                    <span aria-hidden="true">→</span>
+                    Proceed to Payment
+                  </button>
+                </div>
               </div>
-            )}
+              
+              {!isPaymentEnabled && !validationErrors.length && (
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+                  <div className="flex items-start gap-3">
+                    <span className="text-blue-600 text-lg">ℹ️</span>
+                    <div className="text-blue-800">
+                      <p className="font-medium mb-1">Complete the following to proceed:</p>
+                      <ul className="list-disc list-inside text-xs space-y-1">
+                        {!isRateLocked && <li>Lock the exchange rate</li>}
+                        {orderItems.length === 0 && <li>Add at least one item to the order</li>}
+                        {!patientInfo.name?.trim() && <li>Enter patient name</li>}
+                        {!patientInfo.phone?.trim() && <li>Enter patient phone number</li>}
+                        {patientInfo.medicalAidProvider && !patientInfo.memberNumber?.trim() && 
+                          <li>Enter medical aid member number</li>}
+                        {hasPrescriptionItems && !patientInfo.dateOfBirth && 
+                          <li>Enter date of birth (required for prescription items)</li>}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </main>
         </div>
 

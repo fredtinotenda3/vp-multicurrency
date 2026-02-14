@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ErrorBoundary } from '@/components/system/ErrorBoundary'
 import { LoadingOverlay } from '@/components/system/LoadingStates'
+import Sidebar from '@/components/layout/Sidebar'
+import MobileHeader from '@/components/layout/MobileHeader'
 import ZimbabweCompliantReceipt from '@/components/receipt/ZimbabweCompliantReceipt'
 
 // ============================================================================
@@ -80,7 +82,7 @@ export default function ReceiptScreen() {
         }
         setTransaction(transaction)
       } else {
-        // Demo mode - show sample receipt
+        // Demo mode - show sample receipt with updated rates
         setTransaction(getSampleTransaction())
       }
     } catch (err) {
@@ -158,12 +160,12 @@ export default function ReceiptScreen() {
     )
   }
 
-  // ✅ Get order data
+  // Get order data
   const order = transaction.order || {}
   const payments = transaction.payments || []
   const award = transaction.award
 
-  // ✅ Calculate totals if not provided
+  // Calculate totals if not provided
   const totalPaidUSD = payments.reduce((sum: number, p: any) => sum + (p.equivalentUSD || 0), 0) + (award?.awardedUSD || 0)
   const totalPaidZWL = payments.reduce((sum: number, p: any) => sum + (p.equivalentZWL || 0), 0) + (award?.awardedZWL || 0)
   
@@ -173,7 +175,7 @@ export default function ReceiptScreen() {
   const balanceUSD = orderTotalUSD - totalPaidUSD
   const balanceZWL = orderTotalZWL - totalPaidZWL
 
-  // ✅ Format business info
+  // Format business info
   const businessInfo: BusinessInfo = {
     legalName: 'Link Opticians',
     tradingName: 'Link Opticians',
@@ -201,7 +203,7 @@ export default function ReceiptScreen() {
     }
   }
 
-  // ✅ Format receipt number
+  // Format receipt number
   const now = new Date()
   const receiptNumber = {
     year: now.getFullYear(),
@@ -211,7 +213,7 @@ export default function ReceiptScreen() {
     isValid: true
   }
 
-  // ✅ Format patient info
+  // Format patient info
   const patientInfo = {
     id: order.patientId || transaction.patientId || 'PT-2027',
     name: order.patientName || transaction.patientName || 'Patient',
@@ -219,13 +221,13 @@ export default function ReceiptScreen() {
     address: transaction.patientAddress
   }
 
-  // ✅ Format order info
+  // Format order info
   const orderInfo = {
     id: order.id || transaction.orderId || 'ORD-2024-001',
     date: transaction.completedAt || new Date()
   }
 
-  // ✅ Format items from order
+  // Format items from order
   const items = (order.items || []).map((item: any, index: number) => {
     const unitPriceUSD = item.priceUSD || item.unitPriceUSD || 0
     const unitPriceZWL = item.priceZWL || item.unitPriceZWL || 0
@@ -253,7 +255,7 @@ export default function ReceiptScreen() {
     }
   })
 
-  // ✅ Format payments
+  // Format payments
   const formattedPayments = payments.map((p: any, index: number) => ({
     id: p.id || `PAY-${index}`,
     paymentNumber: p.paymentNumber || `PAY-${now.getFullYear()}-${String(index + 1).padStart(4, '0')}`,
@@ -261,15 +263,15 @@ export default function ReceiptScreen() {
     methodCode: p.methodId || p.method,
     currency: p.currency || 'ZWL',
     amount: p.amount || 0,
-    exchangeRate: transaction.exchangeRate || 1250,
-    equivalentUSD: p.equivalentUSD || (p.currency === 'USD' ? p.amount : p.amount / (transaction.exchangeRate || 1250)),
-    equivalentZWL: p.equivalentZWL || (p.currency === 'ZWL' ? p.amount : p.amount * (transaction.exchangeRate || 1250)),
+    exchangeRate: transaction.exchangeRate || 32.5,
+    equivalentUSD: p.equivalentUSD || (p.currency === 'USD' ? p.amount : p.amount / (transaction.exchangeRate || 32.5)),
+    equivalentZWL: p.equivalentZWL || (p.currency === 'ZWL' ? p.amount : p.amount * (transaction.exchangeRate || 32.5)),
     reference: p.reference,
     authorizedBy: p.capturedBy || transaction.cashier,
     timestamp: p.timestamp || transaction.completedAt || new Date()
   }))
 
-  // ✅ Format medical aid info if present
+  // Format medical aid info if present
   const medicalAidInfo = award ? {
     providerId: award.providerId || 'cimas',
     providerName: award.providerName || 'Cimas',
@@ -285,7 +287,7 @@ export default function ReceiptScreen() {
     expectedSettlementDate: new Date(now.getTime() + (award.expectedSettlementDays || 30) * 24 * 60 * 60 * 1000)
   } : undefined
 
-  // ✅ Format totals
+  // Format totals
   const totals = {
     subtotalUSD: items.reduce((sum: number, i: any) => sum + i.netPriceUSD, 0),
     subtotalZWL: items.reduce((sum: number, i: any) => sum + i.netPriceZWL, 0),
@@ -303,7 +305,7 @@ export default function ReceiptScreen() {
     paymentCount: formattedPayments.length
   }
 
-  // ✅ Format compliance info
+  // Format compliance info
   const compliance = {
     receiptNumber,
     vatNumber: businessInfo.vatNumber,
@@ -321,140 +323,155 @@ export default function ReceiptScreen() {
       <LoadingOverlay isLoading={false} />
       
       <div className="min-h-screen bg-vp-background print:bg-white">
-        {/* Print Controls - Hidden when printing */}
-        <div className="print:hidden bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="vp-container py-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-vp-primary rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-xl">VP</span>
-                </div>
-                <div>
-                  <h1 className="text-lg font-bold text-vp-primary">VisionPlus Receipt</h1>
-                  <p className="text-sm text-gray-600">ZIMRA Compliant Tax Invoice</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleEmail}
-                  className="vp-btn vp-btn-outline flex items-center gap-2"
-                  aria-label="Email receipt"
-                >
-                  <span aria-hidden="true">📧</span>
-                  <span className="hidden sm:inline">Email</span>
-                </button>
-                
-                <button
-                  onClick={handlePrint}
-                  className="vp-btn vp-btn-primary flex items-center gap-2"
-                  aria-label="Print receipt"
-                >
-                  <span aria-hidden="true">🖨️</span>
-                  <span className="hidden sm:inline">Print</span>
-                </button>
-                
-                <button
-                  onClick={handleNewTransaction}
-                  className="vp-btn vp-btn-secondary flex items-center gap-2"
-                  aria-label="New transaction"
-                >
-                  <span aria-hidden="true">➕</span>
-                  <span className="hidden sm:inline">New</span>
-                </button>
-              </div>
-            </div>
-          </div>
+        {/* Mobile Header - Hidden when printing */}
+        <div className="print:hidden">
+          <MobileHeader />
         </div>
 
-        {/* Receipt Content */}
-        <div className="vp-container py-8 print:py-0">
-          <ZimbabweCompliantReceipt
-            // Business Information
-            business={businessInfo}
-            
-            // Receipt Information
-            receiptType="tax_invoice"
-            receiptNumber={receiptNumber}
-            receiptDate={transaction.completedAt || new Date()}
-            cashierName={transaction.cashier || 'Fred Stanley'}
-            cashierId="CSH-001"
-            terminalId={transaction.terminal || 'TERM-001'}
-            pointOfSaleId="POS-001"
-            
-            // Patient Information
-            patient={patientInfo}
-            
-            // Order Information
-            orderId={orderInfo.id}
-            orderDate={orderInfo.date}
-            
-            // Currency Information
-            baseCurrency="USD"
-            transactionCurrency={transaction.transactionCurrency || 'ZWL'}
-            exchangeRate={transaction.exchangeRate || 1250}
-            rateLockedAt={transaction.rateLockedAt || new Date()}
-            rateSource={transaction.rateSource || 'Reserve Bank of Zimbabwe'}
-            
-            // Transaction Details
-            items={items}
-            payments={formattedPayments}
-            medicalAid={medicalAidInfo}
-            
-            // Totals
-            totals={totals}
-            
-            // Compliance
-            compliance={compliance}
-            
-            // UI Options
-            showVATBreakdown={true}
-            showBankDetails={true}
-            showQRCode={true}
-            showSignature={true}
-          />
-        </div>
-
-        {/* Footer - Hidden when printing */}
-        <div className="print:hidden bg-white border-t border-gray-200 mt-8 py-6">
-          <div className="vp-container">
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <span className="text-currency-locked">🔒</span>
-                <span>Exchange rate locked per transaction - ZIMRA compliant</span>
-              </div>
-              <div className="flex gap-6">
-                <button
-                  onClick={handleBackToDashboard}
-                  className="text-vp-primary hover:text-vp-primary/80 font-medium"
-                >
-                  ← Dashboard
-                </button>
-                <button
-                  onClick={handleNewTransaction}
-                  className="text-vp-primary hover:text-vp-primary/80 font-medium"
-                >
-                  New Transaction →
-                </button>
-              </div>
-            </div>
-            
-            {/* Keyboard Shortcuts */}
-            <div className="mt-4 text-xs text-gray-400 border-t pt-4 flex flex-wrap gap-4">
-              <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">Ctrl+P</kbd>
-                <span>Print</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">Esc</kbd>
-                <span>Dashboard</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">N</kbd>
-                <span>New Transaction</span>
-              </span>
-            </div>
+        <div className="flex">
+          {/* Sidebar - Hidden when printing */}
+          <div className="print:hidden">
+            <Sidebar />
           </div>
+
+          {/* Main Content */}
+          <main className="flex-1 min-w-0" id="main-content">
+            {/* Print Controls - Hidden when printing */}
+            <div className="print:hidden bg-white border-b border-gray-200 sticky top-0 z-10">
+              <div className="p-4 lg:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-vp-primary rounded-lg flex items-center justify-center">
+                      <span className="text-white font-bold text-xl">VP</span>
+                    </div>
+                    <div>
+                      <h1 className="text-lg font-bold text-vp-primary">VisionPlus Receipt</h1>
+                      <p className="text-sm text-gray-600">ZIMRA Compliant Tax Invoice</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleEmail}
+                      className="vp-btn vp-btn-outline flex items-center gap-2"
+                      aria-label="Email receipt"
+                    >
+                      <span aria-hidden="true">📧</span>
+                      <span className="hidden sm:inline">Email</span>
+                    </button>
+                    
+                    <button
+                      onClick={handlePrint}
+                      className="vp-btn vp-btn-primary flex items-center gap-2"
+                      aria-label="Print receipt"
+                    >
+                      <span aria-hidden="true">🖨️</span>
+                      <span className="hidden sm:inline">Print</span>
+                    </button>
+                    
+                    <button
+                      onClick={handleNewTransaction}
+                      className="vp-btn vp-btn-secondary flex items-center gap-2"
+                      aria-label="New transaction"
+                    >
+                      <span aria-hidden="true">➕</span>
+                      <span className="hidden sm:inline">New</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Receipt Content */}
+            <div className="p-4 lg:p-6 print:p-0">
+              <ZimbabweCompliantReceipt
+                // Business Information
+                business={businessInfo}
+                
+                // Receipt Information
+                receiptType="tax_invoice"
+                receiptNumber={receiptNumber}
+                receiptDate={transaction.completedAt || new Date()}
+                cashierName={transaction.cashier || 'Fred Stanley'}
+                cashierId="CSH-001"
+                terminalId={transaction.terminal || 'TERM-001'}
+                pointOfSaleId="POS-001"
+                
+                // Patient Information
+                patient={patientInfo}
+                
+                // Order Information
+                orderId={orderInfo.id}
+                orderDate={orderInfo.date}
+                
+                // Currency Information
+                baseCurrency="USD"
+                transactionCurrency={transaction.transactionCurrency || 'ZWL'}
+                exchangeRate={transaction.exchangeRate || 32.5}
+                rateLockedAt={transaction.rateLockedAt || new Date()}
+                rateSource={transaction.rateSource || 'Reserve Bank of Zimbabwe'}
+                
+                // Transaction Details
+                items={items}
+                payments={formattedPayments}
+                medicalAid={medicalAidInfo}
+                
+                // Totals
+                totals={totals}
+                
+                // Compliance
+                compliance={compliance}
+                
+                // UI Options
+                showVATBreakdown={true}
+                showBankDetails={true}
+                showQRCode={true}
+                showSignature={true}
+              />
+            </div>
+
+            {/* Footer - Hidden when printing */}
+            <div className="print:hidden bg-white border-t border-gray-200 mt-8 py-6">
+              <div className="p-4 lg:p-6">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <span className="text-currency-locked">🔒</span>
+                    <span>Exchange rate locked per transaction - ZIMRA compliant</span>
+                  </div>
+                  <div className="flex gap-6">
+                    <button
+                      onClick={handleBackToDashboard}
+                      className="text-vp-primary hover:text-vp-primary/80 font-medium"
+                    >
+                      ← Dashboard
+                    </button>
+                    <button
+                      onClick={handleNewTransaction}
+                      className="text-vp-primary hover:text-vp-primary/80 font-medium"
+                    >
+                      New Transaction →
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Keyboard Shortcuts */}
+                <div className="mt-4 text-xs text-gray-400 border-t pt-4 flex flex-wrap gap-4">
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">Ctrl+P</kbd>
+                    <span>Print</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">Esc</kbd>
+                    <span>Dashboard</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">N</kbd>
+                    <span>New Transaction</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     </ErrorBoundary>
@@ -462,7 +479,7 @@ export default function ReceiptScreen() {
 }
 
 // ============================================================================
-// SAMPLE TRANSACTION - Demo Mode
+// SAMPLE TRANSACTION - Demo Mode with updated rates
 // ============================================================================
 
 function getSampleTransaction() {
@@ -483,34 +500,34 @@ function getSampleTransaction() {
       patientId: 'PT-2027',
       patientPhone: '+263 77 123 4567',
       subtotalUSD: 250,
-      subtotalZWL: 312500,
+      subtotalZWL: 8125, // 250 * 32.5
       taxUSD: 37.5,
-      taxZWL: 46875,
+      taxZWL: 1218.75, // 37.5 * 32.5
       totalUSD: 287.5,
-      totalZWL: 359375,
+      totalZWL: 9343.75, // 287.5 * 32.5
       items: [
         { 
           name: 'Ray-Ban Aviator',
           description: 'Ray-Ban Aviator',
           quantity: 1, 
           priceUSD: 120, 
-          priceZWL: 150000,
+          priceZWL: 3900, // 120 * 32.5
           unitPriceUSD: 120,
-          unitPriceZWL: 150000
+          unitPriceZWL: 3900
         },
         { 
           name: 'Progressive Lenses',
           description: 'Progressive Lenses',
           quantity: 1, 
           priceUSD: 130, 
-          priceZWL: 162500,
+          priceZWL: 4225, // 130 * 32.5
           unitPriceUSD: 130,
-          unitPriceZWL: 162500
+          unitPriceZWL: 4225
         }
       ]
     },
     
-    exchangeRate: 1250,
+    exchangeRate: 32.5,
     transactionCurrency: 'ZWL',
     rateLockedAt,
     rateSource: 'Reserve Bank of Zimbabwe',
@@ -524,7 +541,7 @@ function getSampleTransaction() {
         currency: 'USD', 
         amount: 100, 
         equivalentUSD: 100,
-        equivalentZWL: 125000,
+        equivalentZWL: 3250, // 100 * 32.5
         reference: 'CASH-001',
         capturedBy: 'Fred Stanley',
         timestamp: new Date(now.getTime() - 30 * 60000)
@@ -535,9 +552,9 @@ function getSampleTransaction() {
         methodName: 'Ecocash',
         method: 'Ecocash',
         currency: 'ZWL', 
-        amount: 234375, 
+        amount: 6093.75, // 187.5 * 32.5
         equivalentUSD: 187.5,
-        equivalentZWL: 234375,
+        equivalentZWL: 6093.75,
         reference: 'ECO-789012',
         capturedBy: 'Fred Stanley',
         timestamp: new Date(now.getTime() - 15 * 60000)
@@ -550,13 +567,13 @@ function getSampleTransaction() {
       memberNumber: 'CIM-789012',
       claimReference: 'CIM-2024-001-5678',
       awardedUSD: 210,
-      awardedZWL: 262500,
+      awardedZWL: 6825, // 210 * 32.5
       expectedSettlementDays: 30
     },
     
     totals: {
       totalPaidUSD: 287.5,
-      totalPaidZWL: 359375,
+      totalPaidZWL: 9343.75,
       balanceUSD: 0,
       balanceZWL: 0,
       isPaidInFull: true

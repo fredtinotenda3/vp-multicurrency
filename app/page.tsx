@@ -1,4 +1,4 @@
-// app/page.tsx - VisionPlus Zimbabwe Production Dashboard
+// app/page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -9,6 +9,8 @@ import SystemStatus from '@/components/SystemStatus'
 import QuickNavigation from '@/components/QuickNavigation'
 import NetworkStatus from '@/components/system/NetworkStatus'
 import KeyboardShortcuts from '@/components/system/KeyboardShortcuts'
+import Sidebar from '@/components/layout/Sidebar'
+import MobileHeader from '@/components/layout/MobileHeader'
 import { ExchangeRateCache } from '@/lib/offline/ExchangeRateCache'
 import { OfflineManager } from '@/lib/offline/OfflineManager'
 
@@ -388,272 +390,161 @@ export default function Home() {
       <KeyboardShortcuts />
       
       <div className="min-h-screen bg-vp-background">
-        {/* Header */}
-        <header className="vp-header">
-          <div className="vp-header-content">
-            <div className="vp-logo">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-vp-primary font-bold text-xl">VP</span>
-              </div>
-              <span className="vp-logo-text">VisionPlus</span>
-              <span className="text-sm bg-vp-secondary px-2 py-1 rounded">
-                Zimbabwe • Multi-Currency
-              </span>
-            </div>
-            
-            <div className="vp-user-info">
-              <div className="text-right">
-                <div className="font-bold">{clinicName}</div>
-                <div className="text-sm flex items-center gap-2">
-                  <span>{userName}</span>
-                  <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full capitalize">
-                    {userRole}
-                  </span>
-                </div>
-              </div>
-              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                <span className="text-vp-primary font-bold">
-                  {userName.charAt(0)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </header>
+        {/* Mobile Header */}
+        <MobileHeader />
 
-        {/* Main Layout */}
-        <div className="vp-main-layout">
+        <div className="flex">
           {/* Sidebar */}
-          <aside className="vp-sidebar">
-            <nav aria-label="Main Navigation">
-              <ul className="vp-sidebar-nav">
-                <li className="vp-sidebar-item active">
-                  <a href="/" className="vp-sidebar-link">
-                    <span aria-hidden="true">🏠</span>
-                    <span>Dashboard</span>
-                  </a>
-                </li>
-                <li className="vp-sidebar-item">
-                  <a href="/order/create" className="vp-sidebar-link">
-                    <span aria-hidden="true">➕</span>
-                    <span>New Order</span>
-                  </a>
-                </li>
-                <li className="vp-sidebar-item">
-                  <a href="/payment" className="vp-sidebar-link">
-                    <span aria-hidden="true">💰</span>
-                    <span>Payments</span>
-                  </a>
-                </li>
-                <li className="vp-sidebar-item">
-                  <a href="/medical-aid" className="vp-sidebar-link">
-                    <span aria-hidden="true">🏥</span>
-                    <span>Medical Aid</span>
-                  </a>
-                </li>
-                <li className="vp-sidebar-item">
-                  <a href="/receipt" className="vp-sidebar-link">
-                    <span aria-hidden="true">🧾</span>
-                    <span>Receipts</span>
-                  </a>
-                </li>
-                <li className="vp-sidebar-item">
-                  <a href="/reports" className="vp-sidebar-link">
-                    <span aria-hidden="true">📊</span>
-                    <span>Reports</span>
-                  </a>
-                </li>
-              </ul>
-            </nav>
-            
-            {/* Exchange Rate Widget */}
-            <div className="mt-8 mx-4 p-4 bg-gradient-to-br from-currency-locked/10 to-transparent rounded-lg border border-currency-locked/30">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-currency-locked text-lg">💱</span>
-                <span className="text-sm font-bold text-currency-locked">RBZ Rate</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold text-vp-primary">
-                    1 USD
-                  </div>
-                  <div className="text-sm font-medium text-currency-locked">
-                    = {rate.rate.toLocaleString()} ZWL
-                  </div>
-                </div>
-                <span className={`
-                  text-xs px-2 py-1 rounded-full
-                  ${rate.trend === 'up' ? 'bg-green-100 text-green-700' : 
-                    rate.trend === 'down' ? 'bg-red-100 text-red-700' : 
-                    'bg-gray-100 text-gray-700'}
-                `}>
-                  {rate.trend === 'up' ? '▲' : rate.trend === 'down' ? '▼' : '◆'} {Math.abs(rate.change24h)}%
-                </span>
-              </div>
-              <div className="mt-2 text-[10px] text-gray-500">
-                Updated: {rate.lastUpdated.toLocaleTimeString('en-ZW', { hour: '2-digit', minute: '2-digit' })}
-              </div>
-            </div>
-
-            {/* Offline Status */}
-            {stats.pendingSync > 0 && (
-              <div className="mt-4 mx-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-amber-800">Offline Queue</span>
-                </div>
-                <div className="mt-1 text-xs text-amber-700">
-                  {stats.pendingSync} item{stats.pendingSync !== 1 ? 's' : ''} pending sync
-                </div>
-              </div>
-            )}
-          </aside>
+          <Sidebar />
 
           {/* Main Content */}
-          <main className="vp-content" id="main-content">
-            {/* Welcome Section */}
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-vp-primary">
-                Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}, {userName.split(' ')[0]}!
-              </h1>
-              <p className="text-gray-600">
-                {clinicName} • {new Date().toLocaleDateString('en-ZW', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
-              </p>
-            </div>
+          <main className="flex-1 min-w-0" id="main-content">
+            <div className="p-4 lg:p-6">
+              {/* Welcome Section */}
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-vp-primary">
+                  Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}, {userName.split(' ')[0]}!
+                </h1>
+                <p className="text-gray-600">
+                  {clinicName} • {new Date().toLocaleDateString('en-ZW', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </p>
+              </div>
 
-            {/* System Status */}
-            <SystemStatus />
+              {/* System Status */}
+              <SystemStatus />
 
-            {/* Exchange Rate Display */}
-            <RateDisplay 
-              rate={rate} 
-              onRefresh={refreshRate} 
-              isRefreshing={isRefreshing} 
-            />
+              {/* Exchange Rate Display */}
+              <RateDisplay 
+                rate={rate} 
+                onRefresh={refreshRate} 
+                isRefreshing={isRefreshing} 
+              />
 
-            {/* Quick Navigation */}
-            <QuickNavigation userRole={userRole as any} />
+              {/* Quick Navigation */}
+              <QuickNavigation userRole={userRole as any} />
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-              <StatsCard
-                title="Today's Orders"
-                value={stats.todayOrders}
-                subtitle="+12% vs yesterday"
-                icon="🛒"
-                trend="up"
-                trendValue="12%"
-                color="primary"
-                onClick={() => router.push('/order/create')}
-              />
-              
-              <StatsCard
-                title="Today's Revenue"
-                value={formatCurrency(stats.todayRevenueUSD, 'USD')}
-                subtitle={formatCurrency(stats.todayRevenueZWL, 'ZWL')}
-                icon="💰"
-                trend="up"
-                trendValue="8%"
-                color="success"
-                onClick={() => router.push('/reports/daily')}
-              />
-              
-              <StatsCard
-                title="Pending Claims"
-                value={stats.pendingClaims}
-                subtitle="Medical aid"
-                icon="🏥"
-                trend="down"
-                trendValue="3"
-                color="warning"
-                onClick={() => router.push('/medical-aid')}
-              />
-              
-              <StatsCard
-                title="Active Patients"
-                value={stats.activePatients}
-                subtitle="Last 30 days"
-                icon="👥"
-                color="info"
-                onClick={() => router.push('/patients')}
-              />
-              
-              <StatsCard
-                title="Offline Queue"
-                value={stats.pendingSync}
-                subtitle="Items to sync"
-                icon="📶"
-                color={stats.pendingSync > 0 ? 'warning' : 'success'}
-                onClick={() => router.push('/system/offline')}
-              />
-              
-              <StatsCard
-                title="ZIMRA Reports"
-                value="Due in 7 days"
-                subtitle="VAT submission"
-                icon="📄"
-                color="secondary"
-                onClick={() => router.push('/reports/zimra')}
-              />
-            </div>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <StatsCard
+                  title="Today's Orders"
+                  value={stats.todayOrders}
+                  subtitle="+12% vs yesterday"
+                  icon="🛒"
+                  trend="up"
+                  trendValue="12%"
+                  color="primary"
+                  onClick={() => router.push('/order/create')}
+                />
+                
+                <StatsCard
+                  title="Today's Revenue"
+                  value={formatCurrency(stats.todayRevenueUSD, 'USD')}
+                  subtitle={formatCurrency(stats.todayRevenueZWL, 'ZWL')}
+                  icon="💰"
+                  trend="up"
+                  trendValue="8%"
+                  color="success"
+                  onClick={() => router.push('/reports/daily')}
+                />
+                
+                <StatsCard
+                  title="Pending Claims"
+                  value={stats.pendingClaims}
+                  subtitle="Medical aid"
+                  icon="🏥"
+                  trend="down"
+                  trendValue="3"
+                  color="warning"
+                  onClick={() => router.push('/medical-aid')}
+                />
+                
+                <StatsCard
+                  title="Active Patients"
+                  value={stats.activePatients}
+                  subtitle="Last 30 days"
+                  icon="👥"
+                  color="info"
+                  onClick={() => router.push('/patients')}
+                />
+                
+                <StatsCard
+                  title="Offline Queue"
+                  value={stats.pendingSync}
+                  subtitle="Items to sync"
+                  icon="📶"
+                  color={stats.pendingSync > 0 ? 'warning' : 'success'}
+                  onClick={() => router.push('/system/offline')}
+                />
+                
+                <StatsCard
+                  title="ZIMRA Reports"
+                  value="Due in 7 days"
+                  subtitle="VAT submission"
+                  icon="📄"
+                  color="secondary"
+                  onClick={() => router.push('/reports/zimra')}
+                />
+              </div>
 
-            {/* Quick Actions Footer */}
-            <div className="vp-card bg-gradient-to-r from-gray-50 to-white">
-              <div className="vp-card-body">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-600">System Ready</span>
-                    <span className="flex items-center gap-1 text-xs text-gray-500">
-                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                      Online
+              {/* Quick Actions Footer */}
+              <div className="vp-card bg-gradient-to-r from-gray-50 to-white">
+                <div className="vp-card-body">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm text-gray-600">System Ready</span>
+                      <span className="flex items-center gap-1 text-xs text-gray-500">
+                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                        Online
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        v2.1.0 • Zimbabwe
+                      </span>
+                    </div>
+                    
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => router.push('/order/create')}
+                        className="vp-btn vp-btn-primary flex items-center gap-2"
+                      >
+                        <span>➕</span>
+                        New Order
+                      </button>
+                      <button
+                        onClick={() => router.push('/payment')}
+                        className="vp-btn vp-btn-secondary flex items-center gap-2"
+                        disabled={!sessionStorage.getItem('current_order')}
+                        title={!sessionStorage.getItem('current_order') ? 'Create an order first' : ''}
+                      >
+                        <span>💰</span>
+                        Quick Payment
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Keyboard Shortcuts Hint */}
+                  <div className="mt-4 text-xs text-gray-400 border-t pt-4 flex flex-wrap gap-4">
+                    <span className="flex items-center gap-1">
+                      <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">F2</kbd>
+                      <span>New Order</span>
                     </span>
-                    <span className="text-xs text-gray-500">
-                      v2.1.0 • Zimbabwe
+                    <span className="flex items-center gap-1">
+                      <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">F3</kbd>
+                      <span>Payment</span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">F4</kbd>
+                      <span>Medical Aid</span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">F12</kbd>
+                      <span>Shortcuts</span>
                     </span>
                   </div>
-                  
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => router.push('/order/create')}
-                      className="vp-btn vp-btn-primary flex items-center gap-2"
-                    >
-                      <span>➕</span>
-                      New Order
-                    </button>
-                    <button
-                      onClick={() => router.push('/payment')}
-                      className="vp-btn vp-btn-secondary flex items-center gap-2"
-                      disabled={!sessionStorage.getItem('current_order')}
-                      title={!sessionStorage.getItem('current_order') ? 'Create an order first' : ''}
-                    >
-                      <span>💰</span>
-                      Quick Payment
-                    </button>
-                  </div>
-                </div>
-
-                {/* Keyboard Shortcuts Hint */}
-                <div className="mt-4 text-xs text-gray-400 border-t pt-4 flex flex-wrap gap-4">
-                  <span className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">F2</kbd>
-                    <span>New Order</span>
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">F3</kbd>
-                    <span>Payment</span>
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">F4</kbd>
-                    <span>Medical Aid</span>
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 bg-gray-100 border rounded text-gray-600">F12</kbd>
-                    <span>Shortcuts</span>
-                  </span>
                 </div>
               </div>
             </div>
@@ -662,7 +553,7 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="bg-vp-primary text-white py-4 mt-8">
-          <div className="vp-container">
+          <div className="px-4 lg:px-6">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
               <div>
                 <div className="font-bold">VisionPlus Zimbabwe</div>
