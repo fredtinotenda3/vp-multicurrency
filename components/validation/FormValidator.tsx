@@ -7,7 +7,7 @@ import { ReactNode, useState, useEffect, useCallback, useMemo } from 'react'
 // TYPES - Production Grade, Zimbabwe Currency Specific
 // ============================================================================
 
-type Currency = 'USD' | 'ZWL'
+type Currency = 'USD' | 'ZWG'
 type ValidationSeverity = 'error' | 'warning' | 'info' | 'success'
 type ValidationMode = 'onChange' | 'onBlur' | 'onSubmit' | 'debounced'
 type FieldType = 'text' | 'number' | 'email' | 'phone' | 'date' | 'select' | 'checkbox' | 'radio'
@@ -129,7 +129,7 @@ export const CURRENCY_LIMITS = {
     maxDecimalPlaces: 2,
     pattern: /^\d+(\.\d{1,2})?$/
   },
-  ZWL: {
+  ZWG: {
     min: 0.01,
     max: 10000000,
     maxDecimalPlaces: 2,
@@ -138,12 +138,12 @@ export const CURRENCY_LIMITS = {
 } as const
 
 // ============================================================================
-// EXCHANGE RATE VALIDATION (ZWL per USD) - Updated to 1-1000 range
+// EXCHANGE RATE VALIDATION (ZWG per USD) - Updated to 1-1000 range
 // ============================================================================
 
 export const EXCHANGE_RATE_LIMITS = {
-  min: 1,    // 1 USD = 1 ZWL minimum
-  max: 1000, // 1 USD = 1000 ZWL maximum
+  min: 1,    // 1 USD = 1 ZWG minimum
+  max: 1000, // 1 USD = 1000 ZWG maximum
   maxDecimalPlaces: 2,
   pattern: /^\d+(\.\d{1,2})?$/
 } as const
@@ -246,8 +246,8 @@ export class Validators {
     return Validators.currency(value, 'USD')
   }
 
-  static zwl(value: number): boolean {
-    return Validators.currency(value, 'ZWL')
+  static ZWG(value: number): boolean {
+    return Validators.currency(value, 'ZWG')
   }
 
   static exchangeRate(value: number): boolean {
@@ -577,7 +577,7 @@ export default function FormValidator({
           errors.push({
             field,
             rule: 'exchangeRate',
-            message: rule.message || 'Invalid exchange rate (1-1,000 ZWL/USD)',
+            message: rule.message || 'Invalid exchange rate (1-1,000 ZWG/USD)',
             severity: rule.severity || 'error',
             timestamp: Date.now()
           })
@@ -813,7 +813,7 @@ export function FieldValidator({
             fieldErrors.push({
               field,
               rule: 'exchangeRate',
-              message: rule.message || 'Invalid exchange rate (1-1,000 ZWL/USD)',
+              message: rule.message || 'Invalid exchange rate (1-1,000 ZWG/USD)',
               severity: rule.severity || 'error',
               timestamp: Date.now()
             })
@@ -974,17 +974,17 @@ export function ExchangeRateValidator({
     },
     {
       exchangeRate: true,
-      message: 'Invalid exchange rate (1-1,000 ZWL/USD)',
+      message: 'Invalid exchange rate (1-1,000 ZWG/USD)',
       severity: 'error'
     },
     {
       min: EXCHANGE_RATE_LIMITS.min,
-      message: `Minimum rate is ${EXCHANGE_RATE_LIMITS.min} ZWL/USD`,
+      message: `Minimum rate is ${EXCHANGE_RATE_LIMITS.min} ZWG/USD`,
       severity: 'error'
     },
     {
       max: EXCHANGE_RATE_LIMITS.max,
-      message: `Maximum rate is ${EXCHANGE_RATE_LIMITS.max} ZWL/USD`,
+      message: `Maximum rate is ${EXCHANGE_RATE_LIMITS.max} ZWG/USD`,
       severity: 'error'
     }
   ]

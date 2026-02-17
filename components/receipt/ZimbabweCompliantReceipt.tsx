@@ -7,7 +7,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 // TYPES - ZIMRA Compliance, Production Grade
 // ============================================================================
 
-type Currency = 'USD' | 'ZWL'
+type Currency = 'USD' | 'ZWG'
 type ReceiptType = 'tax_invoice' | 'credit_note' | 'debit_note' | 'proforma' | 'deposit'
 type PaymentStatus = 'paid' | 'partially_paid' | 'pending' | 'cancelled'
 type VatRate = 0 | 5 | 10 | 15 | 20 // Zimbabwe standard is 15%
@@ -41,9 +41,9 @@ interface ZIMRACompliance {
 interface VATBreakdown {
   readonly rate: VatRate
   readonly taxableAmountUSD: number
-  readonly taxableAmountZWL: number
+  readonly taxableAmountZWG: number
   readonly vatAmountUSD: number
-  readonly vatAmountZWL: number
+  readonly vatAmountZWG: number
   readonly itemCount: number
 }
 
@@ -54,18 +54,18 @@ interface ReceiptItem {
   readonly description: string
   readonly quantity: number
   readonly unitPriceUSD: number
-  readonly unitPriceZWL: number
+  readonly unitPriceZWG: number
   readonly discountRate?: number // percentage
   readonly discountAmountUSD?: number
-  readonly discountAmountZWL?: number
+  readonly discountAmountZWG?: number
   readonly netPriceUSD: number
-  readonly netPriceZWL: number
+  readonly netPriceZWG: number
   readonly vatRate: VatRate
   readonly vatType: TaxType
   readonly vatAmountUSD: number
-  readonly vatAmountZWL: number
+  readonly vatAmountZWG: number
   readonly totalUSD: number
-  readonly totalZWL: number
+  readonly totalZWG: number
   readonly isMedicalAid: boolean
   readonly medicalAidCode?: string
 }
@@ -80,7 +80,7 @@ interface ReceiptPayment {
   readonly amount: number
   readonly exchangeRate: number
   readonly equivalentUSD: number
-  readonly equivalentZWL: number
+  readonly equivalentZWG: number
   readonly reference?: string
   readonly authorizedBy?: string
   readonly timestamp: Date
@@ -96,9 +96,9 @@ interface MedicalAidReceiptInfo {
   readonly claimReference: string
   readonly authorizationNumber?: string
   readonly awardedAmountUSD: number
-  readonly awardedAmountZWL: number
+  readonly awardedAmountZWG: number
   readonly shortfallAmountUSD: number
-  readonly shortfallAmountZWL: number
+  readonly shortfallAmountZWG: number
   readonly settlementDays: number
   readonly expectedSettlementDate?: Date
 }
@@ -183,17 +183,17 @@ interface ZimbabweCompliantReceiptProps {
   // Totals (pre-calculated for performance)
   totals: {
     subtotalUSD: number
-    subtotalZWL: number
+    subtotalZWG: number
     discountUSD: number
-    discountZWL: number
+    discountZWG: number
     vatUSD: number
-    vatZWL: number
+    vatZWG: number
     totalUSD: number
-    totalZWL: number
+    totalZWG: number
     amountPaidUSD: number
-    amountPaidZWL: number
+    amountPaidZWG: number
     balanceUSD: number
-    balanceZWL: number
+    balanceZWG: number
     itemCount: number
     paymentCount: number
   }
@@ -307,9 +307,9 @@ class ZIMRAQRCodeGenerator {
     receiptNumber: string,
     receiptDate: Date,
     totalUSD: number,
-    totalZWL: number,
+    totalZWG: number,
     vatUSD: number,
-    vatZWL: number,
+    vatZWG: number,
     exchangeRate: number,
     transactionCurrency: Currency
   ): string {
@@ -334,12 +334,12 @@ class ZIMRAQRCodeGenerator {
       cur: transactionCurrency,
       exr: exchangeRate.toFixed(2),
       amt_usd: totalUSD.toFixed(2),
-      amt_zwl: totalZWL.toFixed(2),
+      amt_ZWG: totalZWG.toFixed(2),
       vat_usd: vatUSD.toFixed(2),
-      vat_zwl: vatZWL.toFixed(2),
+      vat_ZWG: vatZWG.toFixed(2),
       
       // Signature Placeholder (would be encrypted in production)
-      sig: this.generateSignature(business, receiptNumber, totalZWL)
+      sig: this.generateSignature(business, receiptNumber, totalZWG)
     }
     
     // Convert to base64 for QR code
@@ -369,20 +369,20 @@ class VATCalculator {
   
   static calculateVAT(
     amountUSD: number,
-    amountZWL: number,
+    amountZWG: number,
     rate: VatRate,
     type: TaxType
-  ): { vatUSD: number; vatZWL: number } {
+  ): { vatUSD: number; vatZWG: number } {
     if (type === 'exempt' || type === 'zero_rated') {
-      return { vatUSD: 0, vatZWL: 0 }
+      return { vatUSD: 0, vatZWG: 0 }
     }
     
     const vatUSD = amountUSD * (rate / 100)
-    const vatZWL = amountZWL * (rate / 100)
+    const vatZWG = amountZWG * (rate / 100)
     
     return {
       vatUSD: Number(vatUSD.toFixed(2)),
-      vatZWL: Number(vatZWL.toFixed(2))
+      vatZWG: Number(vatZWG.toFixed(2))
     }
   }
   
@@ -396,18 +396,18 @@ class VATCalculator {
         breakdownMap.set(item.vatRate, {
           rate: item.vatRate,
           taxableAmountUSD: existing.taxableAmountUSD + item.netPriceUSD,
-          taxableAmountZWL: existing.taxableAmountZWL + item.netPriceZWL,
+          taxableAmountZWG: existing.taxableAmountZWG + item.netPriceZWG,
           vatAmountUSD: existing.vatAmountUSD + item.vatAmountUSD,
-          vatAmountZWL: existing.vatAmountZWL + item.vatAmountZWL,
+          vatAmountZWG: existing.vatAmountZWG + item.vatAmountZWG,
           itemCount: existing.itemCount + 1
         })
       } else {
         breakdownMap.set(item.vatRate, {
           rate: item.vatRate,
           taxableAmountUSD: item.netPriceUSD,
-          taxableAmountZWL: item.netPriceZWL,
+          taxableAmountZWG: item.netPriceZWG,
           vatAmountUSD: item.vatAmountUSD,
-          vatAmountZWL: item.vatAmountZWL,
+          vatAmountZWG: item.vatAmountZWG,
           itemCount: 1
         })
       }
@@ -442,10 +442,10 @@ const formatCurrency = (amount: number, currency: Currency): string => {
   
   return new Intl.NumberFormat('en-ZW', {
     style: 'currency',
-    currency: 'ZWL',
+    currency: 'ZWG',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
-  }).format(amount).replace('ZWL', 'ZWL')
+  }).format(amount).replace('ZWG', 'ZWG')
 }
 
 const formatDate = (date: Date, includeTime: boolean = true): string => {
@@ -485,8 +485,8 @@ const VATBreakdownTable = ({ breakdowns }: { breakdowns: VATBreakdown[] }) => {
             <th className="text-left p-2 border">VAT Rate</th>
             <th className="text-right p-2 border">Taxable (USD)</th>
             <th className="text-right p-2 border">VAT (USD)</th>
-            <th className="text-right p-2 border">Taxable (ZWL)</th>
-            <th className="text-right p-2 border">VAT (ZWL)</th>
+            <th className="text-right p-2 border">Taxable (ZWG)</th>
+            <th className="text-right p-2 border">VAT (ZWG)</th>
             <th className="text-center p-2 border">Items</th>
           </tr>
         </thead>
@@ -504,10 +504,10 @@ const VATBreakdownTable = ({ breakdowns }: { breakdowns: VATBreakdown[] }) => {
                 {formatCurrency(breakdown.vatAmountUSD, 'USD')}
               </td>
               <td className="p-2 border text-right">
-                {formatCurrency(breakdown.taxableAmountZWL, 'ZWL')}
+                {formatCurrency(breakdown.taxableAmountZWG, 'ZWG')}
               </td>
-              <td className="p-2 border text-right text-currency-zwl">
-                {formatCurrency(breakdown.vatAmountZWL, 'ZWL')}
+              <td className="p-2 border text-right text-currency-ZWG">
+                {formatCurrency(breakdown.vatAmountZWG, 'ZWG')}
               </td>
               <td className="p-2 border text-center">
                 {breakdown.itemCount}
@@ -749,15 +749,15 @@ const ItemsTable = ({ items }: { items: ReceiptItem[] }) => (
             <th className="text-left p-2 border">Description</th>
             <th className="text-center p-2 border">Qty</th>
             <th className="text-right p-2 border">Unit Price (USD)</th>
-            <th className="text-right p-2 border">Unit Price (ZWL)</th>
+            <th className="text-right p-2 border">Unit Price (ZWG)</th>
             <th className="text-right p-2 border">Discount</th>
             <th className="text-right p-2 border">Net (USD)</th>
-            <th className="text-right p-2 border">Net (ZWL)</th>
+            <th className="text-right p-2 border">Net (ZWG)</th>
             <th className="text-right p-2 border">VAT %</th>
             <th className="text-right p-2 border">VAT (USD)</th>
-            <th className="text-right p-2 border">VAT (ZWL)</th>
+            <th className="text-right p-2 border">VAT (ZWG)</th>
             <th className="text-right p-2 border">Total (USD)</th>
-            <th className="text-right p-2 border">Total (ZWL)</th>
+            <th className="text-right p-2 border">Total (ZWG)</th>
           </tr>
         </thead>
         <tbody>
@@ -774,19 +774,19 @@ const ItemsTable = ({ items }: { items: ReceiptItem[] }) => (
               </td>
               <td className="p-2 border text-center">{item.quantity}</td>
               <td className="p-2 border text-right">{formatCurrency(item.unitPriceUSD, 'USD')}</td>
-              <td className="p-2 border text-right">{formatCurrency(item.unitPriceZWL, 'ZWL')}</td>
+              <td className="p-2 border text-right">{formatCurrency(item.unitPriceZWG, 'ZWG')}</td>
               <td className="p-2 border text-right">
                 {item.discountRate ? `${item.discountRate}%` : '-'}
               </td>
               <td className="p-2 border text-right">{formatCurrency(item.netPriceUSD, 'USD')}</td>
-              <td className="p-2 border text-right">{formatCurrency(item.netPriceZWL, 'ZWL')}</td>
+              <td className="p-2 border text-right">{formatCurrency(item.netPriceZWG, 'ZWG')}</td>
               <td className="p-2 border text-right">
                 {item.vatRate === 15 ? '15%' : item.vatRate === 0 ? '0%' : `${item.vatRate}%`}
               </td>
               <td className="p-2 border text-right text-currency-usd">{formatCurrency(item.vatAmountUSD, 'USD')}</td>
-              <td className="p-2 border text-right text-currency-zwl">{formatCurrency(item.vatAmountZWL, 'ZWL')}</td>
+              <td className="p-2 border text-right text-currency-ZWG">{formatCurrency(item.vatAmountZWG, 'ZWG')}</td>
               <td className="p-2 border text-right font-bold">{formatCurrency(item.totalUSD, 'USD')}</td>
-              <td className="p-2 border text-right font-bold">{formatCurrency(item.totalZWL, 'ZWL')}</td>
+              <td className="p-2 border text-right font-bold">{formatCurrency(item.totalZWG, 'ZWG')}</td>
             </tr>
           ))}
         </tbody>
@@ -847,13 +847,13 @@ const MedicalAidReceiptSection = ({ medicalAid, totals }: {
         <div className="text-center p-2 bg-green-50 rounded">
           <div className="text-xs text-gray-600">Awarded</div>
           <div className="font-bold text-currency-usd">{formatCurrency(medicalAid.awardedAmountUSD, 'USD')}</div>
-          <div className="text-xs text-gray-500">{formatCurrency(medicalAid.awardedAmountZWL, 'ZWL')}</div>
+          <div className="text-xs text-gray-500">{formatCurrency(medicalAid.awardedAmountZWG, 'ZWG')}</div>
         </div>
         
         <div className="text-center p-2 bg-orange-50 rounded">
           <div className="text-xs text-gray-600">Shortfall</div>
           <div className="font-bold text-orange-600">{formatCurrency(medicalAid.shortfallAmountUSD, 'USD')}</div>
-          <div className="text-xs text-gray-500">{formatCurrency(medicalAid.shortfallAmountZWL, 'ZWL')}</div>
+          <div className="text-xs text-gray-500">{formatCurrency(medicalAid.shortfallAmountZWG, 'ZWG')}</div>
         </div>
         
         <div className="text-center p-2 bg-blue-50 rounded">
@@ -885,7 +885,7 @@ const PaymentSummary = ({ payments, totals }: {
   totals: ZimbabweCompliantReceiptProps['totals']
 }) => {
   const totalPaidUSD = payments.reduce((sum, p) => sum + p.equivalentUSD, 0)
-  const totalPaidZWL = payments.reduce((sum, p) => sum + p.equivalentZWL, 0)
+  const totalPaidZWG = payments.reduce((sum, p) => sum + p.equivalentZWG, 0)
   
   return (
     <div className="mb-6">
@@ -904,7 +904,7 @@ const PaymentSummary = ({ payments, totals }: {
               <th className="text-right p-2 border">Amount</th>
               <th className="text-right p-2 border">Rate</th>
               <th className="text-right p-2 border">USD Eq</th>
-              <th className="text-right p-2 border">ZWL Eq</th>
+              <th className="text-right p-2 border">ZWG Eq</th>
               <th className="text-left p-2 border">Reference</th>
               <th className="text-left p-2 border">Auth</th>
             </tr>
@@ -918,7 +918,7 @@ const PaymentSummary = ({ payments, totals }: {
                   <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
                     payment.currency === 'USD' 
                       ? 'bg-currency-usd/20 text-currency-usd' 
-                      : 'bg-currency-zwl/20 text-currency-zwl'
+                      : 'bg-currency-ZWG/20 text-currency-ZWG'
                   }`}>
                     {payment.currency}
                   </span>
@@ -932,8 +932,8 @@ const PaymentSummary = ({ payments, totals }: {
                 <td className="p-2 border text-right text-currency-usd">
                   {formatCurrency(payment.equivalentUSD, 'USD')}
                 </td>
-                <td className="p-2 border text-right text-currency-zwl">
-                  {formatCurrency(payment.equivalentZWL, 'ZWL')}
+                <td className="p-2 border text-right text-currency-ZWG">
+                  {formatCurrency(payment.equivalentZWG, 'ZWG')}
                 </td>
                 <td className="p-2 border font-mono text-xs">{payment.reference || '—'}</td>
                 <td className="p-2 border text-xs">{payment.authorizedBy || '—'}</td>
@@ -943,10 +943,10 @@ const PaymentSummary = ({ payments, totals }: {
           <tfoot className="bg-gray-100 font-medium">
             <tr>
               <td colSpan={3} className="p-2 border text-right">Total Payments:</td>
-              <td className="p-2 border text-right">{formatCurrency(totalPaidZWL, 'ZWL')}</td>
+              <td className="p-2 border text-right">{formatCurrency(totalPaidZWG, 'ZWG')}</td>
               <td className="p-2 border text-right"></td>
               <td className="p-2 border text-right text-currency-usd">{formatCurrency(totalPaidUSD, 'USD')}</td>
-              <td className="p-2 border text-right text-currency-zwl">{formatCurrency(totalPaidZWL, 'ZWL')}</td>
+              <td className="p-2 border text-right text-currency-ZWG">{formatCurrency(totalPaidZWG, 'ZWG')}</td>
               <td colSpan={2} className="p-2 border"></td>
             </tr>
           </tfoot>
@@ -957,19 +957,19 @@ const PaymentSummary = ({ payments, totals }: {
         <div className="bg-gray-50 p-2 rounded-lg">
           <div className="text-xs text-gray-600">Subtotal</div>
           <div className="font-bold">{formatCurrency(totals.subtotalUSD, 'USD')}</div>
-          <div className="text-xs text-gray-500">{formatCurrency(totals.subtotalZWL, 'ZWL')}</div>
+          <div className="text-xs text-gray-500">{formatCurrency(totals.subtotalZWG, 'ZWG')}</div>
         </div>
         
         <div className="bg-gray-50 p-2 rounded-lg">
           <div className="text-xs text-gray-600">VAT Total</div>
           <div className="font-bold text-currency-usd">{formatCurrency(totals.vatUSD, 'USD')}</div>
-          <div className="text-xs text-currency-zwl">{formatCurrency(totals.vatZWL, 'ZWL')}</div>
+          <div className="text-xs text-currency-ZWG">{formatCurrency(totals.vatZWG, 'ZWG')}</div>
         </div>
         
         <div className="bg-gray-50 p-2 rounded-lg">
           <div className="text-xs text-gray-600">Total</div>
           <div className="font-bold text-vp-primary">{formatCurrency(totals.totalUSD, 'USD')}</div>
-          <div className="text-xs text-gray-500">{formatCurrency(totals.totalZWL, 'ZWL')}</div>
+          <div className="text-xs text-gray-500">{formatCurrency(totals.totalZWG, 'ZWG')}</div>
         </div>
         
         <div className={`p-2 rounded-lg ${
@@ -983,7 +983,7 @@ const PaymentSummary = ({ payments, totals }: {
           <div className={`font-bold ${
             totals.balanceUSD <= 0 ? 'text-green-700' : 'text-orange-700'
           }`}>
-            {formatCurrency(Math.abs(totals.balanceZWL), 'ZWL')}
+            {formatCurrency(Math.abs(totals.balanceZWG), 'ZWG')}
           </div>
           <div className="text-xs text-gray-500">
             {formatCurrency(Math.abs(totals.balanceUSD), 'USD')}
@@ -1119,9 +1119,9 @@ export default function ZimbabweCompliantReceipt({
           receiptNumber.fullNumber,
           receiptDate,
           totals.totalUSD,
-          totals.totalZWL,
+          totals.totalZWG,
           totals.vatUSD,
-          totals.vatZWL,
+          totals.vatZWG,
           exchangeRate,
           transactionCurrency
         )
@@ -1133,7 +1133,7 @@ export default function ZimbabweCompliantReceipt({
     VATCalculator.isVATCompliant(items), [items]
   )
   
-  const isPaidInFull = totals.balanceUSD <= 0.01 && totals.balanceZWL <= 0.01
+  const isPaidInFull = totals.balanceUSD <= 0.01 && totals.balanceZWG <= 0.01
   
   // ==========================================================================
   // HANDLERS
@@ -1539,18 +1539,18 @@ export const createZIMRACompliantReceipt = (
     description: item.name,
     quantity: item.quantity,
     unitPriceUSD: item.priceUSD,
-    unitPriceZWL: item.priceZWL,
+    unitPriceZWG: item.priceZWG,
     discountRate: item.discount,
     discountAmountUSD: item.discount ? item.priceUSD * item.quantity * (item.discount / 100) : 0,
-    discountAmountZWL: item.discount ? item.priceZWL * item.quantity * (item.discount / 100) : 0,
+    discountAmountZWG: item.discount ? item.priceZWG * item.quantity * (item.discount / 100) : 0,
     netPriceUSD: item.priceUSD * item.quantity,
-    netPriceZWL: item.priceZWL * item.quantity,
+    netPriceZWG: item.priceZWG * item.quantity,
     vatRate: 15,
     vatType: 'standard',
     vatAmountUSD: (item.priceUSD * item.quantity) * 0.15,
-    vatAmountZWL: (item.priceZWL * item.quantity) * 0.15,
+    vatAmountZWG: (item.priceZWG * item.quantity) * 0.15,
     totalUSD: (item.priceUSD * item.quantity) * 1.15,
-    totalZWL: (item.priceZWL * item.quantity) * 1.15,
+    totalZWG: (item.priceZWG * item.quantity) * 1.15,
     isMedicalAid: false
   }))
   
@@ -1564,7 +1564,7 @@ export const createZIMRACompliantReceipt = (
     amount: payment.amount,
     exchangeRate: order.exchangeRate,
     equivalentUSD: payment.currency === 'USD' ? payment.amount : payment.amount / order.exchangeRate,
-    equivalentZWL: payment.currency === 'ZWL' ? payment.amount : payment.amount * order.exchangeRate,
+    equivalentZWG: payment.currency === 'ZWG' ? payment.amount : payment.amount * order.exchangeRate,
     reference: payment.reference,
     authorizedBy: payment.capturedBy,
     timestamp: payment.timestamp || new Date()
@@ -1572,27 +1572,27 @@ export const createZIMRACompliantReceipt = (
   
   // Calculate totals
   const subtotalUSD = items.reduce((sum, i) => sum + i.netPriceUSD, 0)
-  const subtotalZWL = items.reduce((sum, i) => sum + i.netPriceZWL, 0)
+  const subtotalZWG = items.reduce((sum, i) => sum + i.netPriceZWG, 0)
   const vatUSD = items.reduce((sum, i) => sum + i.vatAmountUSD, 0)
-  const vatZWL = items.reduce((sum, i) => sum + i.vatAmountZWL, 0)
+  const vatZWG = items.reduce((sum, i) => sum + i.vatAmountZWG, 0)
   const totalUSD = items.reduce((sum, i) => sum + i.totalUSD, 0)
-  const totalZWL = items.reduce((sum, i) => sum + i.totalZWL, 0)
+  const totalZWG = items.reduce((sum, i) => sum + i.totalZWG, 0)
   const amountPaidUSD = receiptPayments.reduce((sum, p) => sum + p.equivalentUSD, 0) + (medicalAid?.awardedAmountUSD || 0)
-  const amountPaidZWL = receiptPayments.reduce((sum, p) => sum + p.equivalentZWL, 0) + (medicalAid?.awardedAmountZWL || 0)
+  const amountPaidZWG = receiptPayments.reduce((sum, p) => sum + p.equivalentZWG, 0) + (medicalAid?.awardedAmountZWG || 0)
   
   const totals = {
     subtotalUSD,
-    subtotalZWL,
+    subtotalZWG,
     discountUSD: 0,
-    discountZWL: 0,
+    discountZWG: 0,
     vatUSD,
-    vatZWL,
+    vatZWG,
     totalUSD,
-    totalZWL,
+    totalZWG,
     amountPaidUSD,
-    amountPaidZWL,
+    amountPaidZWG,
     balanceUSD: totalUSD - amountPaidUSD,
-    balanceZWL: totalZWL - amountPaidZWL,
+    balanceZWG: totalZWG - amountPaidZWG,
     itemCount: items.length,
     paymentCount: receiptPayments.length
   }
@@ -1626,7 +1626,7 @@ export const createZIMRACompliantReceipt = (
     orderId: order.id,
     orderDate: order.createdAt || new Date(),
     baseCurrency: 'USD',
-    transactionCurrency: order.transactionCurrency || 'ZWL',
+    transactionCurrency: order.transactionCurrency || 'ZWG',
     exchangeRate: order.exchangeRate,
     rateLockedAt: order.rateLockedAt || new Date(),
     rateSource: order.rateSource || 'Reserve Bank of Zimbabwe',

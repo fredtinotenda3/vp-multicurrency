@@ -21,7 +21,7 @@ import { OfflineManager } from '@/lib/offline/OfflineManager'
 interface DashboardStats {
   readonly todayOrders: number
   readonly todayRevenueUSD: number
-  readonly todayRevenueZWL: number
+  readonly todayRevenueZWG: number
   readonly pendingClaims: number
   readonly pendingSync: number
   readonly activePatients: number
@@ -56,7 +56,7 @@ const StatsCard = ({ title, value, subtitle, icon, trend, trendValue, color, onC
     secondary: 'bg-vp-secondary/10 border-vp-secondary/30 text-vp-secondary',
     success: 'bg-status-cleared/10 border-status-cleared/30 text-status-cleared',
     warning: 'bg-status-pending/10 border-status-pending/30 text-status-pending',
-    info: 'bg-currency-zwl/10 border-currency-zwl/30 text-currency-zwl'
+    info: 'bg-currency-ZWG/10 border-currency-ZWG/30 text-currency-ZWG'
   }
 
   const trendIcons = {
@@ -151,7 +151,7 @@ const RateDisplay = ({ rate, onRefresh, isRefreshing }: RateDisplayProps) => {
               </div>
               <div className="flex items-baseline gap-3">
                 <span className="text-4xl font-bold text-vp-primary">
-                  1 USD = {rate.rate.toLocaleString()} ZWL
+                  1 USD = {rate.rate.toLocaleString()} ZWG
                 </span>
                 {rate.trend && (
                   <span className={`
@@ -195,12 +195,12 @@ const RateDisplay = ({ rate, onRefresh, isRefreshing }: RateDisplayProps) => {
         <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-3 gap-4 text-sm">
           <div>
             <p className="text-gray-500 text-xs">Interbank</p>
-            <p className="font-medium">1 USD = {(rate.rate * 0.98).toFixed(2)} ZWL</p>
+            <p className="font-medium">1 USD = {(rate.rate * 0.98).toFixed(2)} ZWG</p>
             <p className="text-xs text-green-600">2% discount</p>
           </div>
           <div>
             <p className="text-gray-500 text-xs">Parallel Market</p>
-            <p className="font-medium">1 USD = {(rate.rate * 1.05).toFixed(2)} ZWL</p>
+            <p className="font-medium">1 USD = {(rate.rate * 1.05).toFixed(2)} ZWG</p>
             <p className="text-xs text-orange-600">5% premium</p>
           </div>
           <div>
@@ -227,14 +227,14 @@ function useDashboardData() {
   const [stats, setStats] = useState<DashboardStats>({
     todayOrders: 0,
     todayRevenueUSD: 0,
-    todayRevenueZWL: 0,
+    todayRevenueZWG: 0,
     pendingClaims: 0,
     pendingSync: 0,
     activePatients: 0
   })
   
   const [rate, setRate] = useState<TodayRate>({
-    rate: 1250,
+    rate: 32.5,
     source: 'reserve_bank',
     lastUpdated: new Date(),
     trend: 'stable',
@@ -280,7 +280,7 @@ function useDashboardData() {
         setStats({
           todayOrders: 24,
           todayRevenueUSD: 3450.50,
-          todayRevenueZWL: 4312500,
+          todayRevenueZWG: 4332.50,
           pendingClaims: 7,
           pendingSync: queueState.pendingCount,
           activePatients: 156
@@ -317,7 +317,7 @@ function useDashboardData() {
         source: newRate.source,
         lastUpdated: new Date(newRate.timestamp),
         trend: newRate.rate > rate.rate ? 'up' : newRate.rate < rate.rate ? 'down' : 'stable',
-        change24h: Number(((newRate.rate - 1250) / 1250 * 100).toFixed(2))
+        change24h: Number(((newRate.rate - 32.5) / 32.5 * 100).toFixed(2))
       })
     } catch (error) {
       console.error('Failed to refresh rate:', error)
@@ -355,7 +355,7 @@ export default function Home() {
     refreshRate
   } = useDashboardData()
 
-  const formatCurrency = (amount: number, currency: 'USD' | 'ZWL') => {
+  const formatCurrency = (amount: number, currency: 'USD' | 'ZWG') => {
     if (currency === 'USD') {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -365,7 +365,7 @@ export default function Home() {
       }).format(amount)
     }
     
-    return `ZWL ${amount.toLocaleString('en-US', {
+    return `ZWG ${amount.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`
@@ -444,7 +444,7 @@ export default function Home() {
                 <StatsCard
                   title="Today's Revenue"
                   value={formatCurrency(stats.todayRevenueUSD, 'USD')}
-                  subtitle={formatCurrency(stats.todayRevenueZWL, 'ZWL')}
+                  subtitle={formatCurrency(stats.todayRevenueZWG, 'ZWG')}
                   icon="💰"
                   trend="up"
                   trendValue="8%"

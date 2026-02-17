@@ -21,17 +21,17 @@ interface MedicalAidClaim {
   readonly memberName?: string
   readonly orderId: string
   readonly orderTotalUSD: number
-  readonly orderTotalZWL: number
+  readonly orderTotalZWG: number
   readonly exchangeRate: number
   readonly rateLockedAt: Date
   readonly rateSource: string
   readonly awardUSD: number
-  readonly awardZWL: number
+  readonly awardZWG: number
   readonly awardAt?: Date
   readonly awardBy?: string
   readonly awardReference?: string
   readonly shortfallUSD: number
-  readonly shortfallZWL: number
+  readonly shortfallZWG: number
   readonly shortfallPaidAt?: Date
   readonly shortfallPaymentMethod?: string
   readonly shortfallReceiptNumber?: string
@@ -49,7 +49,7 @@ interface MedicalAidDirectPayment {
   readonly claimId: string
   readonly paymentNumber: string
   readonly amountUSD: number
-  readonly amountZWL: number
+  readonly amountZWG: number
   readonly paymentMethod: string
   readonly reference?: string
   readonly receiptNumber?: string
@@ -70,7 +70,7 @@ interface MedicalAidPaymentRecord {
   readonly memberNumber: string
   readonly paymentType: MedicalAidPaymentType
   readonly amountUSD: number
-  readonly amountZWL: number
+  readonly amountZWG: number
   readonly exchangeRate: number
   readonly paymentMethod: string
   readonly reference?: string
@@ -403,17 +403,17 @@ export class MedicalAidCache {
       memberName: patientInfo.memberName,
       orderId: order.id,
       orderTotalUSD: order.totalUSD,
-      orderTotalZWL: order.totalZWL,
+      orderTotalZWG: order.totalZWG,
       exchangeRate,
       rateLockedAt: order.rateLockedAt ? new Date(order.rateLockedAt) : new Date(),
       rateSource: order.rateSource || 'reserve_bank',
       awardUSD: 0,
-      awardZWL: 0,
+      awardZWG: 0,
       awardAt: undefined,
       awardBy: undefined,
       awardReference: undefined,
       shortfallUSD: order.totalUSD,
-      shortfallZWL: order.totalZWL,
+      shortfallZWG: order.totalZWG,
       shortfallPaidAt: undefined,
       shortfallPaymentMethod: undefined,
       shortfallReceiptNumber: undefined,
@@ -441,19 +441,19 @@ export class MedicalAidCache {
     const claim = this.claims.get(claimId)
     if (!claim) return null
 
-    const awardZWL = awardUSD * exchangeRate
+    const awardZWG = awardUSD * exchangeRate
     const shortfallUSD = claim.orderTotalUSD - awardUSD
-    const shortfallZWL = claim.orderTotalZWL - awardZWL
+    const shortfallZWG = claim.orderTotalZWG - awardZWG
 
     const updatedClaim: MedicalAidClaim = {
       ...claim,
       awardUSD,
-      awardZWL,
+      awardZWG,
       awardAt: new Date(),
       awardBy: awardedBy,
       awardReference: `AWARD-${Date.now().toString().slice(-6)}`,
       shortfallUSD,
-      shortfallZWL,
+      shortfallZWG,
       status: awardUSD > 0 ? 'awarded' : claim.status,
       lastModifiedAt: new Date(),
       lastModifiedBy: awardedBy
@@ -477,7 +477,7 @@ export class MedicalAidCache {
     },
     paymentDetails: {
       amountUSD: number
-      amountZWL: number
+      amountZWG: number
       paymentMethod: string
       reference?: string
       receiptNumber?: string
@@ -508,7 +508,7 @@ export class MedicalAidCache {
       const mockOrder = {
         id: orderId,
         totalUSD: paymentDetails.amountUSD,
-        totalZWL: paymentDetails.amountZWL,
+        totalZWG: paymentDetails.amountZWG,
         rateLockedAt: new Date(),
         rateSource: 'reserve_bank',
         createdBy: paymentDetails.capturedBy
@@ -523,7 +523,7 @@ export class MedicalAidCache {
           memberNumber: patientInfo.memberNumber,
           memberName: patientInfo.memberName
         },
-        paymentDetails.amountZWL / paymentDetails.amountUSD
+        paymentDetails.amountZWG / paymentDetails.amountUSD
       )
     }
 
@@ -532,7 +532,7 @@ export class MedicalAidCache {
       claimId: claim.id,
       paymentNumber: `MAPAY-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
       amountUSD: paymentDetails.amountUSD,
-      amountZWL: paymentDetails.amountZWL,
+      amountZWG: paymentDetails.amountZWG,
       paymentMethod: paymentDetails.paymentMethod,
       reference: paymentDetails.reference,
       receiptNumber: paymentDetails.receiptNumber,

@@ -167,13 +167,13 @@ export default function ReceiptScreen() {
 
   // Calculate totals if not provided
   const totalPaidUSD = payments.reduce((sum: number, p: any) => sum + (p.equivalentUSD || 0), 0) + (award?.awardedUSD || 0)
-  const totalPaidZWL = payments.reduce((sum: number, p: any) => sum + (p.equivalentZWL || 0), 0) + (award?.awardedZWL || 0)
+  const totalPaidZWG = payments.reduce((sum: number, p: any) => sum + (p.equivalentZWG || 0), 0) + (award?.awardedZWG || 0)
   
   const orderTotalUSD = order.totalUSD || transaction.totalUSD || 0
-  const orderTotalZWL = order.totalZWL || transaction.totalZWL || 0
+  const orderTotalZWG = order.totalZWG || transaction.totalZWG || 0
   
   const balanceUSD = orderTotalUSD - totalPaidUSD
-  const balanceZWL = orderTotalZWL - totalPaidZWL
+  const balanceZWG = orderTotalZWG - totalPaidZWG
 
   // Format business info
   const businessInfo: BusinessInfo = {
@@ -230,7 +230,7 @@ export default function ReceiptScreen() {
   // Format items from order
   const items = (order.items || []).map((item: any, index: number) => {
     const unitPriceUSD = item.priceUSD || item.unitPriceUSD || 0
-    const unitPriceZWL = item.priceZWL || item.unitPriceZWL || 0
+    const unitPriceZWG = item.priceZWG || item.unitPriceZWG || 0
     const quantity = item.quantity || 1
     
     return {
@@ -239,18 +239,18 @@ export default function ReceiptScreen() {
       description: item.name || item.description || 'Product',
       quantity: quantity,
       unitPriceUSD: unitPriceUSD,
-      unitPriceZWL: unitPriceZWL,
+      unitPriceZWG: unitPriceZWG,
       discountRate: item.discountRate,
       discountAmountUSD: item.discountAmountUSD,
-      discountAmountZWL: item.discountAmountZWL,
+      discountAmountZWG: item.discountAmountZWG,
       netPriceUSD: unitPriceUSD * quantity,
-      netPriceZWL: unitPriceZWL * quantity,
+      netPriceZWG: unitPriceZWG * quantity,
       vatRate: 15,
       vatType: 'standard',
       vatAmountUSD: (unitPriceUSD * quantity) * 0.15,
-      vatAmountZWL: (unitPriceZWL * quantity) * 0.15,
+      vatAmountZWG: (unitPriceZWG * quantity) * 0.15,
       totalUSD: (unitPriceUSD * quantity) * 1.15,
-      totalZWL: (unitPriceZWL * quantity) * 1.15,
+      totalZWG: (unitPriceZWG * quantity) * 1.15,
       isMedicalAid: false
     }
   })
@@ -261,11 +261,11 @@ export default function ReceiptScreen() {
     paymentNumber: p.paymentNumber || `PAY-${now.getFullYear()}-${String(index + 1).padStart(4, '0')}`,
     method: p.methodName || p.method || 'Cash',
     methodCode: p.methodId || p.method,
-    currency: p.currency || 'ZWL',
+    currency: p.currency || 'ZWG',
     amount: p.amount || 0,
     exchangeRate: transaction.exchangeRate || 32.5,
     equivalentUSD: p.equivalentUSD || (p.currency === 'USD' ? p.amount : p.amount / (transaction.exchangeRate || 32.5)),
-    equivalentZWL: p.equivalentZWL || (p.currency === 'ZWL' ? p.amount : p.amount * (transaction.exchangeRate || 32.5)),
+    equivalentZWG: p.equivalentZWG || (p.currency === 'ZWG' ? p.amount : p.amount * (transaction.exchangeRate || 32.5)),
     reference: p.reference,
     authorizedBy: p.capturedBy || transaction.cashier,
     timestamp: p.timestamp || transaction.completedAt || new Date()
@@ -280,9 +280,9 @@ export default function ReceiptScreen() {
     memberName: award.memberName || order.patientName,
     claimReference: award.claimReference || `CLAIM-${now.getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`,
     awardedAmountUSD: award.awardedUSD || 0,
-    awardedAmountZWL: award.awardedZWL || 0,
+    awardedAmountZWG: award.awardedZWG || 0,
     shortfallAmountUSD: balanceUSD,
-    shortfallAmountZWL: balanceZWL,
+    shortfallAmountZWG: balanceZWG,
     settlementDays: award.expectedSettlementDays || 30,
     expectedSettlementDate: new Date(now.getTime() + (award.expectedSettlementDays || 30) * 24 * 60 * 60 * 1000)
   } : undefined
@@ -290,17 +290,17 @@ export default function ReceiptScreen() {
   // Format totals
   const totals = {
     subtotalUSD: items.reduce((sum: number, i: any) => sum + i.netPriceUSD, 0),
-    subtotalZWL: items.reduce((sum: number, i: any) => sum + i.netPriceZWL, 0),
+    subtotalZWG: items.reduce((sum: number, i: any) => sum + i.netPriceZWG, 0),
     discountUSD: 0,
-    discountZWL: 0,
+    discountZWG: 0,
     vatUSD: items.reduce((sum: number, i: any) => sum + i.vatAmountUSD, 0),
-    vatZWL: items.reduce((sum: number, i: any) => sum + i.vatAmountZWL, 0),
+    vatZWG: items.reduce((sum: number, i: any) => sum + i.vatAmountZWG, 0),
     totalUSD: orderTotalUSD,
-    totalZWL: orderTotalZWL,
+    totalZWG: orderTotalZWG,
     amountPaidUSD: totalPaidUSD,
-    amountPaidZWL: totalPaidZWL,
+    amountPaidZWG: totalPaidZWG,
     balanceUSD: balanceUSD,
-    balanceZWL: balanceZWL,
+    balanceZWG: balanceZWG,
     itemCount: items.length,
     paymentCount: formattedPayments.length
   }
@@ -406,7 +406,7 @@ export default function ReceiptScreen() {
                 
                 // Currency Information
                 baseCurrency="USD"
-                transactionCurrency={transaction.transactionCurrency || 'ZWL'}
+                transactionCurrency={transaction.transactionCurrency || 'ZWG'}
                 exchangeRate={transaction.exchangeRate || 32.5}
                 rateLockedAt={transaction.rateLockedAt || new Date()}
                 rateSource={transaction.rateSource || 'Reserve Bank of Zimbabwe'}
@@ -500,35 +500,35 @@ function getSampleTransaction() {
       patientId: 'PT-2027',
       patientPhone: '+263 77 123 4567',
       subtotalUSD: 250,
-      subtotalZWL: 8125, // 250 * 32.5
+      subtotalZWG: 8125, // 250 * 32.5
       taxUSD: 37.5,
-      taxZWL: 1218.75, // 37.5 * 32.5
+      taxZWG: 1218.75, // 37.5 * 32.5
       totalUSD: 287.5,
-      totalZWL: 9343.75, // 287.5 * 32.5
+      totalZWG: 9343.75, // 287.5 * 32.5
       items: [
         { 
           name: 'Ray-Ban Aviator',
           description: 'Ray-Ban Aviator',
           quantity: 1, 
           priceUSD: 120, 
-          priceZWL: 3900, // 120 * 32.5
+          priceZWG: 3900, // 120 * 32.5
           unitPriceUSD: 120,
-          unitPriceZWL: 3900
+          unitPriceZWG: 3900
         },
         { 
           name: 'Progressive Lenses',
           description: 'Progressive Lenses',
           quantity: 1, 
           priceUSD: 130, 
-          priceZWL: 4225, // 130 * 32.5
+          priceZWG: 4225, // 130 * 32.5
           unitPriceUSD: 130,
-          unitPriceZWL: 4225
+          unitPriceZWG: 4225
         }
       ]
     },
     
     exchangeRate: 32.5,
-    transactionCurrency: 'ZWL',
+    transactionCurrency: 'ZWG',
     rateLockedAt,
     rateSource: 'Reserve Bank of Zimbabwe',
     
@@ -541,7 +541,7 @@ function getSampleTransaction() {
         currency: 'USD', 
         amount: 100, 
         equivalentUSD: 100,
-        equivalentZWL: 3250, // 100 * 32.5
+        equivalentZWG: 3250, // 100 * 32.5
         reference: 'CASH-001',
         capturedBy: 'Fred Stanley',
         timestamp: new Date(now.getTime() - 30 * 60000)
@@ -551,10 +551,10 @@ function getSampleTransaction() {
         paymentNumber: 'PAY-240201-0002',
         methodName: 'Ecocash',
         method: 'Ecocash',
-        currency: 'ZWL', 
+        currency: 'ZWG', 
         amount: 6093.75, // 187.5 * 32.5
         equivalentUSD: 187.5,
-        equivalentZWL: 6093.75,
+        equivalentZWG: 6093.75,
         reference: 'ECO-789012',
         capturedBy: 'Fred Stanley',
         timestamp: new Date(now.getTime() - 15 * 60000)
@@ -567,15 +567,15 @@ function getSampleTransaction() {
       memberNumber: 'CIM-789012',
       claimReference: 'CIM-2024-001-5678',
       awardedUSD: 210,
-      awardedZWL: 6825, // 210 * 32.5
+      awardedZWG: 6825, // 210 * 32.5
       expectedSettlementDays: 30
     },
     
     totals: {
       totalPaidUSD: 287.5,
-      totalPaidZWL: 9343.75,
+      totalPaidZWG: 9343.75,
       balanceUSD: 0,
-      balanceZWL: 0,
+      balanceZWG: 0,
       isPaidInFull: true
     }
   }

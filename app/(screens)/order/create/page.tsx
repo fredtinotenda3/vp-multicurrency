@@ -13,7 +13,7 @@ import { ZimbabwePhoneValidator, MedicalAidMemberValidator } from '@/components/
 // TYPES - Explicit, immutable, self-documenting
 // ============================================================================
 
-type Currency = 'USD' | 'ZWL'
+type Currency = 'USD' | 'ZWG'
 type RateSource = 'reserve_bank' | 'manual' | 'clinic_rate'
 type OrderStatus = 'draft' | 'pending_payment' | 'completed' | 'cancelled'
 
@@ -45,11 +45,11 @@ interface OrderItem {
   readonly category: string
   readonly quantity: number
   readonly unitPriceUSD: number
-  readonly unitPriceZWL: number
+  readonly unitPriceZWG: number
   readonly totalPriceUSD: number
-  readonly totalPriceZWL: number
+  readonly totalPriceZWG: number
   readonly taxUSD: number
-  readonly taxZWL: number
+  readonly taxZWG: number
   readonly requiresPrescription: boolean
 }
 
@@ -102,7 +102,7 @@ const formatShortDate = (date: Date | string): string => {
   }
 }
 
-const formatCurrency = (amount: number, currency: 'USD' | 'ZWL'): string => {
+const formatCurrency = (amount: number, currency: 'USD' | 'ZWG'): string => {
   if (currency === 'USD') {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -110,7 +110,7 @@ const formatCurrency = (amount: number, currency: 'USD' | 'ZWL'): string => {
       minimumFractionDigits: 2
     }).format(amount)
   }
-  return `ZWL ${amount.toLocaleString('en-US', {
+  return `ZWG ${amount.toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })}`
@@ -175,7 +175,7 @@ const MEDICAL_AID_PROVIDERS = [
 
 function useExchangeRate() {
   const [exchangeRate, setExchangeRate] = useState<ExchangeRate>({
-    rate: 32.5, // Changed from 1250 to 32.5
+    rate: 32.5, // Changed from 32.5 to 32.5
     source: 'reserve_bank',
     lastUpdated: new Date(),
     validUntil: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
@@ -256,11 +256,11 @@ function useOrderCreation() {
   const [orderId, setOrderId] = useState<string | null>(null)
 
   const addItem = useCallback((product: Product, quantity: number, exchangeRate: number) => {
-    const unitPriceZWL = product.basePriceUSD * exchangeRate
+    const unitPriceZWG = product.basePriceUSD * exchangeRate
     const totalPriceUSD = product.basePriceUSD * quantity
-    const totalPriceZWL = unitPriceZWL * quantity
+    const totalPriceZWG = unitPriceZWG * quantity
     const taxUSD = product.isTaxable ? totalPriceUSD * (product.taxRate / 100) : 0
-    const taxZWL = product.isTaxable ? totalPriceZWL * (product.taxRate / 100) : 0
+    const taxZWG = product.isTaxable ? totalPriceZWG * (product.taxRate / 100) : 0
 
     const newItem: OrderItem = {
       id: `ITEM-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
@@ -270,11 +270,11 @@ function useOrderCreation() {
       category: product.category,
       quantity,
       unitPriceUSD: product.basePriceUSD,
-      unitPriceZWL,
+      unitPriceZWG,
       totalPriceUSD,
-      totalPriceZWL,
+      totalPriceZWG,
       taxUSD,
-      taxZWL,
+      taxZWG,
       requiresPrescription: product.requiresPrescription
     }
 
@@ -291,17 +291,17 @@ function useOrderCreation() {
     setOrderItems(prev => prev.map(item => {
       if (item.id === itemId) {
         const totalPriceUSD = item.unitPriceUSD * newQuantity
-        const totalPriceZWL = item.unitPriceZWL * newQuantity
+        const totalPriceZWG = item.unitPriceZWG * newQuantity
         const taxUSD = totalPriceUSD * (ZIMBABWE_VAT_RATE / 100)
-        const taxZWL = totalPriceZWL * (ZIMBABWE_VAT_RATE / 100)
+        const taxZWG = totalPriceZWG * (ZIMBABWE_VAT_RATE / 100)
 
         return {
           ...item,
           quantity: newQuantity,
           totalPriceUSD,
-          totalPriceZWL,
+          totalPriceZWG,
           taxUSD,
-          taxZWL
+          taxZWG
         }
       }
       return item
@@ -328,21 +328,21 @@ function useOrderCreation() {
 
   const calculateTotals = useCallback((exchangeRate: number) => {
     const subtotalUSD = orderItems.reduce((sum, item) => sum + item.totalPriceUSD, 0)
-    const subtotalZWL = orderItems.reduce((sum, item) => sum + item.totalPriceZWL, 0)
+    const subtotalZWG = orderItems.reduce((sum, item) => sum + item.totalPriceZWG, 0)
     
     const taxUSD = orderItems.reduce((sum, item) => sum + item.taxUSD, 0)
-    const taxZWL = orderItems.reduce((sum, item) => sum + item.taxZWL, 0)
+    const taxZWG = orderItems.reduce((sum, item) => sum + item.taxZWG, 0)
     
     const totalUSD = subtotalUSD + taxUSD
-    const totalZWL = subtotalZWL + taxZWL
+    const totalZWG = subtotalZWG + taxZWG
 
     return {
       subtotalUSD,
-      subtotalZWL,
+      subtotalZWG,
       taxUSD,
-      taxZWL,
+      taxZWG,
       totalUSD,
-      totalZWL,
+      totalZWG,
       itemCount: orderItems.length,
       uniqueItems: orderItems.length
     }
@@ -496,15 +496,15 @@ const ExchangeRateDisplay = ({
           </button>
           <button
             type="button"
-            onClick={() => onCurrencyChange('ZWL')}
+            onClick={() => onCurrencyChange('ZWG')}
             className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-              transactionCurrency === 'ZWL'
-                ? 'bg-currency-zwl text-white'
+              transactionCurrency === 'ZWG'
+                ? 'bg-currency-ZWG text-white'
                 : 'bg-white/20 text-white hover:bg-white/30'
             }`}
             disabled={isLocked || disabled}
           >
-            ZWL
+            ZWG
           </button>
         </div>
       </div>
@@ -515,7 +515,7 @@ const ExchangeRateDisplay = ({
             <div className="text-sm text-gray-600 mb-1">Current Rate</div>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-bold text-vp-primary">
-                1 USD = {rate.rate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ZWL
+                1 USD = {rate.rate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ZWG
               </span>
               {rate.isLive && !isLocked && (
                 <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
@@ -606,7 +606,7 @@ const ExchangeRateDisplay = ({
                 <span className="font-medium text-currency-locked">Rate Locked</span>
               </div>
               <div className="text-sm">
-                <span className="font-bold">1 USD = {rate.rate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ZWL</span>
+                <span className="font-bold">1 USD = {rate.rate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ZWG</span>
                 {lockedAt && (
                   <span className="text-gray-600 ml-2">
                     locked at {formatDate(lockedAt)}
@@ -631,24 +631,24 @@ const ExchangeRateDisplay = ({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center p-2 bg-white rounded border">
                 <div className="text-xs text-gray-500">$10 USD</div>
-                <div className="font-medium text-currency-zwl">
-                  {(10 * rate.rate).toFixed(2)} ZWL
+                <div className="font-medium text-currency-ZWG">
+                  {(10 * rate.rate).toFixed(2)} ZWG
                 </div>
               </div>
               <div className="text-center p-2 bg-white rounded border">
                 <div className="text-xs text-gray-500">$50 USD</div>
-                <div className="font-medium text-currency-zwl">
-                  {(50 * rate.rate).toFixed(2)} ZWL
+                <div className="font-medium text-currency-ZWG">
+                  {(50 * rate.rate).toFixed(2)} ZWG
                 </div>
               </div>
               <div className="text-center p-2 bg-white rounded border">
-                <div className="text-xs text-gray-500">1,000 ZWL</div>
+                <div className="text-xs text-gray-500">1,000 ZWG</div>
                 <div className="font-medium text-currency-usd">
                   ${(1000 / rate.rate).toFixed(2)} USD
                 </div>
               </div>
               <div className="text-center p-2 bg-white rounded border">
-                <div className="text-xs text-gray-500">5,000 ZWL</div>
+                <div className="text-xs text-gray-500">5,000 ZWG</div>
                 <div className="font-medium text-currency-usd">
                   ${(5000 / rate.rate).toFixed(2)} USD
                 </div>
@@ -839,8 +839,8 @@ const ProductSelector = ({ onAddItem, exchangeRate, disabled = false }: ProductS
                   <div className="text-currency-usd font-medium">
                     {formatCurrency(selectedProduct.basePriceUSD * quantity, 'USD')}
                   </div>
-                  <div className="text-sm text-currency-zwl">
-                    {formatCurrency(selectedProduct.basePriceUSD * exchangeRate * quantity, 'ZWL')}
+                  <div className="text-sm text-currency-ZWG">
+                    {formatCurrency(selectedProduct.basePriceUSD * exchangeRate * quantity, 'ZWG')}
                   </div>
                 </div>
               </div>
@@ -939,7 +939,7 @@ const OrderItemsTable = ({
                   Total (USD)
                 </th>
                 <th className="text-right p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total (ZWL)
+                  Total (ZWG)
                 </th>
                 <th className="text-center p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -974,8 +974,8 @@ const OrderItemsTable = ({
                     <div className="font-medium text-currency-usd">
                       {formatCurrency(item.unitPriceUSD, 'USD')}
                     </div>
-                    <div className="text-xs text-currency-zwl">
-                      {formatCurrency(item.unitPriceZWL, 'ZWL')}
+                    <div className="text-xs text-currency-ZWG">
+                      {formatCurrency(item.unitPriceZWG, 'ZWG')}
                     </div>
                   </td>
                   <td className="p-3">
@@ -1004,8 +1004,8 @@ const OrderItemsTable = ({
                   <td className="p-3 text-right font-medium text-currency-usd">
                     {formatCurrency(item.totalPriceUSD, 'USD')}
                   </td>
-                  <td className="p-3 text-right font-medium text-currency-zwl">
-                    {formatCurrency(item.totalPriceZWL, 'ZWL')}
+                  <td className="p-3 text-right font-medium text-currency-ZWG">
+                    {formatCurrency(item.totalPriceZWG, 'ZWG')}
                   </td>
                   <td className="p-3 text-center">
                     <button
@@ -1310,7 +1310,7 @@ const OrderSummary = ({
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <span className={`currency-badge ${
-                transactionCurrency === 'USD' ? 'currency-usd' : 'currency-zwl'
+                transactionCurrency === 'USD' ? 'currency-usd' : 'currency-ZWG'
               } px-2 py-1 text-xs`}>
                 {transactionCurrency}
               </span>
@@ -1322,7 +1322,7 @@ const OrderSummary = ({
                 <span className="text-gray-600">Subtotal:</span>
                 <span className="font-medium">
                   {formatCurrency(
-                    transactionCurrency === 'USD' ? totals.subtotalUSD : totals.subtotalZWL,
+                    transactionCurrency === 'USD' ? totals.subtotalUSD : totals.subtotalZWG,
                     transactionCurrency
                   )}
                 </span>
@@ -1331,7 +1331,7 @@ const OrderSummary = ({
                 <span className="text-gray-600">VAT (15%):</span>
                 <span className="font-medium">
                   {formatCurrency(
-                    transactionCurrency === 'USD' ? totals.taxUSD : totals.taxZWL,
+                    transactionCurrency === 'USD' ? totals.taxUSD : totals.taxZWG,
                     transactionCurrency
                   )}
                 </span>
@@ -1339,10 +1339,10 @@ const OrderSummary = ({
               <div className="flex justify-between text-lg font-bold border-t pt-3 mt-3">
                 <span>Total {transactionCurrency}:</span>
                 <span className={
-                  transactionCurrency === 'USD' ? 'text-currency-usd' : 'text-currency-zwl'
+                  transactionCurrency === 'USD' ? 'text-currency-usd' : 'text-currency-ZWG'
                 }>
                   {formatCurrency(
-                    transactionCurrency === 'USD' ? totals.totalUSD : totals.totalZWL,
+                    transactionCurrency === 'USD' ? totals.totalUSD : totals.totalZWG,
                     transactionCurrency
                   )}
                 </span>
@@ -1360,7 +1360,7 @@ const OrderSummary = ({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <span className="text-gray-600 text-xs">Rate:</span>
-                <div className="font-medium">1 USD = {lockedRate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ZWL</div>
+                <div className="font-medium">1 USD = {lockedRate.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ZWG</div>
               </div>
               <div>
                 <span className="text-gray-600 text-xs">Locked at:</span>
@@ -1474,7 +1474,7 @@ export default function OrderCreationScreen() {
     unlockRate
   } = useExchangeRate()
   
-  const [transactionCurrency, setTransactionCurrency] = useState<Currency>('ZWL')
+  const [transactionCurrency, setTransactionCurrency] = useState<Currency>('ZWG')
   
   const {
     orderItems,
@@ -1560,7 +1560,7 @@ export default function OrderCreationScreen() {
       patientName: patientInfo.name,
       itemCount: orderItems.length,
       totalUSD: calculatedTotals.totalUSD,
-      totalZWL: calculatedTotals.totalZWL
+      totalZWG: calculatedTotals.totalZWG
     })
 
     // ✅ FIX: Flatten the order object - NO NESTED totals!
@@ -1580,18 +1580,18 @@ export default function OrderCreationScreen() {
       
       // ✅ CRITICAL: FLATTEN TOTALS - NOT NESTED!
       subtotalUSD: calculatedTotals.subtotalUSD,
-      subtotalZWL: calculatedTotals.subtotalZWL,
+      subtotalZWG: calculatedTotals.subtotalZWG,
       taxUSD: calculatedTotals.taxUSD,
-      taxZWL: calculatedTotals.taxZWL,
+      taxZWG: calculatedTotals.taxZWG,
       totalUSD: calculatedTotals.totalUSD,
-      totalZWL: calculatedTotals.totalZWL,
+      totalZWG: calculatedTotals.totalZWG,
       
       // Order items
       items: order.items.map(item => ({
         name: item.name,
         quantity: item.quantity,
         priceUSD: item.unitPriceUSD,
-        priceZWL: item.unitPriceZWL,
+        priceZWG: item.unitPriceZWG,
         requiresPrescription: item.requiresPrescription
       })),
       

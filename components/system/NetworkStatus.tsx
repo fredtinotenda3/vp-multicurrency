@@ -757,7 +757,7 @@ export default function NetworkStatus() {
                         <span>✓</span> Create orders with locked rates
                       </li>
                       <li className="flex items-center gap-1">
-                        <span>✓</span> Process cash payments (USD/ZWL)
+                        <span>✓</span> Process cash payments (USD/ZWG)
                       </li>
                       <li className="flex items-center gap-1">
                         <span>✓</span> Record medical aid awards

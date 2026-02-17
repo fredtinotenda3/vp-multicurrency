@@ -3,7 +3,7 @@
 // Used by both order creation and payment screens
 // ============================================================================
 
-export type Currency = 'USD' | 'ZWL'
+export type Currency = 'USD' | 'ZWG'
 export type RateSource = 'reserve_bank' | 'manual' | 'clinic_rate'
 export type OrderStatus = 'draft' | 'pending_payment' | 'completed' | 'cancelled'
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded'
@@ -48,11 +48,11 @@ export interface OrderItem {
   readonly category: string
   readonly quantity: number
   readonly unitPriceUSD: number
-  readonly unitPriceZWL: number
+  readonly unitPriceZWG: number
   readonly totalPriceUSD: number
-  readonly totalPriceZWL: number
+  readonly totalPriceZWG: number
   readonly taxUSD: number
-  readonly taxZWL: number
+  readonly taxZWG: number
   readonly requiresPrescription: boolean
 }
 
@@ -74,11 +74,11 @@ export interface ExchangeRate {
 
 export interface OrderTotals {
   readonly subtotalUSD: number
-  readonly subtotalZWL: number
+  readonly subtotalZWG: number
   readonly taxUSD: number
-  readonly taxZWL: number
+  readonly taxZWG: number
   readonly totalUSD: number
-  readonly totalZWL: number
+  readonly totalZWG: number
   readonly itemCount: number
   readonly uniqueItems: number
 }
@@ -109,11 +109,11 @@ export interface Order {
   
   // Financial Totals
   readonly subtotalUSD: number
-  readonly subtotalZWL: number
+  readonly subtotalZWG: number
   readonly taxUSD: number
-  readonly taxZWL: number
+  readonly taxZWG: number
   readonly totalUSD: number
-  readonly totalZWL: number
+  readonly totalZWG: number
   
   // Metadata
   readonly createdAt: Date
@@ -163,7 +163,7 @@ export function isValidOrderForPayment(order: Partial<Order>): boolean {
     'patientName',
     'patientId',
     'totalUSD',
-    'totalZWL',
+    'totalZWG',
     'exchangeRate',
     'items'
   ]

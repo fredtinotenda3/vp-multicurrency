@@ -235,7 +235,7 @@ const SpinnerIcon = ({ size, theme }: { size: LoadingSize; theme: LoadingTheme }
     success: 'border-status-cleared border-t-transparent',
     warning: 'border-status-pending border-t-transparent',
     danger: 'border-status-error border-t-transparent',
-    info: 'border-currency-zwl border-t-transparent'
+    info: 'border-currency-ZWG border-t-transparent'
   }
 
   return (
@@ -268,7 +268,7 @@ const DotsLoader = ({ size, theme }: { size: LoadingSize; theme: LoadingTheme })
     success: 'bg-status-cleared',
     warning: 'bg-status-pending',
     danger: 'bg-status-error',
-    info: 'bg-currency-zwl'
+    info: 'bg-currency-ZWG'
   }
 
   return (
@@ -423,7 +423,7 @@ export function ProgressLoader({
     success: 'bg-status-cleared',
     warning: 'bg-status-pending',
     danger: 'bg-status-error',
-    info: 'bg-currency-zwl'
+    info: 'bg-currency-ZWG'
   }
 
   return (

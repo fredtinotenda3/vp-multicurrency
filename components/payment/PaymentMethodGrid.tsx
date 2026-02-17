@@ -7,7 +7,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 // TYPES - Explicit, immutable, production-grade
 // ============================================================================
 
-type Currency = 'USD' | 'ZWL'
+type Currency = 'USD' | 'ZWG'
 type PaymentMethodType = 'cash' | 'medical_aid' | 'card' | 'mobile_money' | 'bank' | 'voucher' | 'credit'
 type ProcessingTime = 'immediate' | '1_2_days' | '2_3_days' | '3_5_days' | '30_days' | '45_days' | '60_days'
 type PopularityRank = 'high' | 'medium' | 'low'
@@ -55,7 +55,7 @@ interface PaymentMethodGridProps {
   onCurrencyChange?: (currency: Currency) => void
   
   // Filter State
-  initialFilter?: 'all' | 'USD' | 'ZWL' | 'medical_aid' | 'cash' | 'card' | 'mobile' | 'bank' | 'voucher'
+  initialFilter?: 'all' | 'USD' | 'ZWG' | 'medical_aid' | 'cash' | 'card' | 'mobile' | 'bank' | 'voucher'
   showCurrencyToggle?: boolean
   showFilters?: boolean
   showSearch?: boolean
@@ -105,10 +105,10 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     description: 'US Dollar cash payment'
   },
   {
-    id: 'cash_zwl',
-    code: 'CASH-ZWL',
-    name: 'Cash ZWL',
-    currency: 'ZWL',
+    id: 'cash_ZWG',
+    code: 'CASH-ZWG',
+    name: 'Cash ZWG',
+    currency: 'ZWG',
     type: 'cash',
     icon: '💵',
     iconBg: 'bg-gradient-to-br from-blue-50 to-blue-100',
@@ -131,7 +131,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'cimas',
     code: 'CIM',
     name: 'Cimas',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-red-50 to-red-100',
@@ -152,7 +152,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'first_mutual',
     code: 'FMH',
     name: 'First Mutual',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-blue-50 to-blue-100',
@@ -172,7 +172,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'psmas',
     code: 'PSM',
     name: 'PSMAS',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-green-50 to-green-100',
@@ -192,7 +192,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'liberty',
     code: 'LIB',
     name: 'Liberty Health',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-purple-50 to-purple-100',
@@ -212,7 +212,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'alliance',
     code: 'ALL',
     name: 'Alliance Health',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-pink-50 to-pink-100',
@@ -232,7 +232,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'altfin',
     code: 'ALT',
     name: 'Altfin',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-yellow-50 to-yellow-100',
@@ -252,7 +252,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'bonvie',
     code: 'BON',
     name: 'BonVie',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-indigo-50 to-indigo-100',
@@ -272,7 +272,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'cellmed',
     code: 'CEL',
     name: 'Cellmed',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-teal-50 to-teal-100',
@@ -292,7 +292,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'corporate_24',
     code: 'C24',
     name: 'Corporate 24',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-gray-50 to-gray-100',
@@ -312,7 +312,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'eternal_peace',
     code: 'EPH',
     name: 'Eternal Peace',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-amber-50 to-amber-100',
@@ -332,7 +332,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'fbc',
     code: 'FBC',
     name: 'FBC Health',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-orange-50 to-orange-100',
@@ -352,7 +352,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'flimas',
     code: 'FLI',
     name: 'Flimas',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-cyan-50 to-cyan-100',
@@ -372,7 +372,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'generation_health',
     code: 'GEN',
     name: 'Generation Health',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-emerald-50 to-emerald-100',
@@ -392,7 +392,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'grainmed',
     code: 'GRN',
     name: 'Grainmed',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-lime-50 to-lime-100',
@@ -412,7 +412,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'healthmed',
     code: 'HLT',
     name: 'Healthmed',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-rose-50 to-rose-100',
@@ -432,7 +432,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'heritage',
     code: 'HER',
     name: 'Heritage',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-fuchsia-50 to-fuchsia-100',
@@ -452,7 +452,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'hmmas',
     code: 'HMM',
     name: 'Hmmas',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-violet-50 to-violet-100',
@@ -472,7 +472,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'maisha',
     code: 'MAI',
     name: 'Maisha',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-slate-50 to-slate-100',
@@ -492,7 +492,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'masca',
     code: 'MAS',
     name: 'Masca',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-stone-50 to-stone-100',
@@ -512,7 +512,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'minerva',
     code: 'MIN',
     name: 'Minerva',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-zinc-50 to-zinc-100',
@@ -532,7 +532,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'northern',
     code: 'NOR',
     name: 'Northern',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-neutral-50 to-neutral-100',
@@ -552,7 +552,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'oakfin',
     code: 'OAK',
     name: 'Oakfin',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-amber-50 to-amber-100',
@@ -572,7 +572,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'old_mutual',
     code: 'OMH',
     name: 'Old Mutual',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-blue-50 to-blue-100',
@@ -592,7 +592,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'prohealth',
     code: 'PRO',
     name: 'ProHealth',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-green-50 to-green-100',
@@ -612,7 +612,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'varichem',
     code: 'VAR',
     name: 'Varichem',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-red-50 to-red-100',
@@ -632,7 +632,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'emf',
     code: 'EMF',
     name: 'EMF',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'medical_aid',
     icon: '🏥',
     iconBg: 'bg-gradient-to-br from-gray-50 to-gray-100',
@@ -676,7 +676,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'ecocash',
     code: 'ECO',
     name: 'Ecocash',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'mobile_money',
     icon: '📱',
     iconBg: 'bg-gradient-to-br from-teal-50 to-teal-100',
@@ -697,7 +697,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'onemoney',
     code: 'ONE',
     name: 'OneMoney',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'mobile_money',
     icon: '📱',
     iconBg: 'bg-gradient-to-br from-cyan-50 to-cyan-100',
@@ -717,7 +717,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'telecash',
     code: 'TEL',
     name: 'Telecash',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'mobile_money',
     icon: '📱',
     iconBg: 'bg-gradient-to-br from-blue-50 to-blue-100',
@@ -741,7 +741,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'rtgs',
     code: 'RTGS',
     name: 'RTGS Transfer',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'bank',
     icon: '🏦',
     iconBg: 'bg-gradient-to-br from-yellow-50 to-yellow-100',
@@ -761,7 +761,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'cheque',
     code: 'CHQ',
     name: 'Cheque',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'bank',
     icon: '📄',
     iconBg: 'bg-gradient-to-br from-yellow-50 to-yellow-100',
@@ -781,7 +781,7 @@ const PAYMENT_METHODS: readonly PaymentMethod[] = [
     id: 'direct_debit',
     code: 'DD',
     name: 'Direct Debit',
-    currency: 'ZWL',
+    currency: 'ZWG',
     type: 'bank',
     icon: '🏦',
     iconBg: 'bg-gradient-to-br from-yellow-50 to-yellow-100',
@@ -899,7 +899,7 @@ const PAYMENT_CATEGORIES: readonly PaymentMethodCategory[] = [
 const FILTER_OPTIONS = [
   { id: 'all', label: 'All Methods', icon: '📋' },
   { id: 'USD', label: 'USD Only', icon: '$' },
-  { id: 'ZWL', label: 'ZWL Only', icon: 'ZW$' },
+  { id: 'ZWG', label: 'ZWG Only', icon: 'ZW$' },
   { id: 'medical_aid', label: 'Medical Aid', icon: '🏥' },
   { id: 'cash', label: 'Cash', icon: '💵' },
   { id: 'card', label: 'Card', icon: '💳' },
@@ -995,8 +995,8 @@ export default function PaymentMethodGrid({
     // Apply currency filter
     if (activeFilter === 'USD') {
       methods = methods.filter(m => m.currency === 'USD')
-    } else if (activeFilter === 'ZWL') {
-      methods = methods.filter(m => m.currency === 'ZWL')
+    } else if (activeFilter === 'ZWG') {
+      methods = methods.filter(m => m.currency === 'ZWG')
     } else if (activeFilter === 'medical_aid') {
       methods = showAllMedicalAid 
         ? medicalAidMethods 
@@ -1163,8 +1163,8 @@ export default function PaymentMethodGrid({
           ${isSelected
             ? method.currency === 'USD'
               ? 'border-currency-usd bg-currency-usd/5 ring-2 ring-currency-usd/20'
-              : method.currency === 'ZWL'
-                ? 'border-currency-zwl bg-currency-zwl/5 ring-2 ring-currency-zwl/20'
+              : method.currency === 'ZWG'
+                ? 'border-currency-ZWG bg-currency-ZWG/5 ring-2 ring-currency-ZWG/20'
                 : 'border-vp-primary bg-vp-primary/5 ring-2 ring-vp-primary/20'
             : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
           }
@@ -1235,7 +1235,7 @@ export default function PaymentMethodGrid({
                 flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium
                 ${method.currency === 'USD'
                   ? 'bg-currency-usd/20 text-currency-usd'
-                  : 'bg-currency-zwl/20 text-currency-zwl'
+                  : 'bg-currency-ZWG/20 text-currency-ZWG'
                 }
               `}>
                 {method.currency}
@@ -1287,7 +1287,7 @@ export default function PaymentMethodGrid({
             <div className={`
               flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center
               ${method.currency === 'USD' ? 'bg-currency-usd' : 
-                method.currency === 'ZWL' ? 'bg-currency-zwl' : 'bg-vp-primary'}
+                method.currency === 'ZWG' ? 'bg-currency-ZWG' : 'bg-vp-primary'}
               text-white
             `}>
               ✓
@@ -1341,22 +1341,22 @@ export default function PaymentMethodGrid({
               </button>
               <button
                 type="button"
-                onClick={() => onCurrencyChange('ZWL')}
+                onClick={() => onCurrencyChange('ZWG')}
                 className={`
                   px-3 py-1.5 rounded-md text-xs font-medium transition-all
-                  ${transactionCurrency === 'ZWL'
-                    ? 'bg-currency-zwl text-white shadow'
+                  ${transactionCurrency === 'ZWG'
+                    ? 'bg-currency-ZWG text-white shadow'
                     : 'text-gray-600 hover:bg-gray-200'
                   }
                   ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
                 `}
                 disabled={disabled}
-                aria-label="Show ZWL payment methods"
-                aria-pressed={transactionCurrency === 'ZWL'}
+                aria-label="Show ZWG payment methods"
+                aria-pressed={transactionCurrency === 'ZWG'}
               >
                 <span className="flex items-center gap-1">
                   <span>ZW$</span>
-                  <span>ZWL</span>
+                  <span>ZWG</span>
                 </span>
               </button>
             </div>
@@ -1381,8 +1381,8 @@ export default function PaymentMethodGrid({
                     ${activeFilter === filter.id
                       ? filter.id === 'USD'
                         ? 'bg-currency-usd text-white'
-                        : filter.id === 'ZWL'
-                          ? 'bg-currency-zwl text-white'
+                        : filter.id === 'ZWG'
+                          ? 'bg-currency-ZWG text-white'
                           : filter.id === 'medical_aid'
                             ? 'bg-red-100 text-red-800 border-red-300'
                             : filter.id === 'cash'
@@ -1560,7 +1560,7 @@ export default function PaymentMethodGrid({
                           px-2 py-0.5 rounded-full text-xs font-medium
                           ${method.currency === 'USD'
                             ? 'bg-currency-usd/20 text-currency-usd'
-                            : 'bg-currency-zwl/20 text-currency-zwl'
+                            : 'bg-currency-ZWG/20 text-currency-ZWG'
                           }
                         `}>
                           {method.currency}

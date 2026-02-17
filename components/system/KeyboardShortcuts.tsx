@@ -222,7 +222,7 @@ const ZIMBABWE_SHORTCUTS: readonly KeyboardShortcut[] = [
   {
     id: 'currency_toggle',
     key: 'u',
-    description: 'Toggle USD/ZWL',
+    description: 'Toggle USD/ZWG',
     action: () => window.dispatchEvent(new CustomEvent('visionplus:toggle-currency')),
     ctrl: true,
     scope: 'global',
@@ -230,7 +230,7 @@ const ZIMBABWE_SHORTCUTS: readonly KeyboardShortcut[] = [
     enabled: true,
     group: 'Currency',
     order: 20,
-    ariaLabel: 'Toggle between USD and ZWL'
+    ariaLabel: 'Toggle between USD and ZWG'
   },
   {
     id: 'currency_usd',
@@ -247,10 +247,10 @@ const ZIMBABWE_SHORTCUTS: readonly KeyboardShortcut[] = [
     ariaLabel: 'Switch to US Dollars'
   },
   {
-    id: 'currency_zwl',
+    id: 'currency_ZWG',
     key: 'z',
-    description: 'Switch to ZWL',
-    action: () => window.dispatchEvent(new CustomEvent('visionplus:set-currency', { detail: 'ZWL' })),
+    description: 'Switch to ZWG',
+    action: () => window.dispatchEvent(new CustomEvent('visionplus:set-currency', { detail: 'ZWG' })),
     ctrl: true,
     shift: true,
     scope: 'global',
@@ -503,10 +503,10 @@ const ZIMBABWE_SHORTCUTS: readonly KeyboardShortcut[] = [
     ariaLabel: 'Add $100 USD'
   },
   {
-    id: 'amount_50_zwl',
+    id: 'amount_50_ZWG',
     key: '5',
-    description: '50 ZWL',
-    action: () => window.dispatchEvent(new CustomEvent('visionplus:quick-amount', { detail: { amount: 50, currency: 'ZWL' } })),
+    description: '50 ZWG',
+    action: () => window.dispatchEvent(new CustomEvent('visionplus:quick-amount', { detail: { amount: 50, currency: 'ZWG' } })),
     ctrl: true,
     alt: true,
     scope: 'payment',
@@ -514,13 +514,13 @@ const ZIMBABWE_SHORTCUTS: readonly KeyboardShortcut[] = [
     enabled: true,
     group: 'Quick Amounts',
     order: 64,
-    ariaLabel: 'Add 50 ZWL'
+    ariaLabel: 'Add 50 ZWG'
   },
   {
-    id: 'amount_100_zwl',
+    id: 'amount_100_ZWG',
     key: '6',
-    description: '100 ZWL',
-    action: () => window.dispatchEvent(new CustomEvent('visionplus:quick-amount', { detail: { amount: 100, currency: 'ZWL' } })),
+    description: '100 ZWG',
+    action: () => window.dispatchEvent(new CustomEvent('visionplus:quick-amount', { detail: { amount: 100, currency: 'ZWG' } })),
     ctrl: true,
     alt: true,
     scope: 'payment',
@@ -528,7 +528,7 @@ const ZIMBABWE_SHORTCUTS: readonly KeyboardShortcut[] = [
     enabled: true,
     group: 'Quick Amounts',
     order: 65,
-    ariaLabel: 'Add 100 ZWL'
+    ariaLabel: 'Add 100 ZWG'
   },
 
   // ==========================================================================

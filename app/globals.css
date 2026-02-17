@@ -59,17 +59,17 @@
   --vp-info-dark: #9acfdf;
   
   /* --------------------------------------------------------------------------
-     Currency Colors - USD (Green) / ZWL (Blue) / Locked (Purple)
+     Currency Colors - USD (Green) / ZWG (Blue) / Locked (Purple)
      -------------------------------------------------------------------------- */
   --currency-usd: #0B6E4F;     /* US Dollar - Stable, trusted, forex */
   --currency-usd-light: #E8F5E9;
   --currency-usd-dark: #064E3B;
   --currency-usd-gradient: linear-gradient(135deg, #0B6E4F, #0a8c5e);
   
-  --currency-zwl: #0F5E9E;     /* Zimbabwe Dollar - National color, RBZ */
-  --currency-zwl-light: #E3F2FD;
-  --currency-zwl-dark: #0A3B5E;
-  --currency-zwl-gradient: linear-gradient(135deg, #0F5E9E, #1e7ab3);
+  --currency-ZWG: #0F5E9E;     /* Zimbabwe Dollar - National color, RBZ */
+  --currency-ZWG-light: #E3F2FD;
+  --currency-ZWG-dark: #0A3B5E;
+  --currency-ZWG-gradient: linear-gradient(135deg, #0F5E9E, #1e7ab3);
   
   --currency-locked: #6B21A8;  /* Locked rate - Royal purple, audit trail */
   --currency-locked-light: #F3E8FF;
@@ -263,7 +263,7 @@
   
   /* Currency Colors */
   --color-currency-usd: var(--currency-usd);
-  --color-currency-zwl: var(--currency-zwl);
+  --color-currency-ZWG: var(--currency-ZWG);
   --color-currency-locked: var(--currency-locked);
   
   /* Medical Aid Colors */
@@ -565,14 +565,14 @@ body {
   color: white;
 }
 
-.currency-zwl {
-  background: var(--currency-zwl-light);
-  color: var(--currency-zwl-dark);
-  border-color: var(--currency-zwl);
+.currency-ZWG {
+  background: var(--currency-ZWG-light);
+  color: var(--currency-ZWG-dark);
+  border-color: var(--currency-ZWG);
 }
 
-.currency-zwl:hover {
-  background: var(--currency-zwl);
+.currency-ZWG:hover {
+  background: var(--currency-ZWG);
   color: white;
 }
 
@@ -891,9 +891,9 @@ body {
   background: linear-gradient(to bottom right, var(--currency-usd-light), white);
 }
 
-.payment-method-card.selected-zwl {
-  border-color: var(--currency-zwl);
-  background: linear-gradient(to bottom right, var(--currency-zwl-light), white);
+.payment-method-card.selected-ZWG {
+  border-color: var(--currency-ZWG);
+  background: linear-gradient(to bottom right, var(--currency-ZWG-light), white);
 }
 
 /* Transaction Summary */
@@ -1270,7 +1270,7 @@ body {
   --vp-background: #FFFFFF;
   --vp-border: #000000;
   --currency-usd: #000000;
-  --currency-zwl: #000000;
+  --currency-ZWG: #000000;
   --currency-locked: #000000;
 }
 

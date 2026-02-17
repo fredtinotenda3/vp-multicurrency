@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 // TYPES - Production Grade, Zimbabwe Currency Specific
 // ============================================================================
 
-type Currency = 'USD' | 'ZWL'
+type Currency = 'USD' | 'ZWG'
 type NumberPadLayout = 'standard' | 'compact' | 'full'
 type InputMode = 'currency' | 'quantity' | 'percentage' | 'rate'
 
@@ -25,7 +25,7 @@ interface NumberPadInputProps {
   allowNegative?: boolean
   
   // Zimbabwe Specific
-  enforceZWLMax?: boolean // ZWL has lower max due to denominations
+  enforceZWGMax?: boolean // ZWG has lower max due to denominations
   enforceUSDMin?: boolean // USD has minimum cash amounts
   
   // UI Configuration
@@ -81,7 +81,7 @@ const ZIMBABWE_CURRENCY_LIMITS = {
     denominations: [1, 5, 10, 20, 50, 100],
     maxDecimalPlaces: 2
   },
-  ZWL: {
+  ZWG: {
     min: 0.01,
     max: 10000000,
     defaultStep: 0.01,
@@ -93,7 +93,7 @@ const ZIMBABWE_CURRENCY_LIMITS = {
 
 const QUICK_AMOUNT_PRESETS = {
   USD: [5, 10, 20, 50, 100],
-  ZWL: [32.5, 65, 97.5, 162.5, 325] // Based on 32.5 rate
+  ZWG: [32.5, 65, 97.5, 162.5, 325] // Based on 32.5 rate
 } as const
 
 // ============================================================================
@@ -166,7 +166,7 @@ export default function NumberPadInput({
   allowNegative = false,
   
   // Zimbabwe Specific
-  enforceZWLMax = true,
+  enforceZWGMax = true,
   enforceUSDMin = true,
   
   // UI Configuration
@@ -222,8 +222,8 @@ export default function NumberPadInput({
     if (disabled || readOnly) return true
     
     const num = numericValue
-    const minValue = min ?? (currency === 'USD' ? ZIMBABWE_CURRENCY_LIMITS.USD.min : ZIMBABWE_CURRENCY_LIMITS.ZWL.min)
-    const maxValue = max ?? (currency === 'USD' ? ZIMBABWE_CURRENCY_LIMITS.USD.max : ZIMBABWE_CURRENCY_LIMITS.ZWL.max)
+    const minValue = min ?? (currency === 'USD' ? ZIMBABWE_CURRENCY_LIMITS.USD.min : ZIMBABWE_CURRENCY_LIMITS.ZWG.min)
+    const maxValue = max ?? (currency === 'USD' ? ZIMBABWE_CURRENCY_LIMITS.USD.max : ZIMBABWE_CURRENCY_LIMITS.ZWG.max)
     
     if (num < minValue) return false
     if (num > maxValue) return false
@@ -283,8 +283,8 @@ export default function NumberPadInput({
     }
 
     // Check min/max
-    const minValue = min ?? (currency === 'USD' ? ZIMBABWE_CURRENCY_LIMITS.USD.min : ZIMBABWE_CURRENCY_LIMITS.ZWL.min)
-    const maxValue = max ?? (currency === 'USD' ? ZIMBABWE_CURRENCY_LIMITS.USD.max : ZIMBABWE_CURRENCY_LIMITS.ZWL.max)
+    const minValue = min ?? (currency === 'USD' ? ZIMBABWE_CURRENCY_LIMITS.USD.min : ZIMBABWE_CURRENCY_LIMITS.ZWG.min)
+    const maxValue = max ?? (currency === 'USD' ? ZIMBABWE_CURRENCY_LIMITS.USD.max : ZIMBABWE_CURRENCY_LIMITS.ZWG.max)
     
     if (num < minValue) {
       return { 
@@ -361,7 +361,7 @@ export default function NumberPadInput({
   const handleMax = useCallback(() => {
     if (disabled || readOnly) return
     
-    const maxValue = max ?? (currency === 'USD' ? ZIMBABWE_CURRENCY_LIMITS.USD.max : ZIMBABWE_CURRENCY_LIMITS.ZWL.max)
+    const maxValue = max ?? (currency === 'USD' ? ZIMBABWE_CURRENCY_LIMITS.USD.max : ZIMBABWE_CURRENCY_LIMITS.ZWG.max)
     const maxValueStr = maxValue.toString()
     
     setInputValue(maxValueStr)
@@ -461,7 +461,7 @@ export default function NumberPadInput({
       }).format(amount)
     }
     
-    return `ZWL ${amount.toLocaleString('en-US', {
+    return `ZWG ${amount.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`
@@ -472,7 +472,7 @@ export default function NumberPadInput({
     
     const amounts = quickAmounts || (currency === 'USD' 
       ? ZIMBABWE_CURRENCY_LIMITS.USD.quickAmounts 
-      : ZIMBABWE_CURRENCY_LIMITS.ZWL.quickAmounts)
+      : ZIMBABWE_CURRENCY_LIMITS.ZWG.quickAmounts)
     
     return amounts.map(amount => ({
       label: currency === 'USD' ? `$${amount}` : `ZW$${amount}`,
@@ -498,7 +498,7 @@ export default function NumberPadInput({
               ${error ? 'border-status-error bg-red-50' : 
                 warning ? 'border-status-pending bg-amber-50' :
                 isValid ? 'border-currency-locked' :
-                currency === 'USD' ? 'border-currency-usd' : 'border-currency-zwl'
+                currency === 'USD' ? 'border-currency-usd' : 'border-currency-ZWG'
               }
               ${disabled ? 'bg-gray-100 text-gray-500' : ''}
               ${isFocused ? 'ring-2 ring-vp-secondary ring-offset-2' : ''}
@@ -528,7 +528,7 @@ export default function NumberPadInput({
             px-2 py-1 rounded-full text-xs font-bold
             ${currency === 'USD' 
               ? 'bg-currency-usd/20 text-currency-usd border border-currency-usd/30' 
-              : 'bg-currency-zwl/20 text-currency-zwl border border-currency-zwl/30'
+              : 'bg-currency-ZWG/20 text-currency-ZWG border border-currency-ZWG/30'
             }
           `}>
             {currency}
@@ -637,7 +637,7 @@ export default function NumberPadInput({
                     px-3 py-1.5 text-sm rounded-lg border transition-all
                     ${currency === 'USD'
                       ? 'border-currency-usd/30 text-currency-usd hover:bg-currency-usd/10'
-                      : 'border-currency-zwl/30 text-currency-zwl hover:bg-currency-zwl/10'
+                      : 'border-currency-ZWG/30 text-currency-ZWG hover:bg-currency-ZWG/10'
                     }
                     ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}
                     focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-vp-secondary
@@ -677,7 +677,7 @@ export default function NumberPadInput({
                     ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}
                   `}
                 >
-                  {currency === 'USD' ? `$${denom}` : `${denom} ZWL`}
+                  {currency === 'USD' ? `$${denom}` : `${denom} ZWG`}
                 </button>
               )
             })}
@@ -821,7 +821,7 @@ export function ExchangeRateNumberPad({
     <NumberPadInput
       value={value}
       onChange={onChange}
-      currency="ZWL" // Rates are always ZWL per USD
+      currency="ZWG" // Rates are always ZWG per USD
       min={1}
       max={1000}
       step={0.01}
@@ -840,7 +840,7 @@ export function ExchangeRateNumberPad({
       className={className}
       disabled={disabled}
       error={error}
-      ariaLabel="Exchange rate (ZWL per USD)"
+      ariaLabel="Exchange rate (ZWG per USD)"
     />
   )
 }

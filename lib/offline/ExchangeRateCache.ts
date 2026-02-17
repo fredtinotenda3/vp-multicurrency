@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback } from "react"
 // TYPES - Production Grade, Immutable, ZIMRA/RBZ Compliant
 // ============================================================================
 
-type Currency = 'USD' | 'ZWL'
+type Currency = 'USD' | 'ZWG'
 type RateSource = 'reserve_bank' | 'interbank' | 'parallel' | 'manual' | 'clinic_rate'
 type CachePriority = 'high' | 'normal' | 'low'
 type CacheStrategy = 'network-first' | 'cache-first' | 'stale-while-revalidate' | 'network-only'
@@ -293,7 +293,7 @@ export class ExchangeRateCache {
     const {
       forceRefresh = false,
       source = 'reserve_bank',
-      currency = 'ZWL',
+      currency = 'ZWG',
       timeout = 5000
     } = options
 
@@ -378,7 +378,7 @@ export class ExchangeRateCache {
     // Simulate API call with realistic Zimbabwe market rates
     await new Promise(resolve => setTimeout(resolve, 300))
 
-    // Base RBZ rate (simulated) - Updated to 32.5 ZWL per USD
+    // Base RBZ rate (simulated) - Updated to 32.5 ZWG per USD
     const baseRate = 32.5
     const now = Date.now()
 
@@ -594,7 +594,7 @@ export class ExchangeRateCache {
   ): Promise<ExchangeRate> {
     const {
       source = 'manual',
-      currency = 'ZWL',
+      currency = 'ZWG',
       authorizedBy = 'system',
       validFor = 24 * 60, // 24 hours default
       reason
@@ -643,7 +643,7 @@ export class ExchangeRateCache {
   ): Promise<ExchangeRate[]> {
     const {
       source,
-      currency = 'ZWL',
+      currency = 'ZWG',
       from = Date.now() - 30 * 24 * 60 * 60 * 1000, // Last 30 days
       to = Date.now(),
       limit = 100
@@ -815,7 +815,7 @@ export class ExchangeRateCache {
   }
 
   getCurrentRate(): ExchangeRate | null {
-    const cacheKey = this.generateCacheKey('reserve_bank', 'ZWL')
+    const cacheKey = this.generateCacheKey('reserve_bank', 'ZWG')
     return this.memoryCache.get(cacheKey) || null
   }
 

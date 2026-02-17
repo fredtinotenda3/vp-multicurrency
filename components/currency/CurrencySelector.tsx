@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 // TYPES - Explicit, immutable, production-grade
 // ============================================================================
 
-type Currency = 'USD' | 'ZWL'
+type Currency = 'USD' | 'ZWG'
 type RateSource = 'reserve_bank' | 'manual' | 'clinic_rate' | 'interbank' | 'parallel'
 type RateStatus = 'live' | 'locked' | 'stale' | 'offline'
 
@@ -84,7 +84,7 @@ class ExchangeRateService {
     // Initialize with Reserve Bank of Zimbabwe rate - Updated to 32.5
     this.currentRate = {
       rate: 32.5,
-      currency: 'ZWL',
+      currency: 'ZWG',
       source: 'reserve_bank',
       status: 'live',
       timestamp: new Date(),
@@ -112,7 +112,7 @@ class ExchangeRateService {
     
     const rate: ExchangeRate = {
       rate: Number(newRate.toFixed(2)),
-      currency: 'ZWL',
+      currency: 'ZWG',
       source: 'reserve_bank',
       status: 'live',
       timestamp: new Date(),
@@ -136,7 +136,7 @@ class ExchangeRateService {
     
     return {
       rate: Number(parallelRate.toFixed(2)),
-      currency: 'ZWL',
+      currency: 'ZWG',
       source: 'parallel',
       status: 'live',
       timestamp: new Date(),
@@ -155,7 +155,7 @@ class ExchangeRateService {
     
     return {
       rate: Number(interbankRate.toFixed(2)),
-      currency: 'ZWL',
+      currency: 'ZWG',
       source: 'interbank',
       status: 'live',
       timestamp: new Date(),
@@ -255,7 +255,7 @@ function useRateAudit() {
 
 export default function CurrencySelector({
   // Core Props
-  initialCurrency = 'ZWL',
+  initialCurrency = 'ZWG',
   initialRate,
   onCurrencyChange,
   onRateLock,
@@ -359,7 +359,7 @@ export default function CurrencySelector({
     }
     
     if (rate > 1000) {
-      return { isValid: false, error: 'Rate exceeds maximum allowed (1,000 ZWL/USD)' }
+      return { isValid: false, error: 'Rate exceeds maximum allowed (1,000 ZWG/USD)' }
     }
     
     const decimalPlaces = rate.toString().split('.')[1]?.length || 0
@@ -602,7 +602,7 @@ export default function CurrencySelector({
         minimumFractionDigits: 2
       }).format(amount)
     }
-    return `ZWL ${amount.toLocaleString('en-US', {
+    return `ZWG ${amount.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`
@@ -683,22 +683,22 @@ export default function CurrencySelector({
             </button>
             <button
               type="button"
-              onClick={() => handleCurrencyChange('ZWL')}
+              onClick={() => handleCurrencyChange('ZWG')}
               className={`
                 px-3 py-1.5 rounded-md text-xs font-medium transition-all
-                ${selectedCurrency === 'ZWL'
-                  ? 'bg-currency-zwl text-white shadow'
+                ${selectedCurrency === 'ZWG'
+                  ? 'bg-currency-ZWG text-white shadow'
                   : 'text-gray-600 hover:bg-gray-200'
                 }
                 ${isLocked ? 'opacity-50 cursor-not-allowed' : ''}
               `}
               disabled={isLocked}
-              aria-label="Select ZWL as transaction currency"
-              aria-pressed={selectedCurrency === 'ZWL'}
+              aria-label="Select ZWG as transaction currency"
+              aria-pressed={selectedCurrency === 'ZWG'}
             >
               <span className="flex items-center gap-1">
                 <span>ZW$</span>
-                <span>ZWL</span>
+                <span>ZWG</span>
               </span>
             </button>
           </div>
@@ -882,13 +882,13 @@ export default function CurrencySelector({
                       1 USD =
                     </div>
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <span className="currency-badge currency-zwl px-2 py-0.5 text-xs">
-                        ZWL
+                      <span className="currency-badge currency-ZWG px-2 py-0.5 text-xs">
+                        ZWG
                       </span>
                     </div>
                   </div>
                   <p className="mt-1 text-xs text-gray-500">
-                    Enter the rate in ZWL per 1 USD (e.g., 32.50)
+                    Enter the rate in ZWG per 1 USD (e.g., 32.50)
                   </p>
                 </div>
                 
@@ -1017,7 +1017,7 @@ export default function CurrencySelector({
                       <div className="text-xs text-gray-600">Previous Rate</div>
                       <div className="font-medium mt-1">
                         {currentRate.previousRate 
-                          ? `1 USD = ${currentRate.previousRate.toFixed(2)} ZWL`
+                          ? `1 USD = ${currentRate.previousRate.toFixed(2)} ZWG`
                           : 'N/A'
                         }
                       </div>
@@ -1069,7 +1069,7 @@ export default function CurrencySelector({
                             <div className="mt-1 text-xs">
                               <span className="text-gray-600">Rate:</span>{' '}
                               <span className="font-mono">
-                                {entry.previousRate.toFixed(2)} → {entry.newRate.toFixed(2)} ZWL
+                                {entry.previousRate.toFixed(2)} → {entry.newRate.toFixed(2)} ZWG
                               </span>
                             </div>
                             {entry.reason && (
@@ -1111,24 +1111,24 @@ export default function CurrencySelector({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center p-3 bg-white rounded-lg border">
                 <div className="text-xs text-gray-500">$10 USD</div>
-                <div className="font-medium text-currency-zwl mt-1">
-                  {(10 * currentRate.rate).toFixed(2)} ZWL
+                <div className="font-medium text-currency-ZWG mt-1">
+                  {(10 * currentRate.rate).toFixed(2)} ZWG
                 </div>
               </div>
               <div className="text-center p-3 bg-white rounded-lg border">
                 <div className="text-xs text-gray-500">$50 USD</div>
-                <div className="font-medium text-currency-zwl mt-1">
-                  {(50 * currentRate.rate).toFixed(2)} ZWL
+                <div className="font-medium text-currency-ZWG mt-1">
+                  {(50 * currentRate.rate).toFixed(2)} ZWG
                 </div>
               </div>
               <div className="text-center p-3 bg-white rounded-lg border">
-                <div className="text-xs text-gray-500">1,000 ZWL</div>
+                <div className="text-xs text-gray-500">1,000 ZWG</div>
                 <div className="font-medium text-currency-usd mt-1">
                   ${(1000 / currentRate.rate).toFixed(2)} USD
                 </div>
               </div>
               <div className="text-center p-3 bg-white rounded-lg border">
-                <div className="text-xs text-gray-500">5,000 ZWL</div>
+                <div className="text-xs text-gray-500">5,000 ZWG</div>
                 <div className="font-medium text-currency-usd mt-1">
                   ${(5000 / currentRate.rate).toFixed(2)} USD
                 </div>
@@ -1155,7 +1155,7 @@ export default function CurrencySelector({
             
             <div className="vp-card-body">
               <p className="text-sm text-gray-600 mb-4">
-                Please provide a reason for locking the rate at {manualRate} ZWL/USD.
+                Please provide a reason for locking the rate at {manualRate} ZWG/USD.
               </p>
               
               <div className="space-y-4">

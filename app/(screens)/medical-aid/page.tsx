@@ -13,7 +13,7 @@ import { useMedicalAidCache, MedicalAidCache } from '@/lib/offline/MedicalAidCac
 // TYPES - Explicit, immutable, self-documenting
 // ============================================================================
 
-type Currency = 'USD' | 'ZWL'
+type Currency = 'USD' | 'ZWG'
 type MedicalAidStatus = 'pending' | 'submitted' | 'under_review' | 'awarded' | 'partially_paid' | 'cleared' | 'rejected'
 type TimelineEventType = 'claim_submitted' | 'award_received' | 'shortfall_paid' | 'medical_aid_paid' | 'follow_up' | 'rejection' | 'appeal'
 
@@ -59,7 +59,7 @@ interface MedicalAidClaim {
   // Currency amounts with explicit locking
   readonly orderTotal: {
     readonly USD: number
-    readonly ZWL: number
+    readonly ZWG: number
     readonly exchangeRate: number
     readonly rateLockedAt: Date
     readonly rateSource: 'reserve_bank' | 'manual' | 'clinic_rate'
@@ -67,7 +67,7 @@ interface MedicalAidClaim {
   
   readonly award: {
     readonly USD: number
-    readonly ZWL: number
+    readonly ZWG: number
     readonly awardedAt?: Date
     readonly awardedBy?: string
     readonly reference?: string
@@ -75,7 +75,7 @@ interface MedicalAidClaim {
   
   readonly shortfall: {
     readonly USD: number
-    readonly ZWL: number
+    readonly ZWG: number
     readonly paidAt?: Date
     readonly paymentMethod?: string
     readonly receiptNumber?: string
@@ -108,7 +108,7 @@ interface TimelineEvent {
   readonly description: string
   readonly metadata?: {
     readonly amountUSD?: number
-    readonly amountZWL?: number
+    readonly amountZWG?: number
     readonly reference?: string
     readonly userId?: string
     readonly userName?: string
@@ -538,7 +538,7 @@ const TimelineEventItem = ({ event, isLast }: TimelineEventItemProps) => {
     })
   }
 
-  const formatCurrency = (amount: number, currency: 'USD' | 'ZWL'): string => {
+  const formatCurrency = (amount: number, currency: 'USD' | 'ZWG'): string => {
     if (currency === 'USD') {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -546,7 +546,7 @@ const TimelineEventItem = ({ event, isLast }: TimelineEventItemProps) => {
         minimumFractionDigits: 2
       }).format(amount)
     }
-    return `ZWL ${amount.toLocaleString('en-US', {
+    return `ZWG ${amount.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`
@@ -589,9 +589,9 @@ const TimelineEventItem = ({ event, isLast }: TimelineEventItemProps) => {
                   <span className="text-currency-usd">
                     {formatCurrency(event.metadata.amountUSD, 'USD')}
                   </span>
-                  {event.metadata.amountZWL && (
+                  {event.metadata.amountZWG && (
                     <span className="ml-2 text-gray-500">
-                      ({formatCurrency(event.metadata.amountZWL, 'ZWL')})
+                      ({formatCurrency(event.metadata.amountZWG, 'ZWG')})
                     </span>
                   )}
                 </p>
@@ -640,7 +640,7 @@ const ClaimCard = ({ claim, isSelected, onSelect }: ClaimCardProps) => {
     })
   }
 
-  const formatCurrency = (amount: number, currency: 'USD' | 'ZWL'): string => {
+  const formatCurrency = (amount: number, currency: 'USD' | 'ZWG'): string => {
     if (currency === 'USD') {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -648,7 +648,7 @@ const ClaimCard = ({ claim, isSelected, onSelect }: ClaimCardProps) => {
         minimumFractionDigits: 2
       }).format(amount)
     }
-    return `ZWL ${amount.toLocaleString('en-US', {
+    return `ZWG ${amount.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`
@@ -729,7 +729,7 @@ const ClaimCard = ({ claim, isSelected, onSelect }: ClaimCardProps) => {
       {/* Exchange rate indicator - critical for audit */}
       <div className="mt-2 text-[10px] text-gray-400 flex items-center gap-1">
         <span className="currency-badge currency-locked px-1 py-0.5">🔒</span>
-        <span>1 USD = {claim.orderTotal.exchangeRate} ZWL</span>
+        <span>1 USD = {claim.orderTotal.exchangeRate} ZWG</span>
         <span className="ml-1">• {formatDate(claim.orderTotal.rateLockedAt)}</span>
       </div>
     </button>
@@ -756,7 +756,7 @@ function useMedicalAidClaims() {
   
   const medicalAidCache = MedicalAidCache.getInstance()
 
-  const formatCurrency = (amount: number, currency: 'USD' | 'ZWL'): string => {
+  const formatCurrency = (amount: number, currency: 'USD' | 'ZWG'): string => {
     if (currency === 'USD') {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -764,7 +764,7 @@ function useMedicalAidClaims() {
         minimumFractionDigits: 2
       }).format(amount)
     }
-    return `ZWL ${amount.toLocaleString('en-US', {
+    return `ZWG ${amount.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`
@@ -783,21 +783,21 @@ function useMedicalAidClaims() {
         orderId: c.orderId,
         orderTotal: {
           USD: c.orderTotalUSD,
-          ZWL: c.orderTotalZWL,
+          ZWG: c.orderTotalZWG,
           exchangeRate: c.exchangeRate,
           rateLockedAt: c.rateLockedAt,
           rateSource: c.rateSource as any
         },
         award: {
           USD: c.awardUSD,
-          ZWL: c.awardZWL,
+          ZWG: c.awardZWG,
           awardedAt: c.awardAt,
           awardedBy: c.awardBy,
           reference: c.awardReference
         },
         shortfall: {
           USD: c.shortfallUSD,
-          ZWL: c.shortfallZWL,
+          ZWG: c.shortfallZWG,
           paidAt: c.shortfallPaidAt,
           paymentMethod: c.shortfallPaymentMethod,
           receiptNumber: c.shortfallReceiptNumber
@@ -838,7 +838,7 @@ function useMedicalAidClaims() {
             description: `${claim.providerName} awarded ${formatCurrency(claim.award.USD, 'USD')}`,
             metadata: {
               amountUSD: claim.award.USD,
-              amountZWL: claim.award.ZWL,
+              amountZWG: claim.award.ZWG,
               reference: claim.award.reference,
               userId: claim.award.awardedBy,
               userName: claim.award.awardedBy
@@ -856,7 +856,7 @@ function useMedicalAidClaims() {
             description: `Patient paid ${formatCurrency(claim.shortfall.USD, 'USD')} via ${claim.shortfall.paymentMethod}`,
             metadata: {
               amountUSD: claim.shortfall.USD,
-              amountZWL: claim.shortfall.ZWL,
+              amountZWG: claim.shortfall.ZWG,
               reference: claim.shortfall.receiptNumber,
               userName: claim.lastModifiedBy
             }
@@ -874,7 +874,7 @@ function useMedicalAidClaims() {
             description: `Payment of ${formatCurrency(payment.amountUSD, 'USD')} received via ${payment.paymentMethod}`,
             metadata: {
               amountUSD: payment.amountUSD,
-              amountZWL: payment.amountZWL,
+              amountZWG: payment.amountZWG,
               reference: payment.reference || payment.receiptNumber,
               userName: payment.capturedBy
             }
@@ -1014,7 +1014,7 @@ function useMedicalAidClaims() {
 // FORMATTING UTILITIES - Pure functions
 // ============================================================================
 
-const formatCurrency = (amount: number, currency: 'USD' | 'ZWL'): string => {
+const formatCurrency = (amount: number, currency: 'USD' | 'ZWG'): string => {
   if (currency === 'USD') {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -1026,10 +1026,10 @@ const formatCurrency = (amount: number, currency: 'USD' | 'ZWL'): string => {
   
   return new Intl.NumberFormat('en-ZW', {
     style: 'currency',
-    currency: 'ZWL',
+    currency: 'ZWG',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
-  }).format(amount).replace('ZWL', 'ZWL')
+  }).format(amount).replace('ZWG', 'ZWG')
 }
 
 const formatDate = (date: Date, includeTime: boolean = true): string => {
@@ -1400,10 +1400,10 @@ export default function MedicalAidScreen() {
                               {formatCurrency(selectedClaim.orderTotal.USD, 'USD')}
                             </p>
                             <p className="text-sm text-gray-500">
-                              {formatCurrency(selectedClaim.orderTotal.ZWL, 'ZWL')}
+                              {formatCurrency(selectedClaim.orderTotal.ZWG, 'ZWG')}
                             </p>
                             <p className="text-xs text-gray-400 mt-1">
-                              Rate: 1 USD = {selectedClaim.orderTotal.exchangeRate} ZWL
+                              Rate: 1 USD = {selectedClaim.orderTotal.exchangeRate} ZWG
                             </p>
                           </div>
                           
@@ -1415,7 +1415,7 @@ export default function MedicalAidScreen() {
                               {formatCurrency(selectedClaim.award.USD, 'USD')}
                             </p>
                             <p className="text-sm text-gray-500">
-                              {formatCurrency(selectedClaim.award.ZWL, 'ZWL')}
+                              {formatCurrency(selectedClaim.award.ZWG, 'ZWG')}
                             </p>
                             {selectedClaim.award.awardedAt && (
                               <p className="text-xs text-gray-500 mt-1">
@@ -1432,7 +1432,7 @@ export default function MedicalAidScreen() {
                               {formatCurrency(selectedClaim.shortfall.USD, 'USD')}
                             </p>
                             <p className="text-sm text-gray-500">
-                              {formatCurrency(selectedClaim.shortfall.ZWL, 'ZWL')}
+                              {formatCurrency(selectedClaim.shortfall.ZWG, 'ZWG')}
                             </p>
                             {selectedClaim.shortfall.paidAt ? (
                               <p className="text-xs text-green-600 mt-1">
@@ -1510,7 +1510,7 @@ export default function MedicalAidScreen() {
                                 Adjust Award Amount (USD)
                               </label>
                               <span className="text-xs text-gray-500">
-                                Rate: 1 USD = {selectedClaim.orderTotal.exchangeRate} ZWL
+                                Rate: 1 USD = {selectedClaim.orderTotal.exchangeRate} ZWG
                               </span>
                             </div>
                             
@@ -1712,7 +1712,7 @@ export default function MedicalAidScreen() {
                       {formatCurrency(selectedClaim.shortfall.USD, 'USD')}
                     </p>
                     <p className="text-sm text-gray-600">
-                      {formatCurrency(selectedClaim.shortfall.ZWL, 'ZWL')}
+                      {formatCurrency(selectedClaim.shortfall.ZWG, 'ZWG')}
                     </p>
                   </div>
                   
@@ -1728,7 +1728,7 @@ export default function MedicalAidScreen() {
                     >
                       <option value="">Select payment method</option>
                       <option value="Cash USD">Cash USD</option>
-                      <option value="Cash ZWL">Cash ZWL</option>
+                      <option value="Cash ZWG">Cash ZWG</option>
                       <option value="Ecocash">Ecocash</option>
                       <option value="RTGS">RTGS</option>
                       <option value="Credit Card">Credit/Debit Card</option>
@@ -1802,7 +1802,7 @@ export default function MedicalAidScreen() {
                     {formatCurrency(selectedClaim.award.USD, 'USD')}
                   </p>
                   <p className="text-sm text-gray-600">
-                    {formatCurrency(selectedClaim.award.ZWL, 'ZWL')}
+                    {formatCurrency(selectedClaim.award.ZWG, 'ZWG')}
                   </p>
                   <p className="text-xs text-gray-500 mt-2">
                     Provider: {selectedClaim.providerName}

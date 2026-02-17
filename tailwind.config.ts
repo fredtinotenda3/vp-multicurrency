@@ -65,7 +65,7 @@ const config: Config = {
             900: '#1b5e20',
             DEFAULT: '#28a745',
           },
-          'zwl': {
+          'ZWG': {
             50: '#e1f5fe',
             100: '#b3e5fc',
             200: '#81d4fa',
@@ -200,7 +200,7 @@ const config: Config = {
         'inner': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
         // Currency specific shadows
         'currency-usd': '0 2px 8px rgba(40, 167, 69, 0.2)',
-        'currency-zwl': '0 2px 8px rgba(23, 162, 184, 0.2)',
+        'currency-ZWG': '0 2px 8px rgba(23, 162, 184, 0.2)',
         'currency-locked': '0 2px 8px rgba(111, 66, 193, 0.3)',
       },
       animation: {
@@ -276,7 +276,7 @@ const config: Config = {
         'vp-gradient': 'linear-gradient(135deg, #002d68 0%, #00408c 100%)',
         'vp-gradient-secondary': 'linear-gradient(135deg, #1FAEC1 0%, #26c6da 100%)',
         'currency-gradient-usd': 'linear-gradient(135deg, #28a745 0%, #34ce57 100%)',
-        'currency-gradient-zwl': 'linear-gradient(135deg, #17a2b8 0%, #5bc0de 100%)',
+        'currency-gradient-ZWG': 'linear-gradient(135deg, #17a2b8 0%, #5bc0de 100%)',
       },
       gridTemplateColumns: {
         // Useful grid templates
@@ -312,9 +312,9 @@ const config: Config = {
           color: theme('colors.currency.usd.DEFAULT'),
           border: '1px solid rgba(40, 167, 69, 0.3)',
         },
-        '.currency-zwl': {
+        '.currency-ZWG': {
           backgroundColor: 'rgba(23, 162, 184, 0.1)',
-          color: theme('colors.currency.zwl.DEFAULT'),
+          color: theme('colors.currency.ZWG.DEFAULT'),
           border: '1px solid rgba(23, 162, 184, 0.3)',
         },
         '.currency-locked': {
@@ -456,7 +456,7 @@ const config: Config = {
   safelist: [
     // Currency badges
     'currency-usd',
-    'currency-zwl',
+    'currency-ZWG',
     'currency-locked',
     // Status badges
     'status-pending',
@@ -465,21 +465,21 @@ const config: Config = {
     'status-error',
     // Background colors
     'bg-currency-usd',
-    'bg-currency-zwl',
+    'bg-currency-ZWG',
     'bg-currency-locked',
     'bg-status-pending',
     'bg-status-partial',
     'bg-status-cleared',
     // Text colors
     'text-currency-usd',
-    'text-currency-zwl',
+    'text-currency-ZWG',
     'text-currency-locked',
     'text-status-pending',
     'text-status-partial',
     'text-status-cleared',
     // Border colors
     'border-currency-usd',
-    'border-currency-zwl',
+    'border-currency-ZWG',
     'border-currency-locked',
     // Animations
     'animate-currency-change',

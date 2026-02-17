@@ -37,7 +37,7 @@ interface SystemMetrics {
   readonly pendingTransactions: number
   readonly offlineQueueSize: number
   readonly todayRevenueUSD: number
-  readonly todayRevenueZWL: number
+  readonly todayRevenueZWG: number
   readonly todayClaims: number
   readonly averageResponseTime: number
   readonly errorRate24h: number
@@ -143,7 +143,7 @@ function useSystemStatus() {
       status: rbzRate ? 'healthy' : Math.random() > 0.8 ? 'degraded' : 'healthy',
       latency: Math.floor(Math.random() * 150) + 50,
       lastCheck: now,
-      message: rbzRate ? `1 USD = ${rbzRate.rate} ZWL` : undefined
+      message: rbzRate ? `1 USD = ${rbzRate.rate} ZWG` : undefined
     })
 
     // Medical Aid Gateway
@@ -221,7 +221,7 @@ function useSystemStatus() {
       pendingTransactions: Math.floor(Math.random() * 10),
       offlineQueueSize: queueState.pendingCount,
       todayRevenueUSD: Math.floor(Math.random() * 5000) + 1000,
-      todayRevenueZWL: Math.floor(Math.random() * 5000000) + 1000000,
+      todayRevenueZWG: Math.floor(Math.random() * 5000000) + 1000000,
       todayClaims: Math.floor(Math.random() * 25) + 5,
       averageResponseTime: Math.floor(Math.random() * 200) + 100,
       errorRate24h: Math.random() * 2,
@@ -238,11 +238,11 @@ function useSystemStatus() {
     const yesterdayRate = 1245 // Simulated
     
     return {
-      currentRate: currentRate?.rate || 1250,
+      currentRate: currentRate?.rate || 32.5,
       source: currentRate?.source || 'reserve_bank',
       lastUpdated: currentRate?.timestamp ? new Date(currentRate.timestamp) : new Date(),
       validUntil: currentRate?.validUntil ? new Date(currentRate.validUntil) : new Date(Date.now() + 1800000),
-      change24h: ((currentRate?.rate || 1250) - yesterdayRate) / yesterdayRate * 100,
+      change24h: ((currentRate?.rate || 32.5) - yesterdayRate) / yesterdayRate * 100,
       volatility: Math.random() > 0.7 ? 'high' : Math.random() > 0.4 ? 'medium' : 'low'
     }
   }, [])
@@ -552,7 +552,7 @@ interface MetricsCardProps {
 }
 
 const MetricsCard = ({ metrics, className = '' }: MetricsCardProps) => {
-  const formatCurrency = (amount: number, currency: 'USD' | 'ZWL') => {
+  const formatCurrency = (amount: number, currency: 'USD' | 'ZWG') => {
     if (currency === 'USD') {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -561,7 +561,7 @@ const MetricsCard = ({ metrics, className = '' }: MetricsCardProps) => {
         maximumFractionDigits: 0
       }).format(amount)
     }
-    return `ZWL ${amount.toLocaleString('en-US')}`
+    return `ZWG ${amount.toLocaleString('en-US')}`
   }
 
   const formatStorage = (mb: number) => {
@@ -601,7 +601,7 @@ const MetricsCard = ({ metrics, className = '' }: MetricsCardProps) => {
           {formatCurrency(metrics.todayRevenueUSD, 'USD')}
         </div>
         <div className="text-xs text-gray-600">
-          {formatCurrency(metrics.todayRevenueZWL, 'ZWL')}
+          {formatCurrency(metrics.todayRevenueZWG, 'ZWG')}
         </div>
       </div>
 
@@ -746,7 +746,7 @@ const ExchangeRateCard = ({ rateInfo, className = '' }: ExchangeRateCardProps) =
 
       <div className="flex items-baseline gap-2 mb-2">
         <span className="text-3xl font-bold text-vp-primary">
-          1 USD = {rateInfo.currentRate.toLocaleString()} ZWL
+          1 USD = {rateInfo.currentRate.toLocaleString()} ZWG
         </span>
         {rateInfo.change24h !== 0 && (
           <span className={`

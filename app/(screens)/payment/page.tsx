@@ -14,7 +14,7 @@ import { useMedicalAidCache } from '@/lib/offline/MedicalAidCache'
 // TYPES - Explicit, immutable, self-documenting
 // ============================================================================
 
-type Currency = 'USD' | 'ZWL'
+type Currency = 'USD' | 'ZWG'
 type PaymentMethodType = 'cash' | 'medical_aid' | 'card' | 'mobile_money' | 'bank' | 'voucher'
 type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded'
 type MedicalAidStatus = 'not_applied' | 'awarded' | 'shortfall_paid' | 'settled' | 'rejected'
@@ -25,15 +25,15 @@ type MedicalAidStatus = 'not_applied' | 'awarded' | 'shortfall_paid' | 'settled'
 
 const PAYMENT_METHODS = [
   { id: 'cash_usd', name: 'Cash USD', currency: 'USD', type: 'cash', icon: '💵', color: 'bg-green-100', textColor: 'text-green-800', processingTime: 'immediate' },
-  { id: 'cash_zwl', name: 'Cash ZWL', currency: 'ZWL', type: 'cash', icon: '💵', color: 'bg-blue-100', textColor: 'text-blue-800', processingTime: 'immediate' },
-  { id: 'cimas', name: 'Cimas', currency: 'ZWL', type: 'medical_aid', icon: '🏥', color: 'bg-red-100', textColor: 'text-red-800', processingTime: '30_days' },
-  { id: 'first_mutual', name: 'First Mutual', currency: 'ZWL', type: 'medical_aid', icon: '🏥', color: 'bg-blue-100', textColor: 'text-blue-800', processingTime: '45_days' },
-  { id: 'psmas', name: 'PSMAS', currency: 'ZWL', type: 'medical_aid', icon: '🏥', color: 'bg-green-100', textColor: 'text-green-800', processingTime: '60_days' },
-  { id: 'liberty', name: 'Liberty Health', currency: 'ZWL', type: 'medical_aid', icon: '🏥', color: 'bg-purple-100', textColor: 'text-purple-800', processingTime: '30_days' },
-  { id: 'old_mutual', name: 'Old Mutual', currency: 'ZWL', type: 'medical_aid', icon: '🏥', color: 'bg-blue-100', textColor: 'text-blue-800', processingTime: '30_days' },
+  { id: 'cash_ZWG', name: 'Cash ZWG', currency: 'ZWG', type: 'cash', icon: '💵', color: 'bg-blue-100', textColor: 'text-blue-800', processingTime: 'immediate' },
+  { id: 'cimas', name: 'Cimas', currency: 'ZWG', type: 'medical_aid', icon: '🏥', color: 'bg-red-100', textColor: 'text-red-800', processingTime: '30_days' },
+  { id: 'first_mutual', name: 'First Mutual', currency: 'ZWG', type: 'medical_aid', icon: '🏥', color: 'bg-blue-100', textColor: 'text-blue-800', processingTime: '45_days' },
+  { id: 'psmas', name: 'PSMAS', currency: 'ZWG', type: 'medical_aid', icon: '🏥', color: 'bg-green-100', textColor: 'text-green-800', processingTime: '60_days' },
+  { id: 'liberty', name: 'Liberty Health', currency: 'ZWG', type: 'medical_aid', icon: '🏥', color: 'bg-purple-100', textColor: 'text-purple-800', processingTime: '30_days' },
+  { id: 'old_mutual', name: 'Old Mutual', currency: 'ZWG', type: 'medical_aid', icon: '🏥', color: 'bg-blue-100', textColor: 'text-blue-800', processingTime: '30_days' },
   { id: 'credit_card', name: 'Credit / Debit Card', currency: 'USD', type: 'card', icon: '💳', color: 'bg-purple-100', textColor: 'text-purple-800', processingTime: 'immediate' },
-  { id: 'ecocash', name: 'Ecocash', currency: 'ZWL', type: 'mobile_money', icon: '📱', color: 'bg-teal-100', textColor: 'text-teal-800', processingTime: 'immediate' },
-  { id: 'rtgs', name: 'RTGS', currency: 'ZWL', type: 'bank', icon: '🏦', color: 'bg-yellow-100', textColor: 'text-yellow-800', processingTime: '1_2_days' },
+  { id: 'ecocash', name: 'Ecocash', currency: 'ZWG', type: 'mobile_money', icon: '📱', color: 'bg-teal-100', textColor: 'text-teal-800', processingTime: 'immediate' },
+  { id: 'rtgs', name: 'RTGS', currency: 'ZWG', type: 'bank', icon: '🏦', color: 'bg-yellow-100', textColor: 'text-yellow-800', processingTime: '1_2_days' },
   { id: 'gift_voucher', name: 'Gift Voucher', currency: 'USD', type: 'voucher', icon: '🎫', color: 'bg-pink-100', textColor: 'text-pink-800', processingTime: 'immediate' }
 ] as const
 
@@ -43,7 +43,7 @@ const PAYMENT_METHODS = [
 
 const formatCurrency = (amount: number | undefined | null, currency: Currency): string => {
   if (amount === undefined || amount === null || isNaN(amount)) {
-    return currency === 'USD' ? '$0.00' : 'ZWL 0.00'
+    return currency === 'USD' ? '$0.00' : 'ZWG 0.00'
   }
   try {
     if (currency === 'USD') {
@@ -54,12 +54,12 @@ const formatCurrency = (amount: number | undefined | null, currency: Currency): 
         maximumFractionDigits: 2
       }).format(amount)
     }
-    return `ZWL ${amount.toLocaleString('en-US', {
+    return `ZWG ${amount.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`
   } catch {
-    return currency === 'USD' ? '$0.00' : 'ZWL 0.00'
+    return currency === 'USD' ? '$0.00' : 'ZWG 0.00'
   }
 }
 
@@ -107,12 +107,12 @@ interface MedicalAidAward {
   readonly memberName?: string
   readonly claimReference: string
   readonly awardedUSD: number
-  readonly awardedZWL: number
+  readonly awardedZWG: number
   readonly awardedAt: Date
   readonly awardedBy: string
   readonly status: MedicalAidStatus
   readonly shortfallUSD: number
-  readonly shortfallZWL: number
+  readonly shortfallZWG: number
   readonly shortfallPaidAt?: Date
   readonly shortfallPaymentMethod?: string
   readonly shortfallReceiptNumber?: string
@@ -130,7 +130,7 @@ interface Payment {
   readonly currency: Currency
   readonly amount: number
   readonly equivalentUSD: number
-  readonly equivalentZWL: number
+  readonly equivalentZWG: number
   readonly timestamp: Date
   readonly reference?: string
   readonly status: PaymentStatus
@@ -148,11 +148,11 @@ interface Order {
   readonly memberNumber?: string
   readonly memberName?: string
   readonly subtotalUSD: number
-  readonly subtotalZWL: number
+  readonly subtotalZWG: number
   readonly taxUSD: number
-  readonly taxZWL: number
+  readonly taxZWG: number
   readonly totalUSD: number
-  readonly totalZWL: number
+  readonly totalZWG: number
   readonly exchangeRate: number
   readonly rateLockedAt: Date
   readonly rateSource: string
@@ -160,7 +160,7 @@ interface Order {
     name: string
     quantity: number
     priceUSD: number
-    priceZWL: number
+    priceZWG: number
     requiresPrescription?: boolean
   }>
 }
@@ -197,12 +197,12 @@ function useMedicalAidPayment() {
       memberName,
       claimReference: `${providerId.toUpperCase()}-${Date.now().toString().slice(-8)}`,
       awardedUSD,
-      awardedZWL: awardedUSD * exchangeRate,
+      awardedZWG: awardedUSD * exchangeRate,
       awardedAt: new Date(),
       awardedBy: userName,
       status: 'awarded',
       shortfallUSD: 0,
-      shortfallZWL: 0,
+      shortfallZWG: 0,
       expectedSettlementDays: processingDays
     }
 
@@ -229,12 +229,12 @@ function useMedicalAidPayment() {
       return { success: false, error: 'Shortfall already paid' }
     }
 
-    const shortfallZWL = shortfallUSD * exchangeRate
+    const shortfallZWG = shortfallUSD * exchangeRate
 
     setAward({
       ...award,
       shortfallUSD,
-      shortfallZWL,
+      shortfallZWG,
       shortfallPaidAt: new Date(),
       shortfallPaymentMethod: paymentMethod,
       shortfallReceiptNumber: receiptNumber,
@@ -329,7 +329,7 @@ function usePaymentProcessing() {
     terminalId?: string
   ): Payment => {
     const equivalentUSD = currency === 'USD' ? amount : amount / exchangeRate
-    const equivalentZWL = currency === 'ZWL' ? amount : amount * exchangeRate
+    const equivalentZWG = currency === 'ZWG' ? amount : amount * exchangeRate
 
     const newPayment: Payment = {
       id: `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
@@ -340,7 +340,7 @@ function usePaymentProcessing() {
       currency,
       amount,
       equivalentUSD,
-      equivalentZWL,
+      equivalentZWG,
       timestamp: new Date(),
       reference,
       status: 'completed',
@@ -363,15 +363,15 @@ function usePaymentProcessing() {
 
   const calculateTotals = useCallback((exchangeRate: number) => {
     const totalPaidUSD = payments.reduce((sum, p) => sum + (p.equivalentUSD || 0), 0)
-    const totalPaidZWL = payments.reduce((sum, p) => sum + (p.equivalentZWL || 0), 0)
+    const totalPaidZWG = payments.reduce((sum, p) => sum + (p.equivalentZWG || 0), 0)
     return {
       totalPaidUSD,
-      totalPaidZWL,
+      totalPaidZWG,
       paymentCount: payments.length,
       paymentMethods: [...new Set(payments.map(p => p.methodName))],
       paymentsByCurrency: {
         USD: payments.filter(p => p.currency === 'USD').reduce((sum, p) => sum + (p.amount || 0), 0),
-        ZWL: payments.filter(p => p.currency === 'ZWL').reduce((sum, p) => sum + (p.amount || 0), 0)
+        ZWG: payments.filter(p => p.currency === 'ZWG').reduce((sum, p) => sum + (p.amount || 0), 0)
       }
     }
   }, [payments])
@@ -392,7 +392,7 @@ function usePaymentProcessing() {
 interface MedicalAidAwardCardProps {
   award: MedicalAidAward
   orderTotalUSD: number
-  orderTotalZWL: number
+  orderTotalZWG: number
   exchangeRate: number
   onRecordShortfall: (awardId: string) => void
   onMarkSettled: (awardId: string) => void
@@ -403,7 +403,7 @@ interface MedicalAidAwardCardProps {
 const MedicalAidAwardCard = ({
   award,
   orderTotalUSD,
-  orderTotalZWL,
+  orderTotalZWG,
   exchangeRate,
   onRecordShortfall,
   onMarkSettled,
@@ -411,7 +411,7 @@ const MedicalAidAwardCard = ({
   disabled = false
 }: MedicalAidAwardCardProps) => {
   const shortfallUSD = orderTotalUSD - award.awardedUSD
-  const shortfallZWL = orderTotalZWL - award.awardedZWL
+  const shortfallZWG = orderTotalZWG - award.awardedZWG
   const shortfallPaid = award.shortfallPaidAt !== undefined
 
   const getStatusBadge = () => {
@@ -468,7 +468,7 @@ const MedicalAidAwardCard = ({
             {formatCurrency(orderTotalUSD, 'USD')}
           </div>
           <div className="text-xs text-gray-500">
-            {formatCurrency(orderTotalZWL, 'ZWL')}
+            {formatCurrency(orderTotalZWG, 'ZWG')}
           </div>
         </div>
         <div className="bg-green-50 p-3 rounded-lg border border-green-200">
@@ -477,7 +477,7 @@ const MedicalAidAwardCard = ({
             {formatCurrency(award.awardedUSD, 'USD')}
           </div>
           <div className="text-xs text-gray-500">
-            {formatCurrency(award.awardedZWL, 'ZWL')}
+            {formatCurrency(award.awardedZWG, 'ZWG')}
           </div>
         </div>
         <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
@@ -486,7 +486,7 @@ const MedicalAidAwardCard = ({
             {formatCurrency(shortfallUSD, 'USD')}
           </div>
           <div className="text-xs text-gray-500">
-            {formatCurrency(shortfallZWL, 'ZWL')}
+            {formatCurrency(shortfallZWG, 'ZWG')}
           </div>
           {award.shortfallPaidAt && (
             <div className="mt-1 text-xs text-green-600">
@@ -702,7 +702,7 @@ interface PaymentFormProps {
   exchangeRate: number
   order: Order | null
   maxAmountUSD: number
-  maxAmountZWL: number
+  maxAmountZWG: number
   onPaymentSubmit: (amount: number, reference?: string) => void
   isProcessing?: boolean
 }
@@ -714,7 +714,7 @@ const PaymentForm = ({
   exchangeRate,
   order,
   maxAmountUSD,
-  maxAmountZWL,
+  maxAmountZWG,
   onPaymentSubmit,
   isProcessing = false
 }: PaymentFormProps) => {
@@ -734,11 +734,11 @@ const PaymentForm = ({
         ? maxAmountUSD 
         : order.totalUSD
     } else {
-      return typeof maxAmountZWL === 'number' && !isNaN(maxAmountZWL) && maxAmountZWL > 0 
-        ? maxAmountZWL 
-        : order.totalZWL
+      return typeof maxAmountZWG === 'number' && !isNaN(maxAmountZWG) && maxAmountZWG > 0 
+        ? maxAmountZWG 
+        : order.totalZWG
     }
-  }, [paymentCurrency, maxAmountUSD, maxAmountZWL, order])
+  }, [paymentCurrency, maxAmountUSD, maxAmountZWG, order])
 
   // Validation with safe checks
   const validate = (): boolean => {
@@ -847,7 +847,7 @@ const PaymentForm = ({
           <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
             selectedMethod.currency === 'USD' 
               ? 'bg-currency-usd/20 text-currency-usd' 
-              : 'bg-currency-zwl/20 text-currency-zwl'
+              : 'bg-currency-ZWG/20 text-currency-ZWG'
           }`}>
             {selectedMethod.currency}
           </span>
@@ -872,7 +872,7 @@ const PaymentForm = ({
                   }}
                   className={`vp-form-control pl-16 pr-24 text-lg ${
                     errors.amount ? 'border-status-error' : ''
-                  } ${paymentCurrency === 'USD' ? 'border-currency-usd' : 'border-currency-zwl'}`}
+                  } ${paymentCurrency === 'USD' ? 'border-currency-usd' : 'border-currency-ZWG'}`}
                   placeholder="0.00"
                   min={safeMaxAmount > 0 ? "0.01" : undefined}
                   max={safeMaxAmount > 0 ? safeMaxAmount : undefined}
@@ -881,7 +881,7 @@ const PaymentForm = ({
                   autoFocus
                 />
                 <div className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
-                  paymentCurrency === 'USD' ? 'text-currency-usd' : 'text-currency-zwl'
+                  paymentCurrency === 'USD' ? 'text-currency-usd' : 'text-currency-ZWG'
                 }`}>
                   <span className="font-medium">{paymentCurrency === 'USD' ? '$' : 'ZW$'}</span>
                 </div>
@@ -923,7 +923,7 @@ const PaymentForm = ({
                         px-3 py-1.5 text-sm rounded-lg border transition-all
                         ${paymentCurrency === 'USD'
                           ? 'border-currency-usd/30 text-currency-usd hover:bg-currency-usd/10'
-                          : 'border-currency-zwl/30 text-currency-zwl hover:bg-currency-zwl/10'
+                          : 'border-currency-ZWG/30 text-currency-ZWG hover:bg-currency-ZWG/10'
                         }
                         ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}
                       `}
@@ -946,7 +946,7 @@ const PaymentForm = ({
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Currency:</span>
                 <span className={`font-medium ${
-                  paymentCurrency === 'USD' ? 'text-currency-usd' : 'text-currency-zwl'
+                  paymentCurrency === 'USD' ? 'text-currency-usd' : 'text-currency-ZWG'
                 }`}>
                   {paymentCurrency}
                 </span>
@@ -961,13 +961,13 @@ const PaymentForm = ({
                   </div>
                   <div className="flex justify-between text-sm pt-2 border-t">
                     <span className="text-gray-600">
-                      Equivalent in {paymentCurrency === 'USD' ? 'ZWL' : 'USD'}:
+                      Equivalent in {paymentCurrency === 'USD' ? 'ZWG' : 'USD'}:
                     </span>
                     <span className={`font-medium ${
-                      paymentCurrency === 'USD' ? 'text-currency-zwl' : 'text-currency-usd'
+                      paymentCurrency === 'USD' ? 'text-currency-ZWG' : 'text-currency-usd'
                     }`}>
                       {paymentCurrency === 'USD' 
-                        ? formatCurrency(parseFloat(amount) * exchangeRate, 'ZWL')
+                        ? formatCurrency(parseFloat(amount) * exchangeRate, 'ZWG')
                         : formatCurrency(parseFloat(amount) / exchangeRate, 'USD')
                       }
                     </span>
@@ -1025,7 +1025,7 @@ const PaymentHistory = ({
   if (payments.length === 0) return null
 
   const totalUSD = payments.reduce((sum, p) => sum + (p.equivalentUSD || 0), 0)
-  const totalZWL = payments.reduce((sum, p) => sum + (p.equivalentZWL || 0), 0)
+  const totalZWG = payments.reduce((sum, p) => sum + (p.equivalentZWG || 0), 0)
 
   return (
     <div className="vp-card">
@@ -1045,7 +1045,7 @@ const PaymentHistory = ({
                 <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
                 <th className="text-right p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                 <th className="text-right p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">USD Eq</th>
-                <th className="text-right p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">ZWL Eq</th>
+                <th className="text-right p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">ZWG Eq</th>
                 <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
                 <th className="text-center p-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
@@ -1067,7 +1067,7 @@ const PaymentHistory = ({
                     </td>
                     <td className="p-3 text-right">
                       <span className={`font-medium ${
-                        payment.currency === 'USD' ? 'text-currency-usd' : 'text-currency-zwl'
+                        payment.currency === 'USD' ? 'text-currency-usd' : 'text-currency-ZWG'
                       }`}>
                         {formatCurrency(payment.amount, payment.currency)}
                       </span>
@@ -1075,8 +1075,8 @@ const PaymentHistory = ({
                     <td className="p-3 text-right text-currency-usd">
                       {formatCurrency(payment.equivalentUSD, 'USD')}
                     </td>
-                    <td className="p-3 text-right text-currency-zwl">
-                      {formatCurrency(payment.equivalentZWL, 'ZWL')}
+                    <td className="p-3 text-right text-currency-ZWG">
+                      {formatCurrency(payment.equivalentZWG, 'ZWG')}
                     </td>
                     <td className="p-3 text-xs font-mono text-gray-600">
                       {payment.reference || '—'}
@@ -1098,9 +1098,9 @@ const PaymentHistory = ({
             <tfoot className="bg-gray-50 font-medium">
               <tr>
                 <td colSpan={3} className="p-3 text-sm">Total Payments</td>
-                <td className="p-3 text-right">{formatCurrency(totalZWL, 'ZWL')}</td>
+                <td className="p-3 text-right">{formatCurrency(totalZWG, 'ZWG')}</td>
                 <td className="p-3 text-right text-currency-usd">{formatCurrency(totalUSD, 'USD')}</td>
-                <td className="p-3 text-right text-currency-zwl">{formatCurrency(totalZWL, 'ZWL')}</td>
+                <td className="p-3 text-right text-currency-ZWG">{formatCurrency(totalZWG, 'ZWG')}</td>
                 <td colSpan={2}></td>
               </tr>
             </tfoot>
@@ -1145,36 +1145,36 @@ const TransactionSummary = ({
   
   // Separate Medical Aid AWARD (to be paid later)
   const awardAmountUSD = award?.awardedUSD || 0
-  const awardAmountZWL = award?.awardedZWL || 0
+  const awardAmountZWG = award?.awardedZWG || 0
   
   // Separate Medical Aid PAYMENTS (paid now)
   const medicalAidPaymentsUSD = payments
     .filter(p => p.methodType === 'medical_aid')
     .reduce((sum, p) => sum + (p.equivalentUSD || 0), 0)
   
-  const medicalAidPaymentsZWL = payments
+  const medicalAidPaymentsZWG = payments
     .filter(p => p.methodType === 'medical_aid')
-    .reduce((sum, p) => sum + (p.equivalentZWL || 0), 0)
+    .reduce((sum, p) => sum + (p.equivalentZWG || 0), 0)
   
   // Cash, Card, Mobile Money, Bank, Voucher (non-medical aid)
   const cashPaymentsUSD = payments
     .filter(p => p.methodType !== 'medical_aid')
     .reduce((sum, p) => sum + (p.equivalentUSD || 0), 0)
   
-  const cashPaymentsZWL = payments
+  const cashPaymentsZWG = payments
     .filter(p => p.methodType !== 'medical_aid')
-    .reduce((sum, p) => sum + (p.equivalentZWL || 0), 0)
+    .reduce((sum, p) => sum + (p.equivalentZWG || 0), 0)
   
   // Total paid = Award + Medical Aid Payments + Cash Payments
   const totalPaidUSD = awardAmountUSD + medicalAidPaymentsUSD + cashPaymentsUSD
-  const totalPaidZWL = awardAmountZWL + medicalAidPaymentsZWL + cashPaymentsZWL
+  const totalPaidZWG = awardAmountZWG + medicalAidPaymentsZWG + cashPaymentsZWG
   
   // Balance calculations
   const balanceUSD = order.totalUSD - totalPaidUSD
-  const balanceZWL = order.totalZWL - totalPaidZWL
+  const balanceZWG = order.totalZWG - totalPaidZWG
   
-  const isPaidInFull = balanceUSD <= 0.01 && balanceZWL <= 0.01
-  const isOverpaid = balanceUSD < -0.01 || balanceZWL < -0.01
+  const isPaidInFull = balanceUSD <= 0.01 && balanceZWG <= 0.01
+  const isOverpaid = balanceUSD < -0.01 || balanceZWG < -0.01
 
   const formatDate = (date: Date | null): string => {
     if (!date) return 'N/A'
@@ -1216,7 +1216,7 @@ const TransactionSummary = ({
               {formatCurrency(order.totalUSD, 'USD')}
             </p>
             <p className="text-sm text-gray-500">
-              {formatCurrency(order.totalZWL, 'ZWL')}
+              {formatCurrency(order.totalZWG, 'ZWG')}
             </p>
           </div>
           
@@ -1229,7 +1229,7 @@ const TransactionSummary = ({
               {formatCurrency(awardAmountUSD, 'USD')}
             </p>
             <p className="text-sm text-gray-500">
-              {formatCurrency(awardAmountZWL, 'ZWL')}
+              {formatCurrency(awardAmountZWG, 'ZWG')}
             </p>
             {award && (
               <p className="text-xs text-gray-500 mt-1">
@@ -1252,7 +1252,7 @@ const TransactionSummary = ({
               {formatCurrency(medicalAidPaymentsUSD, 'USD')}
             </p>
             <p className="text-sm text-gray-500">
-              {formatCurrency(medicalAidPaymentsZWL, 'ZWL')}
+              {formatCurrency(medicalAidPaymentsZWG, 'ZWG')}
             </p>
             {medicalAidPaymentsUSD > 0 && (
               <p className="text-xs text-gray-500 mt-1 truncate" title={medicalAidProviders}>
@@ -1275,7 +1275,7 @@ const TransactionSummary = ({
               {formatCurrency(cashPaymentsUSD, 'USD')}
             </p>
             <p className="text-sm text-gray-500">
-              {formatCurrency(cashPaymentsZWL, 'ZWL')}
+              {formatCurrency(cashPaymentsZWG, 'ZWG')}
             </p>
             <p className="text-xs text-gray-500 mt-1">
               {payments.filter(p => p.methodType !== 'medical_aid').length} payment(s)
@@ -1296,7 +1296,7 @@ const TransactionSummary = ({
               isOverpaid ? 'text-yellow-600' :
               'text-orange-600'
             }`}>
-              {formatCurrency(Math.abs(balanceZWL), transactionCurrency)}
+              {formatCurrency(Math.abs(balanceZWG), transactionCurrency)}
             </p>
             <p className="text-sm text-gray-500">
               {formatCurrency(Math.abs(balanceUSD), 'USD')}
@@ -1320,7 +1320,7 @@ const TransactionSummary = ({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <span className="text-gray-600 text-xs">Rate:</span>
-                <div className="font-medium">1 USD = {exchangeRate.toFixed(2)} ZWL</div>
+                <div className="font-medium">1 USD = {exchangeRate.toFixed(2)} ZWG</div>
               </div>
               <div>
                 <span className="text-gray-600 text-xs">Locked at:</span>
@@ -1375,7 +1375,7 @@ const TransactionSummary = ({
                 className="vp-btn vp-btn-primary px-8 opacity-50 cursor-not-allowed"
                 disabled={true}
               >
-                Balance Due: {formatCurrency(balanceZWL, transactionCurrency)}
+                Balance Due: {formatCurrency(balanceZWG, transactionCurrency)}
               </button>
             )}
           </div>
@@ -1420,8 +1420,8 @@ export default function PaymentScreen() {
   const [order, setOrder] = useState<Order | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [transactionCurrency, setTransactionCurrency] = useState<Currency>('ZWL')
-  const [exchangeRate, setExchangeRate] = useState(32.5) // Updated from 1250 to 32.5
+  const [transactionCurrency, setTransactionCurrency] = useState<Currency>('ZWG')
+  const [exchangeRate, setExchangeRate] = useState(32.5) // Updated from 32.5 to 32.5
   const [isRateLocked, setIsRateLocked] = useState(false)
   const [lockedAt, setLockedAt] = useState<Date | null>(null)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('')
@@ -1452,11 +1452,11 @@ export default function PaymentScreen() {
           memberNumber: parsed.memberNumber,
           memberName: parsed.memberName,
           subtotalUSD: parsed.subtotalUSD || 25,
-          subtotalZWL: parsed.subtotalZWL || 32.5,
+          subtotalZWG: parsed.subtotalZWG || 32.5,
           taxUSD: parsed.taxUSD || 37.5,
-          taxZWL: parsed.taxZWL || 46875,
+          taxZWG: parsed.taxZWG || 46875,
           totalUSD: parsed.totalUSD || 287.5,
-          totalZWL: parsed.totalZWL || 359375,
+          totalZWG: parsed.totalZWG || 359375,
           exchangeRate: parsed.exchangeRate || 32.5,
           rateLockedAt: parsed.rateLockedAt ? new Date(parsed.rateLockedAt) : new Date(),
           rateSource: parsed.rateSource || 'reserve_bank',
@@ -1467,7 +1467,7 @@ export default function PaymentScreen() {
         setExchangeRate(orderData.exchangeRate)
         setIsRateLocked(parsed.isRateLocked || false)
         setLockedAt(orderData.rateLockedAt)
-        setTransactionCurrency(parsed.transactionCurrency || 'ZWL')
+        setTransactionCurrency(parsed.transactionCurrency || 'ZWG')
       } else {
         // Demo mode - create sample order with updated rates
         const demoOrder: Order = {
@@ -1476,17 +1476,17 @@ export default function PaymentScreen() {
           patientId: 'PT-2027',
           patientPhone: '+263 77 123 4567',
           subtotalUSD: 250,
-          subtotalZWL: 8125, // 250 * 32.5
+          subtotalZWG: 8125, // 250 * 32.5
           taxUSD: 37.5,
-          taxZWL: 1218.75, // 37.5 * 32.5
+          taxZWG: 1218.75, // 37.5 * 32.5
           totalUSD: 287.5,
-          totalZWL: 9343.75, // 287.5 * 32.5
+          totalZWG: 9343.75, // 287.5 * 32.5
           exchangeRate: 32.5,
           rateLockedAt: new Date(),
           rateSource: 'reserve_bank',
           items: [
-            { name: 'Ray-Ban Aviator', quantity: 1, priceUSD: 120, priceZWL: 3900 }, // 120 * 32.5
-            { name: 'Progressive Lenses', quantity: 1, priceUSD: 130, priceZWL: 4225 } // 130 * 32.5
+            { name: 'Ray-Ban Aviator', quantity: 1, priceUSD: 120, priceZWG: 3900 }, // 120 * 32.5
+            { name: 'Progressive Lenses', quantity: 1, priceUSD: 130, priceZWG: 4225 } // 130 * 32.5
           ]
         }
         setOrder(demoOrder)
@@ -1507,13 +1507,13 @@ export default function PaymentScreen() {
     
     const paymentTotals = calculateTotals(exchangeRate)
     const medicalAidUSD = award?.awardedUSD || 0
-    const medicalAidZWL = award?.awardedZWL || 0
+    const medicalAidZWG = award?.awardedZWG || 0
     
     const totalPaidUSD = paymentTotals.totalPaidUSD + medicalAidUSD
-    const totalPaidZWL = paymentTotals.totalPaidZWL + medicalAidZWL
+    const totalPaidZWG = paymentTotals.totalPaidZWG + medicalAidZWG
     
     const balanceUSD = order.totalUSD - totalPaidUSD
-    const balanceZWL = order.totalZWL - totalPaidZWL
+    const balanceZWG = order.totalZWG - totalPaidZWG
     
     console.log('💰 Payment screen - Totals:', {
       orderTotalUSD: order.totalUSD,
@@ -1524,15 +1524,15 @@ export default function PaymentScreen() {
     return {
       ...paymentTotals,
       medicalAidUSD,
-      medicalAidZWL,
+      medicalAidZWG,
       totalPaidUSD,
-      totalPaidZWL,
+      totalPaidZWG,
       balanceUSD,
-      balanceZWL,
+      balanceZWG,
       shortfallUSD: award ? order.totalUSD - award.awardedUSD : order.totalUSD,
-      shortfallZWL: award ? order.totalZWL - award.awardedZWL : order.totalZWL,
-      isPaidInFull: balanceUSD <= 0.01 && balanceZWL <= 0.01,
-      isOverpaid: balanceUSD < -0.01 || balanceZWL < -0.01
+      shortfallZWG: award ? order.totalZWG - award.awardedZWG : order.totalZWG,
+      isPaidInFull: balanceUSD <= 0.01 && balanceZWG <= 0.01,
+      isOverpaid: balanceUSD < -0.01 || balanceZWG < -0.01
     }
   }, [order, payments, award, exchangeRate, calculateTotals])
 
@@ -1555,7 +1555,7 @@ export default function PaymentScreen() {
       ? amount 
       : amount / exchangeRate
     
-    const amountZWL = method.currency === 'ZWL' 
+    const amountZWG = method.currency === 'ZWG' 
       ? amount 
       : amount * exchangeRate
     
@@ -1565,7 +1565,7 @@ export default function PaymentScreen() {
         console.log('🏥 Recording medical aid AWARD:', {
           provider: method.name,
           amountUSD,
-          amountZWL
+          amountZWG
         })
         
         // Find or create claim
@@ -1581,7 +1581,7 @@ export default function PaymentScreen() {
             {
               id: order.id,
               totalUSD: order.totalUSD,
-              totalZWL: order.totalZWL,
+              totalZWG: order.totalZWG,
               rateLockedAt: order.rateLockedAt,
               rateSource: order.rateSource,
               createdBy: 'Fred Stanley'
@@ -1745,7 +1745,7 @@ export default function PaymentScreen() {
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-vp-primary">{formatCurrency(order.totalUSD, 'USD')}</div>
-                      <div className="text-sm text-gray-500">{formatCurrency(order.totalZWL, 'ZWL')}</div>
+                      <div className="text-sm text-gray-500">{formatCurrency(order.totalZWG, 'ZWG')}</div>
                     </div>
                   </div>
                 </div>
@@ -1786,7 +1786,7 @@ export default function PaymentScreen() {
                   <MedicalAidAwardCard
                     award={award}
                     orderTotalUSD={order.totalUSD}
-                    orderTotalZWL={order.totalZWL}
+                    orderTotalZWG={order.totalZWG}
                     exchangeRate={exchangeRate}
                     onRecordShortfall={handleRecordShortfall}
                     onMarkSettled={handleMarkSettled}
@@ -1816,7 +1816,7 @@ export default function PaymentScreen() {
                     exchangeRate={exchangeRate}
                     order={order}
                     maxAmountUSD={totals.balanceUSD}
-                    maxAmountZWL={totals.balanceZWL}
+                    maxAmountZWG={totals.balanceZWG}
                     onPaymentSubmit={handleAddPayment}
                     isProcessing={isProcessing}
                   />
