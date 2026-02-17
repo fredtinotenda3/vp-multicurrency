@@ -24,17 +24,17 @@ type MedicalAidStatus = 'not_applied' | 'awarded' | 'shortfall_paid' | 'settled'
 // ============================================================================
 
 const PAYMENT_METHODS = [
-  { id: 'cash_usd', name: 'Cash USD', currency: 'USD', type: 'cash', icon: '💵', color: 'bg-green-100', textColor: 'text-green-800', processingTime: 'immediate' },
-  { id: 'cash_ZWG', name: 'Cash ZWG', currency: 'ZWG', type: 'cash', icon: '💵', color: 'bg-blue-100', textColor: 'text-blue-800', processingTime: 'immediate' },
-  { id: 'cimas', name: 'Cimas', currency: 'ZWG', type: 'medical_aid', icon: '🏥', color: 'bg-red-100', textColor: 'text-red-800', processingTime: '30_days' },
-  { id: 'first_mutual', name: 'First Mutual', currency: 'ZWG', type: 'medical_aid', icon: '🏥', color: 'bg-blue-100', textColor: 'text-blue-800', processingTime: '45_days' },
-  { id: 'psmas', name: 'PSMAS', currency: 'ZWG', type: 'medical_aid', icon: '🏥', color: 'bg-green-100', textColor: 'text-green-800', processingTime: '60_days' },
-  { id: 'liberty', name: 'Liberty Health', currency: 'ZWG', type: 'medical_aid', icon: '🏥', color: 'bg-purple-100', textColor: 'text-purple-800', processingTime: '30_days' },
-  { id: 'old_mutual', name: 'Old Mutual', currency: 'ZWG', type: 'medical_aid', icon: '🏥', color: 'bg-blue-100', textColor: 'text-blue-800', processingTime: '30_days' },
-  { id: 'credit_card', name: 'Credit / Debit Card', currency: 'USD', type: 'card', icon: '💳', color: 'bg-purple-100', textColor: 'text-purple-800', processingTime: 'immediate' },
-  { id: 'ecocash', name: 'Ecocash', currency: 'ZWG', type: 'mobile_money', icon: '📱', color: 'bg-teal-100', textColor: 'text-teal-800', processingTime: 'immediate' },
-  { id: 'rtgs', name: 'RTGS', currency: 'ZWG', type: 'bank', icon: '🏦', color: 'bg-yellow-100', textColor: 'text-yellow-800', processingTime: '1_2_days' },
-  { id: 'gift_voucher', name: 'Gift Voucher', currency: 'USD', type: 'voucher', icon: '🎫', color: 'bg-pink-100', textColor: 'text-pink-800', processingTime: 'immediate' }
+  { id: 'cash_usd', name: 'Cash USD', currencies: ['USD'], defaultCurrency: 'USD', type: 'cash', icon: '💵', color: 'bg-green-100', textColor: 'text-green-800', processingTime: 'immediate' },
+  { id: 'cash_ZWG', name: 'Cash ZWG', currencies: ['ZWG'], defaultCurrency: 'ZWG', type: 'cash', icon: '💵', color: 'bg-blue-100', textColor: 'text-blue-800', processingTime: 'immediate' },
+  { id: 'cimas', name: 'Cimas', currencies: ['USD', 'ZWG'], defaultCurrency: 'ZWG', type: 'medical_aid', icon: '🏥', color: 'bg-red-100', textColor: 'text-red-800', processingTime: '30_days' },
+  { id: 'first_mutual', name: 'First Mutual', currencies: ['USD', 'ZWG'], defaultCurrency: 'ZWG', type: 'medical_aid', icon: '🏥', color: 'bg-blue-100', textColor: 'text-blue-800', processingTime: '45_days' },
+  { id: 'psmas', name: 'PSMAS', currencies: ['USD', 'ZWG'], defaultCurrency: 'ZWG', type: 'medical_aid', icon: '🏥', color: 'bg-green-100', textColor: 'text-green-800', processingTime: '60_days' },
+  { id: 'liberty', name: 'Liberty Health', currencies: ['USD', 'ZWG'], defaultCurrency: 'ZWG', type: 'medical_aid', icon: '🏥', color: 'bg-purple-100', textColor: 'text-purple-800', processingTime: '30_days' },
+  { id: 'old_mutual', name: 'Old Mutual', currencies: ['USD', 'ZWG'], defaultCurrency: 'ZWG', type: 'medical_aid', icon: '🏥', color: 'bg-blue-100', textColor: 'text-blue-800', processingTime: '30_days' },
+  { id: 'credit_card', name: 'Credit / Debit Card', currencies: ['USD'], defaultCurrency: 'USD', type: 'card', icon: '💳', color: 'bg-purple-100', textColor: 'text-purple-800', processingTime: 'immediate' },
+  { id: 'ecocash', name: 'Ecocash', currencies: ['ZWG'], defaultCurrency: 'ZWG', type: 'mobile_money', icon: '📱', color: 'bg-teal-100', textColor: 'text-teal-800', processingTime: 'immediate' },
+  { id: 'rtgs', name: 'RTGS', currencies: ['ZWG'], defaultCurrency: 'ZWG', type: 'bank', icon: '🏦', color: 'bg-yellow-100', textColor: 'text-yellow-800', processingTime: '1_2_days' },
+  { id: 'gift_voucher', name: 'Gift Voucher', currencies: ['USD'], defaultCurrency: 'USD', type: 'voucher', icon: '🎫', color: 'bg-pink-100', textColor: 'text-pink-800', processingTime: 'immediate' }
 ] as const
 
 // ============================================================================
@@ -96,7 +96,7 @@ const formatDate = (date: Date | string | undefined | null): string => {
 }
 
 // ============================================================================
-// MEDICAL AID WORKFLOW HOOK
+// MEDICAL AID WORKFLOW HOOK - Updated for dual currency
 // ============================================================================
 
 interface MedicalAidAward {
@@ -106,11 +106,15 @@ interface MedicalAidAward {
   readonly memberNumber: string
   readonly memberName?: string
   readonly claimReference: string
-  readonly awardedUSD: number
-  readonly awardedZWG: number
+  readonly awardedCurrency: Currency // New: track award currency
+  readonly awardedAmount: number // Amount in awardedCurrency
+  readonly awardedUSD: number // Always stored for consistency
+  readonly awardedZWG: number // Always stored for consistency
   readonly awardedAt: Date
   readonly awardedBy: string
   readonly status: MedicalAidStatus
+  readonly shortfallCurrency: Currency // Currency of shortfall (may differ)
+  readonly shortfallAmount: number // Amount in shortfallCurrency
   readonly shortfallUSD: number
   readonly shortfallZWG: number
   readonly shortfallPaidAt?: Date
@@ -175,12 +179,13 @@ function useMedicalAidPayment() {
     providerName: string,
     memberNumber: string,
     memberName: string | undefined,
-    awardedUSD: number,
+    awardedAmount: number,
+    awardedCurrency: Currency, // New: specify award currency
     exchangeRate: number,
     userId: string,
     userName: string
   ): { success: boolean; award?: MedicalAidAward; error?: string } => {
-    if (awardedUSD <= 0) {
+    if (awardedAmount <= 0) {
       return { success: false, error: 'Award amount must be greater than zero' }
     }
 
@@ -189,6 +194,16 @@ function useMedicalAidPayment() {
                           provider?.processingTime === '45_days' ? 45 :
                           provider?.processingTime === '60_days' ? 60 : 30
 
+    // Calculate both currency equivalents
+    const awardedUSD = awardedCurrency === 'USD' ? awardedAmount : awardedAmount / exchangeRate
+    const awardedZWG = awardedCurrency === 'ZWG' ? awardedAmount : awardedAmount * exchangeRate
+
+    // Shortfall is the same currency as award initially
+    const shortfallCurrency = awardedCurrency
+    const shortfallAmount = 0 // Will be calculated later
+    const shortfallUSD = 0
+    const shortfallZWG = 0
+
     const newAward: MedicalAidAward = {
       id: `MA-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
       providerId,
@@ -196,13 +211,17 @@ function useMedicalAidPayment() {
       memberNumber,
       memberName,
       claimReference: `${providerId.toUpperCase()}-${Date.now().toString().slice(-8)}`,
+      awardedCurrency,
+      awardedAmount,
       awardedUSD,
-      awardedZWG: awardedUSD * exchangeRate,
+      awardedZWG,
       awardedAt: new Date(),
       awardedBy: userName,
       status: 'awarded',
-      shortfallUSD: 0,
-      shortfallZWG: 0,
+      shortfallCurrency,
+      shortfallAmount,
+      shortfallUSD,
+      shortfallZWG,
       expectedSettlementDays: processingDays
     }
 
@@ -212,7 +231,8 @@ function useMedicalAidPayment() {
 
   const recordShortfallPayment = useCallback((
     awardId: string,
-    shortfallUSD: number,
+    shortfallAmount: number,
+    shortfallCurrency: Currency, // New: specify shortfall currency
     exchangeRate: number,
     paymentMethod: string,
     receiptNumber: string,
@@ -222,17 +242,21 @@ function useMedicalAidPayment() {
     if (!award || award.id !== awardId) {
       return { success: false, error: 'Award not found' }
     }
-    if (shortfallUSD <= 0) {
+    if (shortfallAmount <= 0) {
       return { success: false, error: 'Shortfall amount must be greater than zero' }
     }
     if (award.shortfallPaidAt) {
       return { success: false, error: 'Shortfall already paid' }
     }
 
-    const shortfallZWG = shortfallUSD * exchangeRate
+    // Calculate equivalents
+    const shortfallUSD = shortfallCurrency === 'USD' ? shortfallAmount : shortfallAmount / exchangeRate
+    const shortfallZWG = shortfallCurrency === 'ZWG' ? shortfallAmount : shortfallAmount * exchangeRate
 
     setAward({
       ...award,
+      shortfallCurrency,
+      shortfallAmount,
       shortfallUSD,
       shortfallZWG,
       shortfallPaidAt: new Date(),
@@ -247,6 +271,9 @@ function useMedicalAidPayment() {
   const markAsSettled = useCallback((
     awardId: string,
     settlementReference: string,
+    settlementCurrency?: Currency, // Optional: settlement may be in different currency
+    settlementAmount?: number,
+    exchangeRate?: number,
     userId: string,
     userName: string
   ): { success: boolean; error?: string } => {
@@ -256,8 +283,27 @@ function useMedicalAidPayment() {
     if (award.status === 'settled') {
       return { success: false, error: 'Award already settled' }
     }
+
+    // If settlement is in different currency, we might need to adjust
+    let finalAward = { ...award }
+    
+    if (settlementCurrency && settlementAmount && exchangeRate) {
+      // Handle settlement in different currency
+      const settlementUSD = settlementCurrency === 'USD' ? settlementAmount : settlementAmount / exchangeRate
+      const settlementZWG = settlementCurrency === 'ZWG' ? settlementAmount : settlementAmount * exchangeRate
+      
+      // Update award to reflect actual settlement
+      finalAward = {
+        ...finalAward,
+        awardedCurrency: settlementCurrency,
+        awardedAmount: settlementAmount,
+        awardedUSD: settlementUSD,
+        awardedZWG: settlementZWG
+      }
+    }
+
     setAward({
-      ...award,
+      ...finalAward,
       status: 'settled',
       settledAt: new Date(),
       settlementReference
@@ -410,6 +456,7 @@ const MedicalAidAwardCard = ({
   onReject,
   disabled = false
 }: MedicalAidAwardCardProps) => {
+  // Calculate shortfall based on award currency
   const shortfallUSD = orderTotalUSD - award.awardedUSD
   const shortfallZWG = orderTotalZWG - award.awardedZWG
   const shortfallPaid = award.shortfallPaidAt !== undefined
@@ -474,10 +521,14 @@ const MedicalAidAwardCard = ({
         <div className="bg-green-50 p-3 rounded-lg border border-green-200">
           <div className="text-xs text-gray-600 uppercase tracking-wider">Awarded</div>
           <div className="text-lg font-bold text-currency-usd">
-            {formatCurrency(award.awardedUSD, 'USD')}
+            {formatCurrency(award.awardedAmount, award.awardedCurrency)}
           </div>
           <div className="text-xs text-gray-500">
-            {formatCurrency(award.awardedZWG, 'ZWG')}
+            <span className="text-currency-usd">{formatCurrency(award.awardedUSD, 'USD')}</span> / 
+            <span className="text-currency-ZWG ml-1">{formatCurrency(award.awardedZWG, 'ZWG')}</span>
+          </div>
+          <div className="text-xs text-gray-400 mt-1">
+            Awarded in {award.awardedCurrency}
           </div>
         </div>
         <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
@@ -490,7 +541,12 @@ const MedicalAidAwardCard = ({
           </div>
           {award.shortfallPaidAt && (
             <div className="mt-1 text-xs text-green-600">
-              Paid {formatDate(award.shortfallPaidAt)}
+              Paid {formatDate(award.shortfallPaidAt)} in {award.shortfallCurrency}
+            </div>
+          )}
+          {!award.shortfallPaidAt && (
+            <div className="mt-1 text-xs text-orange-600">
+              Due in {award.shortfallCurrency}
             </div>
           )}
         </div>
@@ -550,7 +606,7 @@ const MedicalAidAwardCard = ({
 interface MedicalAidAwardFormProps {
   orderTotalUSD: number
   exchangeRate: number
-  onSubmit: (providerId: string, memberNumber: string, memberName: string | undefined, awardedUSD: number) => void
+  onSubmit: (providerId: string, memberNumber: string, memberName: string | undefined, awardedAmount: number, awardedCurrency: Currency) => void
   onCancel: () => void
   isProcessing?: boolean
 }
@@ -565,7 +621,8 @@ const MedicalAidAwardForm = ({
   const [providerId, setProviderId] = useState('')
   const [memberNumber, setMemberNumber] = useState('')
   const [memberName, setMemberName] = useState('')
-  const [awardedUSD, setAwardedUSD] = useState<string>('')
+  const [awardedAmount, setAwardedAmount] = useState<string>('')
+  const [awardedCurrency, setAwardedCurrency] = useState<Currency>('ZWG') // Default to ZWG
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const medicalAidProviders = PAYMENT_METHODS.filter(p => p.type === 'medical_aid')
@@ -574,10 +631,14 @@ const MedicalAidAwardForm = ({
     const newErrors: Record<string, string> = {}
     if (!providerId) newErrors.provider = 'Please select a medical aid provider'
     if (!memberNumber.trim()) newErrors.memberNumber = 'Member number is required'
-    const amount = parseFloat(awardedUSD)
-    if (!awardedUSD || isNaN(amount)) newErrors.awarded = 'Award amount is required'
+    const amount = parseFloat(awardedAmount)
+    if (!awardedAmount || isNaN(amount)) newErrors.awarded = 'Award amount is required'
     else if (amount <= 0) newErrors.awarded = 'Award amount must be greater than zero'
-    else if (amount > orderTotalUSD) newErrors.awarded = 'Award amount cannot exceed order total'
+    else {
+      // Convert to USD for comparison with order total
+      const amountUSD = awardedCurrency === 'USD' ? amount : amount / exchangeRate
+      if (amountUSD > orderTotalUSD) newErrors.awarded = 'Award amount cannot exceed order total'
+    }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -589,7 +650,8 @@ const MedicalAidAwardForm = ({
         providerId,
         memberNumber.trim(),
         memberName.trim() || undefined,
-        parseFloat(awardedUSD)
+        parseFloat(awardedAmount),
+        awardedCurrency
       )
     }
   }
@@ -656,27 +718,74 @@ const MedicalAidAwardForm = ({
         </div>
         <div>
           <label htmlFor="awardedAmount" className="vp-form-label">
-            Awarded Amount (USD) <span className="text-status-error">*</span>
+            Awarded Amount <span className="text-status-error">*</span>
           </label>
-          <div className="relative">
-            <input
-              id="awardedAmount"
-              type="number"
-              value={awardedUSD}
-              onChange={(e) => {
-                setAwardedUSD(e.target.value)
-                setErrors({})
-              }}
-              className={`vp-form-control pl-10 ${errors.awarded ? 'border-status-error' : ''}`}
-              placeholder="0.00"
-              min="0.01"
-              max={orderTotalUSD}
-              step="0.01"
-              disabled={isProcessing}
-            />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-currency-usd">$</div>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <input
+                id="awardedAmount"
+                type="number"
+                value={awardedAmount}
+                onChange={(e) => {
+                  setAwardedAmount(e.target.value)
+                  setErrors({})
+                }}
+                className={`vp-form-control ${errors.awarded ? 'border-status-error' : ''}`}
+                placeholder="0.00"
+                min="0.01"
+                step="0.01"
+                disabled={isProcessing}
+              />
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                  awardedCurrency === 'USD' 
+                    ? 'bg-currency-usd/20 text-currency-usd' 
+                    : 'bg-currency-ZWG/20 text-currency-ZWG'
+                }`}>
+                  {awardedCurrency}
+                </span>
+              </div>
+            </div>
+            <div className="flex gap-1">
+              <button
+                type="button"
+                onClick={() => setAwardedCurrency('USD')}
+                className={`
+                  px-3 py-2 rounded-md text-xs font-medium transition-all
+                  ${awardedCurrency === 'USD'
+                    ? 'bg-currency-usd text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }
+                `}
+              >
+                USD
+              </button>
+              <button
+                type="button"
+                onClick={() => setAwardedCurrency('ZWG')}
+                className={`
+                  px-3 py-2 rounded-md text-xs font-medium transition-all
+                  ${awardedCurrency === 'ZWG'
+                    ? 'bg-currency-ZWG text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }
+                `}
+              >
+                ZWG
+              </button>
+            </div>
           </div>
           {errors.awarded && <p className="mt-1 text-sm text-status-error">{errors.awarded}</p>}
+          {awardedAmount && !isNaN(parseFloat(awardedAmount)) && (
+            <p className="mt-1 text-xs text-gray-500">
+              ≈ {formatCurrency(
+                awardedCurrency === 'USD' 
+                  ? parseFloat(awardedAmount) * exchangeRate 
+                  : parseFloat(awardedAmount) / exchangeRate,
+                awardedCurrency === 'USD' ? 'ZWG' : 'USD'
+              )}
+            </p>
+          )}
         </div>
       </div>
       <div className="flex justify-end gap-3">
@@ -692,23 +801,25 @@ const MedicalAidAwardForm = ({
 }
 
 // ============================================================================
-// PAYMENT FORM COMPONENT
+// PAYMENT FORM COMPONENT - Updated for dual currency medical aid
 // ============================================================================
 
 interface PaymentFormProps {
   selectedMethodId: string
-  onMethodSelect: (methodId: string) => void
+  selectedMethodCurrency?: Currency // New: track selected currency for the method
+  onMethodSelect: (methodId: string, currency?: Currency) => void
   transactionCurrency: Currency
   exchangeRate: number
   order: Order | null
   maxAmountUSD: number
   maxAmountZWG: number
-  onPaymentSubmit: (amount: number, reference?: string) => void
+  onPaymentSubmit: (amount: number, currency: Currency, reference?: string) => void
   isProcessing?: boolean
 }
 
 const PaymentForm = ({
   selectedMethodId,
+  selectedMethodCurrency,
   onMethodSelect,
   transactionCurrency,
   exchangeRate,
@@ -723,9 +834,14 @@ const PaymentForm = ({
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const selectedMethod = PAYMENT_METHODS.find(m => m.id === selectedMethodId)
-  const paymentCurrency = selectedMethod?.currency || transactionCurrency
   
-  // Safe max amount calculation
+  // Determine payment currency - use method-specific currency if set, otherwise transaction currency
+  const paymentCurrency = selectedMethodCurrency || selectedMethod?.defaultCurrency || transactionCurrency
+  
+  // Check if this method supports the selected currency
+  const supportsCurrency = selectedMethod?.currencies.includes(paymentCurrency) || false
+
+  // Safe max amount calculation based on currency
   const safeMaxAmount = useMemo(() => {
     if (!order) return 0
     
@@ -743,6 +859,18 @@ const PaymentForm = ({
   // Validation with safe checks
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
+
+    if (!selectedMethod) {
+      newErrors.method = 'Please select a payment method'
+      setErrors(newErrors)
+      return false
+    }
+
+    if (!supportsCurrency) {
+      newErrors.currency = `${selectedMethod.name} does not support ${paymentCurrency}`
+      setErrors(newErrors)
+      return false
+    }
 
     if (!amount || amount.trim() === '') {
       newErrors.amount = 'Please enter an amount'
@@ -777,7 +905,7 @@ const PaymentForm = ({
     e.preventDefault()
     if (validate()) {
       const amountValue = parseFloat(amount)
-      onPaymentSubmit(amountValue, reference.trim() || undefined)
+      onPaymentSubmit(amountValue, paymentCurrency, reference.trim() || undefined)
       setAmount('')
       setReference('')
       setErrors({})
@@ -836,6 +964,39 @@ const PaymentForm = ({
     )
   }
 
+  if (!supportsCurrency) {
+    return (
+      <div className="vp-card border-status-error">
+        <div className="vp-card-header bg-status-error text-white">
+          Currency Not Supported
+        </div>
+        <div className="vp-card-body">
+          <p className="text-sm text-gray-700 mb-4">
+            {selectedMethod.name} does not support {paymentCurrency}. 
+            Please select a different currency or payment method.
+          </p>
+          <div className="flex gap-3">
+            {selectedMethod.currencies.map(currency => (
+              <button
+                key={currency}
+                onClick={() => onMethodSelect(selectedMethodId, currency)}
+                className={`
+                  px-4 py-2 rounded-lg font-medium
+                  ${currency === 'USD'
+                    ? 'bg-currency-usd/20 text-currency-usd border border-currency-usd/30'
+                    : 'bg-currency-ZWG/20 text-currency-ZWG border border-currency-ZWG/30'
+                  }
+                `}
+              >
+                Pay in {currency}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="vp-card">
       <div className="vp-card-header flex items-center gap-3">
@@ -845,12 +1006,17 @@ const PaymentForm = ({
         <div>
           <span className="font-bold">{selectedMethod.name}</span>
           <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
-            selectedMethod.currency === 'USD' 
+            paymentCurrency === 'USD' 
               ? 'bg-currency-usd/20 text-currency-usd' 
               : 'bg-currency-ZWG/20 text-currency-ZWG'
           }`}>
-            {selectedMethod.currency}
+            {paymentCurrency}
           </span>
+          {selectedMethod.currencies.length > 1 && (
+            <span className="ml-2 text-xs text-gray-500">
+              (Also supports {selectedMethod.currencies.filter(c => c !== paymentCurrency).join('/')})
+            </span>
+          )}
         </div>
       </div>
 
@@ -934,6 +1100,24 @@ const PaymentForm = ({
                 })}
               </div>
             </div>
+
+            {selectedMethod.requiresReference && (
+              <div>
+                <label htmlFor="payment-reference" className="vp-form-label">
+                  {selectedMethod.referenceLabel || 'Reference'} {selectedMethod.requiresReference && <span className="text-status-error">*</span>}
+                </label>
+                <input
+                  id="payment-reference"
+                  type="text"
+                  value={reference}
+                  onChange={(e) => setReference(e.target.value)}
+                  className="vp-form-control"
+                  placeholder={selectedMethod.referencePlaceholder || 'Enter reference'}
+                  required={selectedMethod.requiresReference}
+                  disabled={isProcessing}
+                />
+              </div>
+            )}
           </div>
 
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
@@ -1112,7 +1296,7 @@ const PaymentHistory = ({
 }
 
 // ============================================================================
-// TRANSACTION SUMMARY COMPONENT
+// TRANSACTION SUMMARY COMPONENT - Updated for dual currency medical aid
 // ============================================================================
 
 interface TransactionSummaryProps {
@@ -1146,6 +1330,7 @@ const TransactionSummary = ({
   // Separate Medical Aid AWARD (to be paid later)
   const awardAmountUSD = award?.awardedUSD || 0
   const awardAmountZWG = award?.awardedZWG || 0
+  const awardCurrency = award?.awardedCurrency || 'ZWG'
   
   // Separate Medical Aid PAYMENTS (paid now)
   const medicalAidPaymentsUSD = payments
@@ -1225,21 +1410,29 @@ const TransactionSummary = ({
             <p className="text-xs text-gray-600 uppercase tracking-wider mb-1">
               Medical Aid Award
             </p>
-            <p className="text-xl font-bold text-currency-usd">
-              {formatCurrency(awardAmountUSD, 'USD')}
-            </p>
-            <p className="text-sm text-gray-500">
-              {formatCurrency(awardAmountZWG, 'ZWG')}
-            </p>
-            {award && (
-              <p className="text-xs text-gray-500 mt-1">
-                {award.providerName} • settles in {award.expectedSettlementDays} days
-              </p>
-            )}
-            {!award && (
-              <p className="text-xs text-gray-400 mt-1">
-                No award recorded
-              </p>
+            {award ? (
+              <>
+                <p className="text-xl font-bold text-currency-usd">
+                  {formatCurrency(award.awardedAmount, award.awardedCurrency)}
+                </p>
+                <p className="text-xs text-gray-500">
+                  Awarded in {award.awardedCurrency}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  <span className="text-currency-usd">{formatCurrency(award.awardedUSD, 'USD')}</span> / 
+                  <span className="text-currency-ZWG ml-1">{formatCurrency(award.awardedZWG, 'ZWG')}</span>
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {award.providerName} • settles in {award.expectedSettlementDays} days
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-xl font-bold text-gray-400">—</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  No award recorded
+                </p>
+              </>
             )}
           </div>
           
@@ -1390,8 +1583,8 @@ const TransactionSummary = ({
                 {award && award.status !== 'settled' && award.status !== 'rejected' && (
                   <p className="mb-1">
                     <span className="font-medium">Medical Aid Award Pending:</span>{' '}
-                    {award.providerName} award of {formatCurrency(award.awardedUSD, 'USD')} 
-                    will be settled in approximately {award.expectedSettlementDays} days.
+                    {award.providerName} award of {formatCurrency(award.awardedAmount, award.awardedCurrency)} 
+                    (≈ {formatCurrency(award.awardedUSD, 'USD')}) will be settled in approximately {award.expectedSettlementDays} days.
                   </p>
                 )}
                 {medicalAidPaymentsUSD > 0 && (
@@ -1421,10 +1614,11 @@ export default function PaymentScreen() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [transactionCurrency, setTransactionCurrency] = useState<Currency>('ZWG')
-  const [exchangeRate, setExchangeRate] = useState(32.5) // Updated from 32.5 to 32.5
+  const [exchangeRate, setExchangeRate] = useState(32.5)
   const [isRateLocked, setIsRateLocked] = useState(false)
   const [lockedAt, setLockedAt] = useState<Date | null>(null)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('')
+  const [selectedMethodCurrency, setSelectedMethodCurrency] = useState<Currency | undefined>()
   const [isProcessing, setIsProcessing] = useState(false)
   const [showMedicalAidForm, setShowMedicalAidForm] = useState(false)
 
@@ -1451,12 +1645,12 @@ export default function PaymentScreen() {
           medicalAidProvider: parsed.medicalAidProvider,
           memberNumber: parsed.memberNumber,
           memberName: parsed.memberName,
-          subtotalUSD: parsed.subtotalUSD || 25,
-          subtotalZWG: parsed.subtotalZWG || 32.5,
+          subtotalUSD: parsed.subtotalUSD || 250,
+          subtotalZWG: parsed.subtotalZWG || 8125,
           taxUSD: parsed.taxUSD || 37.5,
-          taxZWG: parsed.taxZWG || 46875,
+          taxZWG: parsed.taxZWG || 1218.75,
           totalUSD: parsed.totalUSD || 287.5,
-          totalZWG: parsed.totalZWG || 359375,
+          totalZWG: parsed.totalZWG || 9343.75,
           exchangeRate: parsed.exchangeRate || 32.5,
           rateLockedAt: parsed.rateLockedAt ? new Date(parsed.rateLockedAt) : new Date(),
           rateSource: parsed.rateSource || 'reserve_bank',
@@ -1476,17 +1670,17 @@ export default function PaymentScreen() {
           patientId: 'PT-2027',
           patientPhone: '+263 77 123 4567',
           subtotalUSD: 250,
-          subtotalZWG: 8125, // 250 * 32.5
+          subtotalZWG: 8125,
           taxUSD: 37.5,
-          taxZWG: 1218.75, // 37.5 * 32.5
+          taxZWG: 1218.75,
           totalUSD: 287.5,
-          totalZWG: 9343.75, // 287.5 * 32.5
+          totalZWG: 9343.75,
           exchangeRate: 32.5,
           rateLockedAt: new Date(),
           rateSource: 'reserve_bank',
           items: [
-            { name: 'Ray-Ban Aviator', quantity: 1, priceUSD: 120, priceZWG: 3900 }, // 120 * 32.5
-            { name: 'Progressive Lenses', quantity: 1, priceUSD: 130, priceZWG: 4225 } // 130 * 32.5
+            { name: 'Ray-Ban Aviator', quantity: 1, priceUSD: 120, priceZWG: 3900 },
+            { name: 'Progressive Lenses', quantity: 1, priceUSD: 130, priceZWG: 4225 }
           ]
         }
         setOrder(demoOrder)
@@ -1537,7 +1731,7 @@ export default function PaymentScreen() {
   }, [order, payments, award, exchangeRate, calculateTotals])
 
   // Handle Add Payment
-  const handleAddPayment = useCallback(async (amount: number, reference?: string) => {
+  const handleAddPayment = useCallback(async (amount: number, currency: Currency, reference?: string) => {
     if (!order || !selectedPaymentMethod) return
     
     setIsProcessing(true)
@@ -1546,24 +1740,21 @@ export default function PaymentScreen() {
     
     // Add to payment history
     const payment = addPayment(
-      method.id, method.name, method.type, method.currency,
+      method.id, method.name, method.type, currency,
       amount, exchangeRate, reference, 'Fred Stanley', 'TERM-001'
     )
     
     // Calculate USD equivalent
-    const amountUSD = method.currency === 'USD' 
-      ? amount 
-      : amount / exchangeRate
-    
-    const amountZWG = method.currency === 'ZWG' 
-      ? amount 
-      : amount * exchangeRate
+    const amountUSD = currency === 'USD' ? amount : amount / exchangeRate
+    const amountZWG = currency === 'ZWG' ? amount : amount * exchangeRate
     
     // Medical aid payment = AWARD (paid now)
     if (method.type === 'medical_aid') {
       try {
         console.log('🏥 Recording medical aid AWARD:', {
           provider: method.name,
+          currency,
+          amount,
           amountUSD,
           amountZWG
         })
@@ -1597,15 +1788,15 @@ export default function PaymentScreen() {
           )
         }
         
-        // RECORD AS AWARD
+        // RECORD AS AWARD - Pass the currency
         if (claim) {
           await medicalAidCache.recordAward(
             claim.id,
-            amountUSD,
+            amountUSD, // Always store USD equivalent
             exchangeRate,
             'Fred Stanley'
           )
-          console.log('✅ Medical aid AWARD recorded:', amountUSD)
+          console.log('✅ Medical aid AWARD recorded:', amountUSD, 'USD')
         }
         
       } catch (error) {
@@ -1614,11 +1805,13 @@ export default function PaymentScreen() {
     }
     
     setSelectedPaymentMethod('')
+    setSelectedMethodCurrency(undefined)
     setIsProcessing(false)
   }, [order, selectedPaymentMethod, exchangeRate, addPayment, medicalAidCache])
 
   const handleMedicalAwardSubmit = useCallback((
-    providerId: string, memberNumber: string, memberName: string | undefined, awardedUSD: number
+    providerId: string, memberNumber: string, memberName: string | undefined, 
+    awardedAmount: number, awardedCurrency: Currency
   ) => {
     if (!order) return
     setIsProcessing(true)
@@ -1626,7 +1819,7 @@ export default function PaymentScreen() {
     if (!provider) return
     const result = createAward(
       providerId, provider.name, memberNumber, memberName,
-      awardedUSD, exchangeRate, 'current-user', 'Fred Stanley'
+      awardedAmount, awardedCurrency, exchangeRate, 'current-user', 'Fred Stanley'
     )
     if (result.success) setShowMedicalAidForm(false)
     setIsProcessing(false)
@@ -1634,15 +1827,26 @@ export default function PaymentScreen() {
 
   const handleRecordShortfall = useCallback((awardId: string) => {
     if (!order || !award) return
-    const shortfallUSD = order.totalUSD - award.awardedUSD
+    
+    // Ask for shortfall currency
+    const shortfallCurrency = window.confirm('Pay shortfall in USD? Click OK for USD, Cancel for ZWG') 
+      ? 'USD' as Currency 
+      : 'ZWG' as Currency
+    
+    const shortfallAmount = shortfallCurrency === 'USD' 
+      ? order.totalUSD - award.awardedUSD 
+      : order.totalZWG - award.awardedZWG
+    
     const receiptNumber = prompt('Enter receipt number:', `RCPT-${Date.now().toString().slice(-6)}`)
     if (!receiptNumber) return
-    const paymentMethod = prompt('Enter payment method (Cash USD/Ecocash/etc):', 'Cash USD')
+    
+    const paymentMethod = prompt('Enter payment method (Cash/Ecocash/etc):', 'Cash')
     if (!paymentMethod) return
+    
     setIsProcessing(true)
     recordShortfallPayment(
-      awardId, shortfallUSD, exchangeRate, paymentMethod, receiptNumber,
-      'current-user', 'Fred Stanley'
+      awardId, shortfallAmount, shortfallCurrency, exchangeRate, 
+      paymentMethod, receiptNumber, 'current-user', 'Fred Stanley'
     )
     setIsProcessing(false)
   }, [order, award, exchangeRate, recordShortfallPayment])
@@ -1650,10 +1854,32 @@ export default function PaymentScreen() {
   const handleMarkSettled = useCallback((awardId: string) => {
     const reference = prompt('Enter settlement reference:', `SET-${Date.now().toString().slice(-6)}`)
     if (!reference) return
+    
+    // Ask if settlement is in different currency
+    const differentCurrency = window.confirm('Is settlement in a different currency? Click OK for different, Cancel for same')
+    
+    if (differentCurrency && award) {
+      const settlementCurrency = window.confirm('Settlement in USD? Click OK for USD, Cancel for ZWG')
+        ? 'USD' as Currency
+        : 'ZWG' as Currency
+      
+      const settlementAmount = parseFloat(prompt(`Enter settlement amount in ${settlementCurrency}:`, award.awardedAmount.toString()) || '0')
+      
+      if (settlementAmount > 0) {
+        setIsProcessing(true)
+        markAsSettled(
+          awardId, reference, settlementCurrency, settlementAmount, exchangeRate,
+          'current-user', 'Fred Stanley'
+        )
+        setIsProcessing(false)
+        return
+      }
+    }
+    
     setIsProcessing(true)
-    markAsSettled(awardId, reference, 'current-user', 'Fred Stanley')
+    markAsSettled(awardId, reference, undefined, undefined, undefined, 'current-user', 'Fred Stanley')
     setIsProcessing(false)
-  }, [markAsSettled])
+  }, [award, exchangeRate, markAsSettled])
 
   const handleRejectAward = useCallback((awardId: string) => {
     const reason = prompt('Reason for rejection:')
@@ -1684,6 +1910,11 @@ export default function PaymentScreen() {
 
   const handleSaveDraft = useCallback(() => {
     alert('Transaction saved as draft')
+  }, [])
+
+  const handleMethodSelect = useCallback((methodId: string, method: any, currency?: Currency) => {
+    setSelectedPaymentMethod(methodId)
+    setSelectedMethodCurrency(currency)
   }, [])
 
   if (isLoading) {
@@ -1798,8 +2029,9 @@ export default function PaymentScreen() {
 
               <div className="mb-6">
                 <PaymentMethodGrid
-                  selectedMethod={selectedPaymentMethod}
-                  onMethodSelect={setSelectedPaymentMethod}
+                  selectedMethodId={selectedPaymentMethod}
+                  selectedCurrency={selectedMethodCurrency}
+                  onMethodSelect={handleMethodSelect}
                   transactionCurrency={transactionCurrency}
                   onCurrencyChange={setTransactionCurrency}
                   disabled={isProcessing}
@@ -1811,7 +2043,11 @@ export default function PaymentScreen() {
                 <div className="mb-6">
                   <PaymentForm
                     selectedMethodId={selectedPaymentMethod}
-                    onMethodSelect={setSelectedPaymentMethod}
+                    selectedMethodCurrency={selectedMethodCurrency}
+                    onMethodSelect={(methodId, currency) => {
+                      setSelectedPaymentMethod(methodId)
+                      setSelectedMethodCurrency(currency)
+                    }}
                     transactionCurrency={transactionCurrency}
                     exchangeRate={exchangeRate}
                     order={order}

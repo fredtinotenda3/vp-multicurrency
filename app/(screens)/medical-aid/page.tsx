@@ -10,7 +10,7 @@ import { CurrencyAmountValidator } from '@/components/validation/FormValidator'
 import { useMedicalAidCache, MedicalAidCache } from '@/lib/offline/MedicalAidCache'
 
 // ============================================================================
-// TYPES - Explicit, immutable, self-documenting
+// TYPES - Explicit, immutable, self-documenting, dual currency support
 // ============================================================================
 
 type Currency = 'USD' | 'ZWG'
@@ -19,31 +19,31 @@ type TimelineEventType = 'claim_submitted' | 'award_received' | 'shortfall_paid'
 
 // Zimbabwe medical aid providers - complete list from actual market
 const MEDICAL_AID_PROVIDERS = [
-  { id: 'cimas', name: 'Cimas', code: 'CIM', color: 'red', settlementDays: 30 },
-  { id: 'first_mutual', name: 'First Mutual', code: 'FMH', color: 'blue', settlementDays: 45 },
-  { id: 'psmas', name: 'PSMAS', code: 'PSM', color: 'green', settlementDays: 60 },
-  { id: 'liberty', name: 'Liberty Health', code: 'LIB', color: 'purple', settlementDays: 30 },
-  { id: 'alliance', name: 'Alliance Health', code: 'ALL', color: 'pink', settlementDays: 45 },
-  { id: 'altfin', name: 'Altfin', code: 'ALT', color: 'yellow', settlementDays: 30 },
-  { id: 'bonvie', name: 'BonVie', code: 'BON', color: 'indigo', settlementDays: 60 },
-  { id: 'cellmed', name: 'Cellmed', code: 'CEL', color: 'teal', settlementDays: 30 },
-  { id: 'corporate_24', name: 'Corporate 24', code: 'C24', color: 'gray', settlementDays: 45 },
-  { id: 'eternal_peace', name: 'Eternal Peace', code: 'EPH', color: 'amber', settlementDays: 60 },
-  { id: 'fbc', name: 'FBC Health', code: 'FBC', color: 'orange', settlementDays: 30 },
-  { id: 'flimas', name: 'Flimas', code: 'FLI', color: 'cyan', settlementDays: 45 },
-  { id: 'generation_health', name: 'Generation Health', code: 'GEN', color: 'emerald', settlementDays: 60 },
-  { id: 'grainmed', name: 'Grainmed', code: 'GRN', color: 'lime', settlementDays: 30 },
-  { id: 'healthmed', name: 'Healthmed', code: 'HLT', color: 'rose', settlementDays: 45 },
-  { id: 'heritage', name: 'Heritage', code: 'HER', color: 'fuchsia', settlementDays: 60 },
-  { id: 'hmmas', name: 'Hmmas', code: 'HMM', color: 'violet', settlementDays: 30 },
-  { id: 'maisha', name: 'Maisha', code: 'MAI', color: 'slate', settlementDays: 45 },
-  { id: 'masca', name: 'Masca', code: 'MAS', color: 'stone', settlementDays: 60 },
-  { id: 'minerva', name: 'Minerva', code: 'MIN', color: 'zinc', settlementDays: 30 },
-  { id: 'northern', name: 'Northern', code: 'NOR', color: 'neutral', settlementDays: 45 },
-  { id: 'oakfin', name: 'Oakfin', code: 'OAK', color: 'amber', settlementDays: 60 },
-  { id: 'old_mutual', name: 'Old Mutual', code: 'OMH', color: 'blue', settlementDays: 30 },
-  { id: 'prohealth', name: 'ProHealth', code: 'PRO', color: 'green', settlementDays: 45 },
-  { id: 'varichem', name: 'Varichem', code: 'VAR', color: 'red', settlementDays: 60 }
+  { id: 'cimas', name: 'Cimas', code: 'CIM', color: 'red', settlementDays: 30, supportsUSD: true, supportsZWG: true },
+  { id: 'first_mutual', name: 'First Mutual', code: 'FMH', color: 'blue', settlementDays: 45, supportsUSD: true, supportsZWG: true },
+  { id: 'psmas', name: 'PSMAS', code: 'PSM', color: 'green', settlementDays: 60, supportsUSD: true, supportsZWG: true },
+  { id: 'liberty', name: 'Liberty Health', code: 'LIB', color: 'purple', settlementDays: 30, supportsUSD: true, supportsZWG: true },
+  { id: 'alliance', name: 'Alliance Health', code: 'ALL', color: 'pink', settlementDays: 45, supportsUSD: true, supportsZWG: true },
+  { id: 'altfin', name: 'Altfin', code: 'ALT', color: 'yellow', settlementDays: 30, supportsUSD: true, supportsZWG: true },
+  { id: 'bonvie', name: 'BonVie', code: 'BON', color: 'indigo', settlementDays: 60, supportsUSD: true, supportsZWG: true },
+  { id: 'cellmed', name: 'Cellmed', code: 'CEL', color: 'teal', settlementDays: 30, supportsUSD: true, supportsZWG: true },
+  { id: 'corporate_24', name: 'Corporate 24', code: 'C24', color: 'gray', settlementDays: 45, supportsUSD: true, supportsZWG: true },
+  { id: 'eternal_peace', name: 'Eternal Peace', code: 'EPH', color: 'amber', settlementDays: 60, supportsUSD: true, supportsZWG: true },
+  { id: 'fbc', name: 'FBC Health', code: 'FBC', color: 'orange', settlementDays: 30, supportsUSD: true, supportsZWG: true },
+  { id: 'flimas', name: 'Flimas', code: 'FLI', color: 'cyan', settlementDays: 45, supportsUSD: true, supportsZWG: true },
+  { id: 'generation_health', name: 'Generation Health', code: 'GEN', color: 'emerald', settlementDays: 60, supportsUSD: true, supportsZWG: true },
+  { id: 'grainmed', name: 'Grainmed', code: 'GRN', color: 'lime', settlementDays: 30, supportsUSD: true, supportsZWG: true },
+  { id: 'healthmed', name: 'Healthmed', code: 'HLT', color: 'rose', settlementDays: 45, supportsUSD: true, supportsZWG: true },
+  { id: 'heritage', name: 'Heritage', code: 'HER', color: 'fuchsia', settlementDays: 60, supportsUSD: true, supportsZWG: true },
+  { id: 'hmmas', name: 'Hmmas', code: 'HMM', color: 'violet', settlementDays: 30, supportsUSD: true, supportsZWG: true },
+  { id: 'maisha', name: 'Maisha', code: 'MAI', color: 'slate', settlementDays: 45, supportsUSD: true, supportsZWG: true },
+  { id: 'masca', name: 'Masca', code: 'MAS', color: 'stone', settlementDays: 60, supportsUSD: true, supportsZWG: true },
+  { id: 'minerva', name: 'Minerva', code: 'MIN', color: 'zinc', settlementDays: 30, supportsUSD: true, supportsZWG: true },
+  { id: 'northern', name: 'Northern', code: 'NOR', color: 'neutral', settlementDays: 45, supportsUSD: true, supportsZWG: true },
+  { id: 'oakfin', name: 'Oakfin', code: 'OAK', color: 'amber', settlementDays: 60, supportsUSD: true, supportsZWG: true },
+  { id: 'old_mutual', name: 'Old Mutual', code: 'OMH', color: 'blue', settlementDays: 30, supportsUSD: true, supportsZWG: true },
+  { id: 'prohealth', name: 'ProHealth', code: 'PRO', color: 'green', settlementDays: 45, supportsUSD: true, supportsZWG: true },
+  { id: 'varichem', name: 'Varichem', code: 'VAR', color: 'red', settlementDays: 60, supportsUSD: true, supportsZWG: true }
 ] as const
 
 interface MedicalAidClaim {
@@ -65,7 +65,10 @@ interface MedicalAidClaim {
     readonly rateSource: 'reserve_bank' | 'manual' | 'clinic_rate'
   }
   
+  // Award with original currency tracking
   readonly award: {
+    readonly currency: Currency  // Original award currency
+    readonly amount: number      // Amount in original currency
     readonly USD: number
     readonly ZWG: number
     readonly awardedAt?: Date
@@ -73,7 +76,10 @@ interface MedicalAidClaim {
     readonly reference?: string
   }
   
+  // Shortfall with original currency tracking
   readonly shortfall: {
+    readonly currency: Currency  // Original shortfall currency
+    readonly amount: number      // Amount in original currency
     readonly USD: number
     readonly ZWG: number
     readonly paidAt?: Date
@@ -107,6 +113,8 @@ interface TimelineEvent {
   readonly title: string
   readonly description: string
   readonly metadata?: {
+    readonly amount?: number
+    readonly currency?: Currency
     readonly amountUSD?: number
     readonly amountZWG?: number
     readonly reference?: string
@@ -493,7 +501,7 @@ const StatusBadge = ({ status, className = '' }: StatusBadgeProps) => {
 }
 
 // ============================================================================
-// TIMELINE EVENT COMPONENT
+// TIMELINE EVENT COMPONENT - Updated for dual currency
 // ============================================================================
 
 interface TimelineEventItemProps {
@@ -538,7 +546,7 @@ const TimelineEventItem = ({ event, isLast }: TimelineEventItemProps) => {
     })
   }
 
-  const formatCurrency = (amount: number, currency: 'USD' | 'ZWG'): string => {
+  const formatCurrency = (amount: number, currency: Currency): string => {
     if (currency === 'USD') {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -584,14 +592,14 @@ const TimelineEventItem = ({ event, isLast }: TimelineEventItemProps) => {
                 {event.description}
               </p>
               
-              {event.metadata?.amountUSD && (
+              {event.metadata?.amount && event.metadata?.currency && (
                 <p className="mt-1 text-sm font-medium">
-                  <span className="text-currency-usd">
-                    {formatCurrency(event.metadata.amountUSD, 'USD')}
+                  <span className={event.metadata.currency === 'USD' ? 'text-currency-usd' : 'text-currency-ZWG'}>
+                    {formatCurrency(event.metadata.amount, event.metadata.currency)}
                   </span>
-                  {event.metadata.amountZWG && (
-                    <span className="ml-2 text-gray-500">
-                      ({formatCurrency(event.metadata.amountZWG, 'ZWG')})
+                  {event.metadata.amountUSD && event.metadata.amountZWG && (
+                    <span className="ml-2 text-xs text-gray-500">
+                      (≈ {formatCurrency(event.metadata.amountUSD, 'USD')} / {formatCurrency(event.metadata.amountZWG, 'ZWG')})
                     </span>
                   )}
                 </p>
@@ -622,7 +630,7 @@ const TimelineEventItem = ({ event, isLast }: TimelineEventItemProps) => {
 }
 
 // ============================================================================
-// CLAIM CARD COMPONENT
+// CLAIM CARD COMPONENT - Updated for dual currency
 // ============================================================================
 
 interface ClaimCardProps {
@@ -640,7 +648,7 @@ const ClaimCard = ({ claim, isSelected, onSelect }: ClaimCardProps) => {
     })
   }
 
-  const formatCurrency = (amount: number, currency: 'USD' | 'ZWG'): string => {
+  const formatCurrency = (amount: number, currency: Currency): string => {
     if (currency === 'USD') {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -694,16 +702,26 @@ const ClaimCard = ({ claim, isSelected, onSelect }: ClaimCardProps) => {
           <div className="flex justify-between">
             <span className="text-gray-600">Awarded:</span>
             <span className="font-medium text-currency-usd">
-              {formatCurrency(claim.award.USD, 'USD')}
+              {formatCurrency(claim.award.amount, claim.award.currency)}
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Shortfall:</span>
             <span className="font-medium text-orange-600">
-              {formatCurrency(claim.shortfall.USD, 'USD')}
+              {formatCurrency(claim.shortfall.amount, claim.shortfall.currency)}
             </span>
           </div>
         </div>
+      </div>
+      
+      {/* Currency badges */}
+      <div className="mt-2 flex gap-2 text-[10px]">
+        <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded-full border border-blue-200">
+          Award: {claim.award.currency}
+        </span>
+        <span className="px-1.5 py-0.5 bg-orange-50 text-orange-700 rounded-full border border-orange-200">
+          Shortfall: {claim.shortfall.currency}
+        </span>
       </div>
       
       {/* Status date indicators */}
@@ -737,15 +755,69 @@ const ClaimCard = ({ claim, isSelected, onSelect }: ClaimCardProps) => {
 }
 
 // ============================================================================
-// CUSTOM HOOKS - Business logic separation
+// CURRENCY AMOUNT DISPLAY COMPONENT - Helper for dual currency display
+// ============================================================================
+
+interface CurrencyAmountDisplayProps {
+  amount: number
+  currency: Currency
+  showEquivalent?: boolean
+  exchangeRate?: number
+  className?: string
+}
+
+const CurrencyAmountDisplay = ({ 
+  amount, 
+  currency, 
+  showEquivalent = true, 
+  exchangeRate = 32.5,
+  className = '' 
+}: CurrencyAmountDisplayProps) => {
+  const formatCurrency = (amt: number, curr: Currency): string => {
+    if (curr === 'USD') {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2
+      }).format(amt)
+    }
+    return `ZWG ${amt.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`
+  }
+
+  const equivalentUSD = currency === 'USD' ? amount : amount / exchangeRate
+  const equivalentZWG = currency === 'ZWG' ? amount : amount * exchangeRate
+
+  return (
+    <div className={className}>
+      <div className="font-bold">
+        <span className={currency === 'USD' ? 'text-currency-usd' : 'text-currency-ZWG'}>
+          {formatCurrency(amount, currency)}
+        </span>
+      </div>
+      {showEquivalent && (
+        <div className="text-xs text-gray-500">
+          <span className="text-currency-usd">{formatCurrency(equivalentUSD, 'USD')}</span>
+          {' / '}
+          <span className="text-currency-ZWG">{formatCurrency(equivalentZWG, 'ZWG')}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================================================
+// CUSTOM HOOKS - Business logic separation, updated for dual currency
 // ============================================================================
 
 function useMedicalAidClaims() {
   const { 
     claims: cachedClaims, 
     isLoading, 
-    recordAward, 
-    recordShortfallPayment, 
+    recordAwardWithCurrency,
+    recordShortfallPaymentWithCurrency,
     markClaimCleared: cacheMarkClaimCleared,
     refresh 
   } = useMedicalAidCache()
@@ -756,7 +828,7 @@ function useMedicalAidClaims() {
   
   const medicalAidCache = MedicalAidCache.getInstance()
 
-  const formatCurrency = (amount: number, currency: 'USD' | 'ZWG'): string => {
+  const formatCurrency = (amount: number, currency: Currency): string => {
     if (currency === 'USD') {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -789,6 +861,8 @@ function useMedicalAidClaims() {
           rateSource: c.rateSource as any
         },
         award: {
+          currency: c.awardCurrency || 'ZWG',
+          amount: c.awardAmount || 0,
           USD: c.awardUSD,
           ZWG: c.awardZWG,
           awardedAt: c.awardAt,
@@ -796,6 +870,8 @@ function useMedicalAidClaims() {
           reference: c.awardReference
         },
         shortfall: {
+          currency: c.shortfallCurrency || 'ZWG',
+          amount: c.shortfallAmount || 0,
           USD: c.shortfallUSD,
           ZWG: c.shortfallZWG,
           paidAt: c.shortfallPaidAt,
@@ -835,8 +911,10 @@ function useMedicalAidClaims() {
             type: 'award_received',
             occurredAt: claim.award.awardedAt,
             title: 'Award Received',
-            description: `${claim.providerName} awarded ${formatCurrency(claim.award.USD, 'USD')}`,
+            description: `${claim.providerName} awarded ${formatCurrency(claim.award.amount, claim.award.currency)}`,
             metadata: {
+              amount: claim.award.amount,
+              currency: claim.award.currency,
               amountUSD: claim.award.USD,
               amountZWG: claim.award.ZWG,
               reference: claim.award.reference,
@@ -853,8 +931,10 @@ function useMedicalAidClaims() {
             type: 'shortfall_paid',
             occurredAt: claim.shortfall.paidAt,
             title: 'Shortfall Paid',
-            description: `Patient paid ${formatCurrency(claim.shortfall.USD, 'USD')} via ${claim.shortfall.paymentMethod}`,
+            description: `Patient paid ${formatCurrency(claim.shortfall.amount, claim.shortfall.currency)} via ${claim.shortfall.paymentMethod}`,
             metadata: {
+              amount: claim.shortfall.amount,
+              currency: claim.shortfall.currency,
               amountUSD: claim.shortfall.USD,
               amountZWG: claim.shortfall.ZWG,
               reference: claim.shortfall.receiptNumber,
@@ -871,8 +951,10 @@ function useMedicalAidClaims() {
             type: 'shortfall_paid',
             occurredAt: payment.paidAt,
             title: 'Medical Aid Payment',
-            description: `Payment of ${formatCurrency(payment.amountUSD, 'USD')} received via ${payment.paymentMethod}`,
+            description: `Payment of ${formatCurrency(payment.amount, payment.currency)} received via ${payment.paymentMethod}`,
             metadata: {
+              amount: payment.amount,
+              currency: payment.currency,
               amountUSD: payment.amountUSD,
               amountZWG: payment.amountZWG,
               reference: payment.reference || payment.receiptNumber,
@@ -903,28 +985,40 @@ function useMedicalAidClaims() {
   }, [cachedClaims])
 
   const validateAwardAmount = useCallback((
-    awardUSD: number,
-    orderTotalUSD: number
+    awardAmount: number,
+    awardCurrency: Currency,
+    orderTotalUSD: number,
+    orderTotalZWG: number,
+    exchangeRate: number
   ): { isValid: boolean; error?: string } => {
-    if (awardUSD < 0) {
+    if (awardAmount < 0) {
       return { isValid: false, error: 'Award amount cannot be negative' }
     }
+    
+    // Convert award to USD for comparison with order total
+    const awardUSD = awardCurrency === 'USD' ? awardAmount : awardAmount / exchangeRate
+    const awardZWG = awardCurrency === 'ZWG' ? awardAmount : awardAmount * exchangeRate
+    
     if (awardUSD > orderTotalUSD) {
       return { isValid: false, error: 'Award amount cannot exceed order total' }
     }
+    
     if (awardUSD === 0) {
       return { isValid: false, error: 'Award amount must be greater than zero' }
     }
-    const decimalPlaces = awardUSD.toString().split('.')[1]?.length || 0
+    
+    const decimalPlaces = awardAmount.toString().split('.')[1]?.length || 0
     if (decimalPlaces > 2) {
       return { isValid: false, error: 'Amount cannot have more than 2 decimal places' }
     }
+    
     return { isValid: true }
   }, [])
 
   const updateClaimAward = useCallback(async (
     claimId: string,
-    awardUSD: number,
+    awardAmount: number,
+    awardCurrency: Currency,
     exchangeRate: number,
     userId: string,
     userName: string
@@ -934,21 +1028,30 @@ function useMedicalAidClaims() {
       return { success: false, error: 'Claim not found' }
     }
 
-    const validation = validateAwardAmount(awardUSD, claim.orderTotal.USD)
+    const validation = validateAwardAmount(
+      awardAmount, 
+      awardCurrency, 
+      claim.orderTotal.USD, 
+      claim.orderTotal.ZWG,
+      exchangeRate
+    )
     if (!validation.isValid) {
       return { success: false, error: validation.error }
     }
 
-    const result = await recordAward(claimId, awardUSD, exchangeRate, userName)
+    const result = await recordAwardWithCurrency(claimId, awardAmount, awardCurrency, exchangeRate, userName)
     
     if (result) {
       return { success: true }
     }
     return { success: false, error: 'Failed to update award' }
-  }, [claims, validateAwardAmount, recordAward])
+  }, [claims, validateAwardAmount, recordAwardWithCurrency])
 
   const markShortfallPaid = useCallback(async (
     claimId: string,
+    shortfallAmount: number,
+    shortfallCurrency: Currency,
+    exchangeRate: number,
     paymentMethod: string,
     receiptNumber: string,
     userId: string,
@@ -959,7 +1062,7 @@ function useMedicalAidClaims() {
       return { success: false, error: 'Claim not found' }
     }
 
-    if (claim.shortfall.USD <= 0) {
+    if (claim.shortfall.amount <= 0) {
       return { success: false, error: 'No shortfall amount to pay' }
     }
 
@@ -967,13 +1070,21 @@ function useMedicalAidClaims() {
       return { success: false, error: 'Shortfall already paid' }
     }
 
-    const result = await recordShortfallPayment(claimId, paymentMethod, receiptNumber, userName)
+    const result = await recordShortfallPaymentWithCurrency(
+      claimId, 
+      shortfallAmount, 
+      shortfallCurrency, 
+      exchangeRate,
+      paymentMethod, 
+      receiptNumber, 
+      userName
+    )
     
     if (result) {
       return { success: true }
     }
     return { success: false, error: 'Failed to record shortfall payment' }
-  }, [claims, recordShortfallPayment])
+  }, [claims, recordShortfallPaymentWithCurrency])
 
   const clearClaim = useCallback(async (
     claimId: string,
@@ -1014,7 +1125,7 @@ function useMedicalAidClaims() {
 // FORMATTING UTILITIES - Pure functions
 // ============================================================================
 
-const formatCurrency = (amount: number, currency: 'USD' | 'ZWG'): string => {
+const formatCurrency = (amount: number, currency: Currency): string => {
   if (currency === 'USD') {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -1045,7 +1156,7 @@ const formatDate = (date: Date, includeTime: boolean = true): string => {
 }
 
 // ============================================================================
-// MAIN COMPONENT
+// MAIN COMPONENT - Updated for dual currency
 // ============================================================================
 
 export default function MedicalAidScreen() {
@@ -1065,13 +1176,17 @@ export default function MedicalAidScreen() {
     status: 'all' as MedicalAidStatus | 'all',
     provider: 'all',
     dateFrom: '',
-    dateTo: ''
+    dateTo: '',
+    currency: 'all' as 'all' | 'USD' | 'ZWG' // New currency filter
   })
   const [awardInput, setAwardInput] = useState<string>('')
+  const [awardCurrency, setAwardCurrency] = useState<Currency>('ZWG') // New award currency selector
   const [awardError, setAwardError] = useState<string | null>(null)
   const [showShortfallPaymentModal, setShowShortfallPaymentModal] = useState(false)
   const [showClearedModal, setShowClearedModal] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [shortfallCurrency, setShortfallCurrency] = useState<Currency>('ZWG') // New shortfall currency selector
+  const [shortfallAmount, setShortfallAmount] = useState<string>('')
 
   // Set initial selected claim
   useEffect(() => {
@@ -1083,7 +1198,8 @@ export default function MedicalAidScreen() {
   // Reset award input when selected claim changes
   useEffect(() => {
     if (selectedClaim) {
-      setAwardInput(selectedClaim.award.USD.toString())
+      setAwardInput(selectedClaim.award.amount.toString())
+      setAwardCurrency(selectedClaim.award.currency)
       setAwardError(null)
     }
   }, [selectedClaim])
@@ -1094,6 +1210,7 @@ export default function MedicalAidScreen() {
       if (filters.provider !== 'all' && claim.providerId !== filters.provider) return false
       if (filters.dateFrom && claim.createdAt < new Date(filters.dateFrom)) return false
       if (filters.dateTo && claim.createdAt > new Date(filters.dateTo)) return false
+      if (filters.currency !== 'all' && claim.award.currency !== filters.currency) return false
       return true
     })
   }, [claims, filters])
@@ -1116,9 +1233,15 @@ export default function MedicalAidScreen() {
       return
     }
     
-    const validation = validateAwardAmount(amount, selectedClaim.orderTotal.USD)
+    const validation = validateAwardAmount(
+      amount, 
+      awardCurrency, 
+      selectedClaim.orderTotal.USD, 
+      selectedClaim.orderTotal.ZWG,
+      selectedClaim.orderTotal.exchangeRate
+    )
     setAwardError(validation.error || null)
-  }, [selectedClaim, validateAwardAmount])
+  }, [selectedClaim, awardCurrency, validateAwardAmount])
 
   const handleUpdateAward = useCallback(async () => {
     if (!selectedClaim || awardError || !awardInput) return
@@ -1132,6 +1255,7 @@ export default function MedicalAidScreen() {
     const result = updateClaimAward(
       selectedClaim.id,
       amount,
+      awardCurrency,
       selectedClaim.orderTotal.exchangeRate,
       'current-user',
       'Fred Stanley'
@@ -1142,16 +1266,25 @@ export default function MedicalAidScreen() {
     }
     
     setIsProcessing(false)
-  }, [selectedClaim, awardInput, awardError, updateClaimAward])
+  }, [selectedClaim, awardInput, awardCurrency, awardError, updateClaimAward])
 
   const handleMarkShortfallPaid = useCallback(async (paymentMethod: string, receiptNumber: string) => {
     if (!selectedClaim) return
+    
+    const amount = parseFloat(shortfallAmount)
+    if (isNaN(amount) || amount <= 0) {
+      alert('Please enter a valid shortfall amount')
+      return
+    }
     
     setIsProcessing(true)
     await new Promise(resolve => setTimeout(resolve, 300))
     
     const result = markShortfallPaid(
       selectedClaim.id,
+      amount,
+      shortfallCurrency,
+      selectedClaim.orderTotal.exchangeRate,
       paymentMethod,
       receiptNumber,
       'current-user',
@@ -1164,7 +1297,7 @@ export default function MedicalAidScreen() {
     
     setShowShortfallPaymentModal(false)
     setIsProcessing(false)
-  }, [selectedClaim, markShortfallPaid])
+  }, [selectedClaim, shortfallAmount, shortfallCurrency, markShortfallPaid])
 
   const handleMarkCleared = useCallback(async () => {
     if (!selectedClaim) return
@@ -1241,7 +1374,7 @@ export default function MedicalAidScreen() {
               {/* Filters */}
               <section className="vp-card mb-6" aria-label="Claim Filters">
                 <div className="vp-card-body">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div>
                       <label htmlFor="status-filter" className="vp-form-label">
                         Status
@@ -1284,6 +1417,26 @@ export default function MedicalAidScreen() {
                             {provider.name}
                           </option>
                         ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="currency-filter" className="vp-form-label">
+                        Award Currency
+                      </label>
+                      <select
+                        id="currency-filter"
+                        value={filters.currency}
+                        onChange={(e) => setFilters(prev => ({ 
+                          ...prev, 
+                          currency: e.target.value as 'all' | 'USD' | 'ZWG'
+                        }))}
+                        className="vp-form-control"
+                        aria-label="Filter by award currency"
+                      >
+                        <option value="all">All Currencies</option>
+                        <option value="USD">USD Only</option>
+                        <option value="ZWG">ZWG Only</option>
                       </select>
                     </div>
                     
@@ -1374,7 +1527,7 @@ export default function MedicalAidScreen() {
                         </div>
                       </div>
                       
-                      {/* STATUS PROGRESS INDICATOR - PENDING → PARTIALLY PAID → CLEARED */}
+                      {/* STATUS PROGRESS INDICATOR */}
                       <div className="vp-card-body border-b border-gray-200 bg-gray-50/50">
                         <StatusProgress 
                           currentStatus={selectedClaim.status}
@@ -1411,12 +1564,11 @@ export default function MedicalAidScreen() {
                             <p className="text-xs text-gray-600 uppercase tracking-wider mb-1">
                               Awarded
                             </p>
-                            <p className="text-xl font-bold text-currency-usd">
-                              {formatCurrency(selectedClaim.award.USD, 'USD')}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {formatCurrency(selectedClaim.award.ZWG, 'ZWG')}
-                            </p>
+                            <CurrencyAmountDisplay
+                              amount={selectedClaim.award.amount}
+                              currency={selectedClaim.award.currency}
+                              exchangeRate={selectedClaim.orderTotal.exchangeRate}
+                            />
                             {selectedClaim.award.awardedAt && (
                               <p className="text-xs text-gray-500 mt-1">
                                 {formatDate(selectedClaim.award.awardedAt, false)}
@@ -1428,12 +1580,12 @@ export default function MedicalAidScreen() {
                             <p className="text-xs text-gray-600 uppercase tracking-wider mb-1">
                               Shortfall
                             </p>
-                            <p className="text-xl font-bold text-orange-600">
-                              {formatCurrency(selectedClaim.shortfall.USD, 'USD')}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {formatCurrency(selectedClaim.shortfall.ZWG, 'ZWG')}
-                            </p>
+                            <CurrencyAmountDisplay
+                              amount={selectedClaim.shortfall.amount}
+                              currency={selectedClaim.shortfall.currency}
+                              exchangeRate={selectedClaim.orderTotal.exchangeRate}
+                              className="text-orange-600"
+                            />
                             {selectedClaim.shortfall.paidAt ? (
                               <p className="text-xs text-green-600 mt-1">
                                 Paid {formatDate(selectedClaim.shortfall.paidAt, false)}
@@ -1507,7 +1659,7 @@ export default function MedicalAidScreen() {
                           <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
                             <div className="flex items-center justify-between mb-3">
                               <label htmlFor="award-amount" className="vp-form-label">
-                                Adjust Award Amount (USD)
+                                Adjust Award Amount
                               </label>
                               <span className="text-xs text-gray-500">
                                 Rate: 1 USD = {selectedClaim.orderTotal.exchangeRate} ZWG
@@ -1516,25 +1668,57 @@ export default function MedicalAidScreen() {
                             
                             <div className="flex flex-col sm:flex-row gap-3">
                               <div className="flex-1">
-                                <div className="relative">
-                                  <input
-                                    id="award-amount"
-                                    type="number"
-                                    value={awardInput}
-                                    onChange={(e) => handleAwardChange(e.target.value)}
-                                    className={`vp-form-control pl-10 ${
-                                      awardError ? 'border-status-error focus:border-status-error' : ''
-                                    }`}
-                                    placeholder="0.00"
-                                    min="0"
-                                    max={selectedClaim.orderTotal.USD}
-                                    step="0.01"
-                                    disabled={isProcessing}
-                                    aria-invalid={!!awardError}
-                                    aria-describedby={awardError ? 'award-error' : undefined}
-                                  />
-                                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-currency-usd">
-                                    $
+                                <div className="flex gap-2">
+                                  <div className="relative flex-1">
+                                    <input
+                                      id="award-amount"
+                                      type="number"
+                                      value={awardInput}
+                                      onChange={(e) => handleAwardChange(e.target.value)}
+                                      className={`vp-form-control pl-10 ${
+                                        awardError ? 'border-status-error focus:border-status-error' : ''
+                                      }`}
+                                      placeholder="0.00"
+                                      min="0"
+                                      step="0.01"
+                                      disabled={isProcessing}
+                                      aria-invalid={!!awardError}
+                                      aria-describedby={awardError ? 'award-error' : undefined}
+                                    />
+                                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                                      <span className={awardCurrency === 'USD' ? 'text-currency-usd' : 'text-currency-ZWG'}>
+                                        {awardCurrency === 'USD' ? '$' : 'ZW$'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => setAwardCurrency('USD')}
+                                      className={`
+                                        px-3 py-2 rounded-md text-xs font-medium transition-all
+                                        ${awardCurrency === 'USD'
+                                          ? 'bg-currency-usd text-white'
+                                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        }
+                                      `}
+                                    >
+                                      USD
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setAwardCurrency('ZWG')}
+                                      className={`
+                                        px-3 py-2 rounded-md text-xs font-medium transition-all
+                                        ${awardCurrency === 'ZWG'
+                                          ? 'bg-currency-ZWG text-white'
+                                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        }
+                                      `}
+                                    >
+                                      ZWG
+                                    </button>
                                   </div>
                                 </div>
                                 
@@ -1548,7 +1732,12 @@ export default function MedicalAidScreen() {
                               <div className="flex gap-2">
                                 <button
                                   type="button"
-                                  onClick={() => setAwardInput(selectedClaim.orderTotal.USD.toString())}
+                                  onClick={() => {
+                                    const fullAmount = awardCurrency === 'USD' 
+                                      ? selectedClaim.orderTotal.USD 
+                                      : selectedClaim.orderTotal.ZWG
+                                    setAwardInput(fullAmount.toString())
+                                  }}
                                   className="vp-btn vp-btn-outline whitespace-nowrap"
                                   disabled={isProcessing}
                                 >
@@ -1566,17 +1755,22 @@ export default function MedicalAidScreen() {
                             </div>
                             
                             <div className="mt-3 flex flex-wrap gap-2">
-                              {[50, 75, 100, 150, 200].map(amount => (
-                                <button
-                                  key={amount}
-                                  type="button"
-                                  onClick={() => handleAwardChange(amount.toString())}
-                                  className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50"
-                                  disabled={isProcessing}
-                                >
-                                  ${amount}
-                                </button>
-                              ))}
+                              {[50, 100, 150, 200, 250].map(amount => {
+                                const displayAmount = awardCurrency === 'USD' 
+                                  ? amount 
+                                  : amount * selectedClaim.orderTotal.exchangeRate
+                                return (
+                                  <button
+                                    key={amount}
+                                    type="button"
+                                    onClick={() => handleAwardChange(displayAmount.toFixed(2))}
+                                    className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50"
+                                    disabled={isProcessing}
+                                  >
+                                    {awardCurrency === 'USD' ? `$${amount}` : `ZW${Math.round(displayAmount)}`}
+                                  </button>
+                                )
+                              })}
                             </div>
                           </div>
                         )}
@@ -1586,7 +1780,11 @@ export default function MedicalAidScreen() {
                           {selectedClaim.status === 'awarded' && !selectedClaim.shortfall.paidAt && (
                             <button
                               type="button"
-                              onClick={() => setShowShortfallPaymentModal(true)}
+                              onClick={() => {
+                                setShortfallAmount(selectedClaim.shortfall.amount.toString())
+                                setShortfallCurrency(selectedClaim.shortfall.currency)
+                                setShowShortfallPaymentModal(true)
+                              }}
                               className="vp-btn vp-btn-warning flex items-center gap-2"
                               disabled={isProcessing}
                             >
@@ -1672,7 +1870,7 @@ export default function MedicalAidScreen() {
           </main>
         </div>
 
-        {/* Shortfall Payment Modal */}
+        {/* Shortfall Payment Modal - Updated for dual currency */}
         {showShortfallPaymentModal && selectedClaim && (
           <div
             className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
@@ -1708,11 +1906,60 @@ export default function MedicalAidScreen() {
                     <p className="text-sm text-orange-800 mb-1">
                       Shortfall Amount
                     </p>
-                    <p className="text-2xl font-bold text-orange-600">
-                      {formatCurrency(selectedClaim.shortfall.USD, 'USD')}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {formatCurrency(selectedClaim.shortfall.ZWG, 'ZWG')}
+                    <div className="flex gap-2 items-center">
+                      <div className="relative flex-1">
+                        <input
+                          type="number"
+                          value={shortfallAmount}
+                          onChange={(e) => setShortfallAmount(e.target.value)}
+                          className="vp-form-control pl-10"
+                          placeholder="0.00"
+                          min="0.01"
+                          step="0.01"
+                          required
+                        />
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                          <span className={shortfallCurrency === 'USD' ? 'text-currency-usd' : 'text-currency-ZWG'}>
+                            {shortfallCurrency === 'USD' ? '$' : 'ZW$'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setShortfallCurrency('USD')}
+                          className={`
+                            px-3 py-2 rounded-md text-xs font-medium transition-all
+                            ${shortfallCurrency === 'USD'
+                              ? 'bg-currency-usd text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }
+                          `}
+                        >
+                          USD
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShortfallCurrency('ZWG')}
+                          className={`
+                            px-3 py-2 rounded-md text-xs font-medium transition-all
+                            ${shortfallCurrency === 'ZWG'
+                              ? 'bg-currency-ZWG text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }
+                          `}
+                        >
+                          ZWG
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      ≈ {formatCurrency(
+                        shortfallCurrency === 'USD' 
+                          ? parseFloat(shortfallAmount) * selectedClaim.orderTotal.exchangeRate
+                          : parseFloat(shortfallAmount) / selectedClaim.orderTotal.exchangeRate,
+                        shortfallCurrency === 'USD' ? 'ZWG' : 'USD'
+                      )}
                     </p>
                   </div>
                   
@@ -1761,7 +2008,7 @@ export default function MedicalAidScreen() {
                   <button
                     type="submit"
                     className="vp-btn vp-btn-success"
-                    disabled={isProcessing}
+                    disabled={isProcessing || !shortfallAmount || parseFloat(shortfallAmount) <= 0}
                   >
                     {isProcessing ? 'Processing...' : 'Confirm Payment'}
                   </button>
@@ -1798,12 +2045,11 @@ export default function MedicalAidScreen() {
                   <p className="text-sm text-emerald-800 mb-1">
                     Medical Aid Payment
                   </p>
-                  <p className="text-2xl font-bold text-emerald-600">
-                    {formatCurrency(selectedClaim.award.USD, 'USD')}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {formatCurrency(selectedClaim.award.ZWG, 'ZWG')}
-                  </p>
+                  <CurrencyAmountDisplay
+                    amount={selectedClaim.award.amount}
+                    currency={selectedClaim.award.currency}
+                    exchangeRate={selectedClaim.orderTotal.exchangeRate}
+                  />
                   <p className="text-xs text-gray-500 mt-2">
                     Provider: {selectedClaim.providerName}
                   </p>

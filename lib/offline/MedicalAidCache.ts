@@ -4,9 +4,10 @@
 import { useState, useEffect, useCallback } from 'react'
 
 // ============================================================================
-// TYPES - Production Grade, Immutable
+// TYPES - Production Grade, Immutable, Dual Currency Support
 // ============================================================================
 
+type Currency = 'USD' | 'ZWG'
 type MedicalAidStatus = 'pending' | 'submitted' | 'under_review' | 'awarded' | 'partially_paid' | 'cleared' | 'rejected'
 type MedicalAidPaymentType = 'award' | 'shortfall' | 'direct_payment' | 'settlement'
 
@@ -25,17 +26,28 @@ interface MedicalAidClaim {
   readonly exchangeRate: number
   readonly rateLockedAt: Date
   readonly rateSource: string
-  readonly awardUSD: number
-  readonly awardZWG: number
+  
+  // Award - Now tracks original currency
+  readonly awardCurrency: Currency  // New: track which currency the award was made in
+  readonly awardAmount: number       // New: amount in awardCurrency
+  readonly awardUSD: number          // Always stored for consistency
+  readonly awardZWG: number          // Always stored for consistency
   readonly awardAt?: Date
   readonly awardBy?: string
   readonly awardReference?: string
+  
+  // Shortfall - Now tracks original currency
+  readonly shortfallCurrency: Currency  // New: track which currency the shortfall is in
+  readonly shortfallAmount: number       // New: amount in shortfallCurrency
   readonly shortfallUSD: number
   readonly shortfallZWG: number
   readonly shortfallPaidAt?: Date
   readonly shortfallPaymentMethod?: string
   readonly shortfallReceiptNumber?: string
+  
+  // Direct Payments - Now track per-payment currency
   readonly directPayments: MedicalAidDirectPayment[]
+  
   readonly status: MedicalAidStatus
   readonly rejectionReason?: string
   readonly createdAt: Date
@@ -48,6 +60,8 @@ interface MedicalAidDirectPayment {
   readonly id: string
   readonly claimId: string
   readonly paymentNumber: string
+  readonly currency: Currency  // New: track payment currency
+  readonly amount: number       // New: amount in currency
   readonly amountUSD: number
   readonly amountZWG: number
   readonly paymentMethod: string
@@ -57,6 +71,7 @@ interface MedicalAidDirectPayment {
   readonly capturedBy: string
   readonly terminalId?: string
   readonly notes?: string
+  readonly synced: boolean
 }
 
 interface MedicalAidPaymentRecord {
@@ -69,6 +84,8 @@ interface MedicalAidPaymentRecord {
   readonly providerName: string
   readonly memberNumber: string
   readonly paymentType: MedicalAidPaymentType
+  readonly currency: Currency  // New: track payment currency
+  readonly amount: number       // New: amount in currency
   readonly amountUSD: number
   readonly amountZWG: number
   readonly exchangeRate: number
@@ -90,12 +107,12 @@ interface MedicalAidCacheStats {
 }
 
 // ============================================================================
-// INDEXEDDB STORAGE FOR MEDICAL AID DATA - MOVED TO TOP
+// INDEXEDDB STORAGE FOR MEDICAL AID DATA - UPDATED FOR DUAL CURRENCY
 // ============================================================================
 
 class MedicalAidStorage {
   private dbName = 'VisionPlusMedicalAidDB'
-  private version = 1
+  private version = 2  // Incremented version for schema change
   private db: IDBDatabase | null = null
   private initPromise: Promise<IDBDatabase> | null = null
 
@@ -118,6 +135,21 @@ class MedicalAidStorage {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result
+        const oldVersion = event.oldVersion
+        
+        // Handle upgrade from version 1 to 2
+        if (oldVersion < 2) {
+          // Delete old stores if upgrading
+          if (db.objectStoreNames.contains('claims')) {
+            db.deleteObjectStore('claims')
+          }
+          if (db.objectStoreNames.contains('payments')) {
+            db.deleteObjectStore('payments')
+          }
+          if (db.objectStoreNames.contains('timeline')) {
+            db.deleteObjectStore('timeline')
+          }
+        }
         
         if (!db.objectStoreNames.contains('claims')) {
           const claimStore = db.createObjectStore('claims', { keyPath: 'id' })
@@ -127,6 +159,7 @@ class MedicalAidStorage {
           claimStore.createIndex('orderId', 'orderId', { unique: false })
           claimStore.createIndex('status', 'status', { unique: false })
           claimStore.createIndex('createdAt', 'createdAt', { unique: false })
+          claimStore.createIndex('awardCurrency', 'awardCurrency', { unique: false }) // New index
         }
 
         if (!db.objectStoreNames.contains('payments')) {
@@ -138,6 +171,7 @@ class MedicalAidStorage {
           paymentStore.createIndex('paymentType', 'paymentType', { unique: false })
           paymentStore.createIndex('paidAt', 'paidAt', { unique: false })
           paymentStore.createIndex('synced', 'synced', { unique: false })
+          paymentStore.createIndex('currency', 'currency', { unique: false }) // New index
         }
 
         if (!db.objectStoreNames.contains('timeline')) {
@@ -217,6 +251,23 @@ class MedicalAidStorage {
     }
   }
 
+  async getClaimsByAwardCurrency(currency: Currency): Promise<MedicalAidClaim[]> {
+    try {
+      const db = await this.init()
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['claims'], 'readonly')
+        const store = transaction.objectStore('claims')
+        const index = store.index('awardCurrency')
+        const request = index.getAll(currency)
+
+        request.onerror = () => reject([])
+        request.onsuccess = () => resolve(request.result || [])
+      })
+    } catch {
+      return []
+    }
+  }
+
   async savePayment(payment: MedicalAidDirectPayment): Promise<boolean> {
     try {
       const db = await this.init()
@@ -241,6 +292,23 @@ class MedicalAidStorage {
         const store = transaction.objectStore('payments')
         const index = store.index('claimId')
         const request = index.getAll(claimId)
+
+        request.onerror = () => reject([])
+        request.onsuccess = () => resolve(request.result || [])
+      })
+    } catch {
+      return []
+    }
+  }
+
+  async getPaymentsByCurrency(currency: Currency): Promise<MedicalAidDirectPayment[]> {
+    try {
+      const db = await this.init()
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['payments'], 'readonly')
+        const store = transaction.objectStore('payments')
+        const index = store.index('currency')
+        const request = index.getAll(currency)
 
         request.onerror = () => reject([])
         request.onsuccess = () => resolve(request.result || [])
@@ -342,7 +410,7 @@ class MedicalAidStorage {
 }
 
 // ============================================================================
-// MEDICAL AID CACHE - Singleton
+// MEDICAL AID CACHE - Singleton, Updated for Dual Currency
 // ============================================================================
 
 export class MedicalAidCache {
@@ -353,7 +421,7 @@ export class MedicalAidCache {
   private subscribers: Set<(claims: MedicalAidClaim[]) => void> = new Set()
 
   private constructor() {
-    this.storage = new MedicalAidStorage() // ✅ Now defined
+    this.storage = new MedicalAidStorage()
     this.loadFromStorage()
   }
 
@@ -407,16 +475,25 @@ export class MedicalAidCache {
       exchangeRate,
       rateLockedAt: order.rateLockedAt ? new Date(order.rateLockedAt) : new Date(),
       rateSource: order.rateSource || 'reserve_bank',
+      
+      // Initialize with no award
+      awardCurrency: 'ZWG', // Default to ZWG
+      awardAmount: 0,
       awardUSD: 0,
       awardZWG: 0,
       awardAt: undefined,
       awardBy: undefined,
       awardReference: undefined,
+      
+      // Shortfall is full amount initially (in ZWG by default)
+      shortfallCurrency: 'ZWG',
+      shortfallAmount: order.totalZWG,
       shortfallUSD: order.totalUSD,
       shortfallZWG: order.totalZWG,
       shortfallPaidAt: undefined,
       shortfallPaymentMethod: undefined,
       shortfallReceiptNumber: undefined,
+      
       directPayments: [],
       status: 'pending',
       createdAt: now,
@@ -434,7 +511,7 @@ export class MedicalAidCache {
 
   async recordAward(
     claimId: string,
-    awardUSD: number,
+    awardUSD: number,  // Keep USD as base for consistency
     exchangeRate: number,
     awardedBy: string
   ): Promise<MedicalAidClaim | null> {
@@ -442,18 +519,83 @@ export class MedicalAidCache {
     if (!claim) return null
 
     const awardZWG = awardUSD * exchangeRate
+    
+    // Determine award currency based on what was used
+    // This would be passed from the UI - for now default to ZWG
+    const awardCurrency: Currency = 'ZWG' // In production, this would come from the UI
+    const awardAmount = awardCurrency === 'USD' ? awardUSD : awardZWG
+
     const shortfallUSD = claim.orderTotalUSD - awardUSD
     const shortfallZWG = claim.orderTotalZWG - awardZWG
+    
+    // Shortfall currency defaults to same as award currency
+    const shortfallCurrency = awardCurrency
+    const shortfallAmount = shortfallCurrency === 'USD' ? shortfallUSD : shortfallZWG
 
     const updatedClaim: MedicalAidClaim = {
       ...claim,
+      awardCurrency,
+      awardAmount,
       awardUSD,
       awardZWG,
       awardAt: new Date(),
       awardBy: awardedBy,
       awardReference: `AWARD-${Date.now().toString().slice(-6)}`,
+      
+      shortfallCurrency,
+      shortfallAmount,
       shortfallUSD,
       shortfallZWG,
+      
+      status: awardUSD > 0 ? 'awarded' : claim.status,
+      lastModifiedAt: new Date(),
+      lastModifiedBy: awardedBy
+    }
+
+    this.claims.set(claimId, updatedClaim)
+    await this.storage.saveClaim(updatedClaim)
+    this.notifySubscribers()
+    
+    return updatedClaim
+  }
+
+  // New method: record award with explicit currency
+  async recordAwardWithCurrency(
+    claimId: string,
+    awardAmount: number,
+    awardCurrency: Currency,
+    exchangeRate: number,
+    awardedBy: string
+  ): Promise<MedicalAidClaim | null> {
+    const claim = this.claims.get(claimId)
+    if (!claim) return null
+
+    // Calculate both USD and ZWG equivalents
+    const awardUSD = awardCurrency === 'USD' ? awardAmount : awardAmount / exchangeRate
+    const awardZWG = awardCurrency === 'ZWG' ? awardAmount : awardAmount * exchangeRate
+
+    const shortfallUSD = claim.orderTotalUSD - awardUSD
+    const shortfallZWG = claim.orderTotalZWG - awardZWG
+    
+    // Shortfall currency defaults to same as award currency
+    const shortfallCurrency = awardCurrency
+    const shortfallAmount = shortfallCurrency === 'USD' ? shortfallUSD : shortfallZWG
+
+    const updatedClaim: MedicalAidClaim = {
+      ...claim,
+      awardCurrency,
+      awardAmount,
+      awardUSD,
+      awardZWG,
+      awardAt: new Date(),
+      awardBy: awardedBy,
+      awardReference: `AWARD-${Date.now().toString().slice(-6)}`,
+      
+      shortfallCurrency,
+      shortfallAmount,
+      shortfallUSD,
+      shortfallZWG,
+      
       status: awardUSD > 0 ? 'awarded' : claim.status,
       lastModifiedAt: new Date(),
       lastModifiedBy: awardedBy
@@ -476,6 +618,8 @@ export class MedicalAidCache {
       memberName?: string
     },
     paymentDetails: {
+      amount: number
+      currency: Currency  // New: track payment currency
       amountUSD: number
       amountZWG: number
       paymentMethod: string
@@ -505,6 +649,7 @@ export class MedicalAidCache {
     }
 
     if (!claim) {
+      // Create a new claim with appropriate totals based on payment currency
       const mockOrder = {
         id: orderId,
         totalUSD: paymentDetails.amountUSD,
@@ -531,6 +676,8 @@ export class MedicalAidCache {
       id: `MAPAY-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
       claimId: claim.id,
       paymentNumber: `MAPAY-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
+      currency: paymentDetails.currency,
+      amount: paymentDetails.amount,
       amountUSD: paymentDetails.amountUSD,
       amountZWG: paymentDetails.amountZWG,
       paymentMethod: paymentDetails.paymentMethod,
@@ -539,24 +686,34 @@ export class MedicalAidCache {
       paidAt: new Date(),
       capturedBy: paymentDetails.capturedBy,
       terminalId: paymentDetails.terminalId,
-      notes: paymentDetails.notes
+      notes: paymentDetails.notes,
+      synced: false
     }
 
+    // Update claim shortfall based on payment
+    const remainingShortfallUSD = claim.shortfallUSD - paymentDetails.amountUSD
+    const remainingShortfallZWG = claim.shortfallZWG - paymentDetails.amountZWG
+    
     const updatedClaim: MedicalAidClaim = {
       ...claim,
       directPayments: [...claim.directPayments, payment],
-      shortfallPaidAt: claim.shortfallUSD <= paymentDetails.amountUSD + 0.01 
-        ? new Date() 
-        : claim.shortfallPaidAt,
-      shortfallPaymentMethod: claim.shortfallUSD <= paymentDetails.amountUSD + 0.01
+      shortfallUSD: remainingShortfallUSD,
+      shortfallZWG: remainingShortfallZWG,
+      
+      // Update shortfall amount in original currency
+      shortfallAmount: claim.shortfallCurrency === 'USD' 
+        ? remainingShortfallUSD 
+        : remainingShortfallZWG,
+      
+      shortfallPaidAt: remainingShortfallUSD <= 0.01 ? new Date() : claim.shortfallPaidAt,
+      shortfallPaymentMethod: remainingShortfallUSD <= 0.01
         ? paymentDetails.paymentMethod
         : claim.shortfallPaymentMethod,
-      shortfallReceiptNumber: claim.shortfallUSD <= paymentDetails.amountUSD + 0.01
+      shortfallReceiptNumber: remainingShortfallUSD <= 0.01
         ? paymentDetails.receiptNumber
         : claim.shortfallReceiptNumber,
-      status: claim.shortfallUSD <= paymentDetails.amountUSD + 0.01
-        ? 'partially_paid'
-        : claim.status,
+      
+      status: remainingShortfallUSD <= 0.01 ? 'partially_paid' : claim.status,
       lastModifiedAt: new Date(),
       lastModifiedBy: paymentDetails.capturedBy
     }
@@ -581,8 +738,51 @@ export class MedicalAidCache {
     const claim = this.claims.get(claimId)
     if (!claim) return null
 
+    // This assumes shortfall is paid in the same currency as the shortfall
+    // For multi-currency support, we need a more sophisticated approach
+    const shortfallCurrency = claim.shortfallCurrency
+    const shortfallAmount = claim.shortfallAmount
+
     const updatedClaim: MedicalAidClaim = {
       ...claim,
+      shortfallPaidAt: new Date(),
+      shortfallPaymentMethod: paymentMethod,
+      shortfallReceiptNumber: receiptNumber,
+      status: 'partially_paid',
+      lastModifiedAt: new Date(),
+      lastModifiedBy: capturedBy
+    }
+
+    this.claims.set(claimId, updatedClaim)
+    await this.storage.saveClaim(updatedClaim)
+    this.notifySubscribers()
+    
+    return updatedClaim
+  }
+
+  // New method: record shortfall with explicit currency
+  async recordShortfallPaymentWithCurrency(
+    claimId: string,
+    shortfallAmount: number,
+    shortfallCurrency: Currency,
+    exchangeRate: number,
+    paymentMethod: string,
+    receiptNumber: string,
+    capturedBy: string
+  ): Promise<MedicalAidClaim | null> {
+    const claim = this.claims.get(claimId)
+    if (!claim) return null
+
+    // Calculate USD and ZWG equivalents
+    const shortfallUSD = shortfallCurrency === 'USD' ? shortfallAmount : shortfallAmount / exchangeRate
+    const shortfallZWG = shortfallCurrency === 'ZWG' ? shortfallAmount : shortfallAmount * exchangeRate
+
+    const updatedClaim: MedicalAidClaim = {
+      ...claim,
+      shortfallCurrency,
+      shortfallAmount,
+      shortfallUSD: claim.shortfallUSD - shortfallUSD,
+      shortfallZWG: claim.shortfallZWG - shortfallZWG,
       shortfallPaidAt: new Date(),
       shortfallPaymentMethod: paymentMethod,
       shortfallReceiptNumber: receiptNumber,
@@ -648,9 +848,21 @@ export class MedicalAidCache {
       .filter(c => c.orderId === orderId)
   }
 
+  // New method: get claims by award currency
+  getClaimsByAwardCurrency(currency: Currency): MedicalAidClaim[] {
+    return this.getAllClaims()
+      .filter(c => c.awardCurrency === currency && c.awardAmount > 0)
+  }
+
   getPaymentsByClaim(claimId: string): MedicalAidDirectPayment[] {
     const claim = this.claims.get(claimId)
     return claim?.directPayments || []
+  }
+
+  // New method: get payments by currency
+  getPaymentsByCurrency(currency: Currency): MedicalAidDirectPayment[] {
+    return Array.from(this.payments.values())
+      .filter(p => p.currency === currency)
   }
 
   subscribe(callback: (claims: MedicalAidClaim[]) => void): () => void {
@@ -682,7 +894,25 @@ export class MedicalAidCache {
       'old_mutual': 'Old Mutual',
       'alliance': 'Alliance',
       'altfin': 'Altfin',
-      'cellmed': 'Cellmed'
+      'cellmed': 'Cellmed',
+      'bonvie': 'BonVie',
+      'corporate_24': 'Corporate 24',
+      'eternal_peace': 'Eternal Peace',
+      'fbc': 'FBC Health',
+      'flimas': 'Flimas',
+      'generation_health': 'Generation Health',
+      'grainmed': 'Grainmed',
+      'healthmed': 'Healthmed',
+      'heritage': 'Heritage',
+      'hmmas': 'Hmmas',
+      'maisha': 'Maisha',
+      'masca': 'Masca',
+      'minerva': 'Minerva',
+      'northern': 'Northern',
+      'oakfin': 'Oakfin',
+      'prohealth': 'ProHealth',
+      'varichem': 'Varichem',
+      'emf': 'EMF'
     }
     return providerId ? providerMap[providerId.toLowerCase()] : undefined
   }
@@ -695,8 +925,21 @@ export class MedicalAidCache {
       totalClaims: claims.length,
       totalPayments: payments.length,
       totalAwards: claims.filter(c => c.awardUSD > 0).length,
-      pendingSync: 0,
+      pendingSync: payments.filter(p => !p.synced).length,
       lastSync: null
+    }
+  }
+
+  // New method: get currency distribution stats
+  getCurrencyStats(): { usdAwards: number; zwgAwards: number; usdPayments: number; zwgPayments: number } {
+    const claims = this.getAllClaims()
+    const payments = Array.from(this.payments.values())
+    
+    return {
+      usdAwards: claims.filter(c => c.awardCurrency === 'USD').length,
+      zwgAwards: claims.filter(c => c.awardCurrency === 'ZWG').length,
+      usdPayments: payments.filter(p => p.currency === 'USD').length,
+      zwgPayments: payments.filter(p => p.currency === 'ZWG').length
     }
   }
 
@@ -709,12 +952,13 @@ export class MedicalAidCache {
 }
 
 // ============================================================================
-// REACT HOOK
+// REACT HOOK - Updated for Dual Currency
 // ============================================================================
 
 export function useMedicalAidCache() {
   const [claims, setClaims] = useState<MedicalAidClaim[]>([])
   const [stats, setStats] = useState<MedicalAidCacheStats | null>(null)
+  const [currencyStats, setCurrencyStats] = useState<{ usdAwards: number; zwgAwards: number; usdPayments: number; zwgPayments: number } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   
   const cache = MedicalAidCache.getInstance()
@@ -725,6 +969,7 @@ export function useMedicalAidCache() {
     const unsubscribe = cache.subscribe((updatedClaims) => {
       setClaims(updatedClaims)
       setStats(cache.getStats())
+      setCurrencyStats(cache.getCurrencyStats())
       setIsLoading(false)
     })
 
@@ -750,6 +995,17 @@ export function useMedicalAidCache() {
     return await cache.recordAward(claimId, awardUSD, exchangeRate, awardedBy)
   }, [])
 
+  // New method: record award with currency
+  const recordAwardWithCurrency = useCallback(async (
+    claimId: string,
+    awardAmount: number,
+    awardCurrency: Currency,
+    exchangeRate: number,
+    awardedBy: string
+  ) => {
+    return await cache.recordAwardWithCurrency(claimId, awardAmount, awardCurrency, exchangeRate, awardedBy)
+  }, [])
+
   const recordShortfallPayment = useCallback(async (
     claimId: string,
     paymentMethod: string,
@@ -757,6 +1013,22 @@ export function useMedicalAidCache() {
     capturedBy: string
   ) => {
     return await cache.recordShortfallPayment(claimId, paymentMethod, receiptNumber, capturedBy)
+  }, [])
+
+  // New method: record shortfall with currency
+  const recordShortfallPaymentWithCurrency = useCallback(async (
+    claimId: string,
+    shortfallAmount: number,
+    shortfallCurrency: Currency,
+    exchangeRate: number,
+    paymentMethod: string,
+    receiptNumber: string,
+    capturedBy: string
+  ) => {
+    return await cache.recordShortfallPaymentWithCurrency(
+      claimId, shortfallAmount, shortfallCurrency, exchangeRate, 
+      paymentMethod, receiptNumber, capturedBy
+    )
   }, [])
 
   const markClaimCleared = useCallback(async (
@@ -769,15 +1041,19 @@ export function useMedicalAidCache() {
   const refresh = useCallback(() => {
     setClaims(cache.getAllClaims())
     setStats(cache.getStats())
+    setCurrencyStats(cache.getCurrencyStats())
   }, [])
 
   return {
     claims,
     stats,
+    currencyStats,
     isLoading,
     recordMedicalAidPayment,
     recordAward,
+    recordAwardWithCurrency,
     recordShortfallPayment,
+    recordShortfallPaymentWithCurrency,
     markClaimCleared,
     refresh,
     cache
